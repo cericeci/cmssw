@@ -27,6 +27,9 @@ process.GlobalTag.globaltag = 'MCRUN2_74_V9'
 process.source = cms.Source("PoolSource",
     #fileNames = cms.untracked.vstring("file:input.root',")
     fileNames = cms.untracked.vstring(
+    	'/store/relval/CMSSW_9_2_4/RelValTTbar_13/GEN-SIM-RECO/92X_upgrade2017_realistic_v2-v1/00000/108F62FE-415C-E711-9C64-0025905A60F8.root',
+    	'/store/relval/CMSSW_9_2_4/RelValTTbar_13/GEN-SIM-RECO/92X_upgrade2017_realistic_v2-v1/00000/4ABE82F0-435C-E711-9708-0CC47A4D76C8.root',
+    	'/store/relval/CMSSW_9_2_4/RelValTTbar_13/GEN-SIM-RECO/92X_upgrade2017_realistic_v2-v1/00000/82D55BD7-435C-E711-92FB-0025905A608C.root',
     #"/store/relval/CMSSW_6_2_0_pre1-START61_V8/RelValTTbarLepton/GEN-SIM-RECO/v1/00000/C6CC53CC-6E6D-E211-8EAB-003048D3756A.root',"
     
     #/RelValTTbar/CMSSW_7_0_0_pre6-PRE_ST62_V8-v1/GEN-SIM-RECO
@@ -34,7 +37,7 @@ process.source = cms.Source("PoolSource",
     #'/store/relval/CMSSW_7_0_0_pre6/RelValTTbar/GEN-SIM-RECO/PRE_ST62_V8-v1/00000/72477A84-F93B-E311-BF63-003048FFD720.root',
     #'/store/relval/CMSSW_7_0_0_pre6/RelValTTbar/GEN-SIM-RECO/PRE_ST62_V8-v1/00000/12A06D7A-F93B-E311-AA64-003048678BEA.root'
         #    '/store/relval/CMSSW_7_1_0_pre4/RelValTTbarLepton_13/GEN-SIM-RECO/POSTLS171_V1-v2/00000/48ED95A2-66AA-E311-9865-02163E00E5AE.root'
-    '/store/relval/CMSSW_8_0_0_pre5/RelValTTbarLepton_13/GEN-SIM-RECO/80X_mcRun2_asymptotic_v1-v1/00000/120469B3-20C5-E511-A321-0026189438CB.root'
+    #'/store/relval/CMSSW_8_0_0_pre5/RelValTTbarLepton_13/GEN-SIM-RECO/80X_mcRun2_asymptotic_v1-v1/00000/120469B3-20C5-E511-A321-0026189438CB.root'
 #'/store/relval/CMSSW_7_6_0_pre1/RelValTTbarLepton_13/GEN-SIM-RECO/75X_mcRun2_asymptotic_v1-v1/00000/303083D5-F82F-E511-8B50-0025905B8576.root'
     )
 )
@@ -87,6 +90,10 @@ process.MessageLogger.categories.append('SingleTopTChannelLeptonDQM'   )
 process.MessageLogger.cerr.SingleTopTChannelLeptonDQM    = cms.untracked.PSet(limit = cms.untracked.int32(1))
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.MEtoEDMConverter.deleteAfterCopy = cms.untracked.bool(False)  ## line added to avoid crash when changing run number
+
+
+process.load("DQM.Physics.topSingleLeptonDQM_cfi")
+process.load("DQM.Physics.singleTopDQM_cfi")
 
 
 ## path definitions
