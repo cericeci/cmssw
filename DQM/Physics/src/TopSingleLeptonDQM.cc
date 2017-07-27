@@ -199,7 +199,7 @@ void MonitorEnsemble::book(DQMStore::IBooker & ibooker) {
 
   // --- [STANDARD] --- //
   // Run Number
-  hists_["RunNumb_"] = ibooker.book1D("RunNumber", "Run Nr.", 1.e4, 1.5e5, 3.e5);
+  hists_["RunNumb_"] = ibooker.book1D("RunNumber", "Run Nr.", 10, 0, 10);
   // instantaneous luminosity
   hists_["InstLumi_"] = ibooker.book1D("InstLumi", "Inst. Lumi.", 100, 0., 1.e3);
   // number of selected primary vertices
