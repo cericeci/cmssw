@@ -244,10 +244,14 @@ void MonitorEnsemble::book(DQMStore::IBooker & ibooker) {
   // relative isolation of the candidate muon (depending on the decay channel)
   hists_["muonRelIso_"] = ibooker.book1D(
       "MuonRelIso", "Iso_{Rel}(#mu) (#Delta#beta Corrected)", 50, 0., 1.);
+	// phi of the leading muon
+  hists_["muonPhi_"] = ibooker.book1D("MuonPhi", "#phi(#mu)", 40, -4., 4.);
   // eta of the leading electron
   hists_["elecEta_"] = ibooker.book1D("ElecEta", "#eta(e)", 30, -3., 3.);
   // std isolation variable of the leading electron
   hists_["elecRelIso_"] = ibooker.book1D("ElecRelIso", "Iso_{Rel}(e)", 50, 0., 1.);
+	// phi of the leading electron
+  hists_["elecPhi_"] = ibooker.book1D("ElecPhi", "#phi(e)", 40, -4., 4.);
   // multiplicity of btagged jets (for track counting high efficiency) with
   // pt(L2L3)>30
  // hists_["jetMultBEff_"] = ibooker.book1D("JetMultBEff",
@@ -430,6 +434,7 @@ void MonitorEnsemble::fill(const edm::Event& event,
           // restrict to the leading electron
           fill("elecPt_", elec->pt());
           fill("elecEta_", elec->eta());
+          fill("elecPhi_", elec->phi());
           fill("elecRelIso_", el_pfRelIso);
           fill("elecChHadIso_", el_ChHadIso);
           fill("elecNeHadIso_", el_NeHadIso);
@@ -457,7 +462,7 @@ void MonitorEnsemble::fill(const edm::Event& event,
   */
 
   // fill monitoring plots for muons
-  unsigned int mMult = 0, mMultIso = 0;
+  unsigned int mMult = 0, mMultIso = 0,  mTight=0;
 
   edm::Handle<edm::View<reco::PFCandidate> > muons;
   edm::View<reco::PFCandidate>::const_iterator muonit;
@@ -491,7 +496,7 @@ void MonitorEnsemble::fill(const edm::Event& event,
           // restrict to leading muon
           fill("muonPt_", muon->pt());
           fill("muonEta_", muon->eta());
-
+          fill("muonPhi_", muon->phi());
           fill("muonRelIso_", pfRelIso);
 
           fill("muonChHadIso_", chHadPt);
@@ -500,12 +505,14 @@ void MonitorEnsemble::fill(const edm::Event& event,
         }
         ++mMult;
         if (!muonIso_ || (*muonIso_)(*muonit)) ++mMultIso;
+        if(!(muon->isGlobalMuon() && muon->isPFMuon() && muon->globalTrack()->normalizedChi2() < 10. && muon->globalTrack()->hitPattern().numberOfValidMuonHits() > 0 && muon->numberOfMatchedStations() > 1 && muon->innerTrack()->hitPattern().numberOfValidPixelHits() > 0 && muon->innerTrack()->hitPattern().trackerLayersWithMeasurement() > 5))continue;
+				++mTight;
       }
     }
   }
   fill("muonMult_", mMult);
   fill("muonMultIso_", mMultIso);
-
+  fill("muonMultTight_", mTight); 
   /*
   ------------------------------------------------------------
 
