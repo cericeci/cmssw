@@ -194,13 +194,13 @@ void MonitorEnsemble::book(DQMStore::IBooker & ibooker) {
   ibooker.setCurrentFolder(current);
 
   // determine number of bins for trigger monitoring
-  unsigned int nPaths = triggerPaths_.size();
+  //unsigned int nPaths = triggerPaths_.size();
 
   // --- [STANDARD] --- //
   // Run Number
-  hists_["RunNumb_"] = ibooker.book1D("RunNumber", "Run Nr.", 1.e4, 1.5e5, 3.e5);
+  //hists_["RunNumb_"] = ibooker.book1D("RunNumber", "Run Nr.", 1.e4, 1.5e5, 3.e5);
   // instantaneous luminosity
-  hists_["InstLumi_"] = ibooker.book1D("InstLumi", "Inst. Lumi.", 100, 0., 1.e3);
+  //hists_["InstLumi_"] = ibooker.book1D("InstLumi", "Inst. Lumi.", 100, 0., 1.e3);
   // number of selected primary vertices
   hists_["pvMult_"] = ibooker.book1D("PvMult", "N_{pvs}", 100, 0., 100.);
   // pt of the leading muon
@@ -225,11 +225,11 @@ void MonitorEnsemble::book(DQMStore::IBooker & ibooker) {
   hists_["jetLooseMult_"] = ibooker.book1D("JetLooseMult", "N_{30,loose}(jet)", 10, 0., 10.);
 
   // trigger efficiency estimates for single lepton triggers
-  hists_["triggerEff_"] = ibooker.book1D("TriggerEff",
-      "Eff(trigger)", nPaths, 0., nPaths);
+  //hists_["triggerEff_"] = ibooker.book1D("TriggerEff",
+  //    "Eff(trigger)", nPaths, 0., nPaths);
   // monitored trigger occupancy for single lepton triggers
-  hists_["triggerMon_"] = ibooker.book1D("TriggerMon",
-      "Mon(trigger)", nPaths, 0., nPaths);
+  //hists_["triggerMon_"] = ibooker.book1D("TriggerMon",
+  //    "Mon(trigger)", nPaths, 0., nPaths);
   // MET (calo)
   hists_["slimmedMETs_"] = ibooker.book1D("slimmedMETs", "MET_{slimmed}", 50, 0., 200.);
   // W mass estimate
@@ -422,10 +422,10 @@ void MonitorEnsemble::fill(const edm::Event& event,
   ------------------------------------------------------------
   */
   if (!event.eventAuxiliary().run()) return;
-  fill("RunNumb_", event.eventAuxiliary().run());
+  //fill("RunNumb_", event.eventAuxiliary().run());
 
-  double dummy = 5.;
-  fill("InstLumi_", dummy);
+  //double dummy = 5.;
+  //fill("InstLumi_", dummy);
 
   /*
   ------------------------------------------------------------

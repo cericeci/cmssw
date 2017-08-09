@@ -19,6 +19,8 @@
 #include "FWCore/Framework/interface/ConsumesCollector.h"
 #include "FWCore/Framework/interface/EDConsumerBase.h"
 #include "FWCore/Utilities/interface/EDGetToken.h"
+#include "RecoEgamma/EgammaTools/interface/EffectiveAreas.h"
+
 /**
    \class   MonitorEnsemble TopDQMHelpers.h
    "DQM/Physics/interface/TopDQMHelpers.h"
@@ -130,6 +132,7 @@ class MonitorEnsemble {
 
   /// electronId label
   edm::EDGetTokenT<edm::ValueMap<float> > electronId_;
+
   /// electronId pattern we expect the following pattern:
   ///  0: fails
   ///  1: passes electron ID only
@@ -144,6 +147,9 @@ class MonitorEnsemble {
   // int eidPattern_;
   // the cut for the MVA Id
   double eidCutValue_;
+	// electron ISO things
+
+	edm::InputTag rhoTag;
   /// extra isolation criterion on electron
   std::unique_ptr<StringCutObjectSelector<reco::PFCandidate> > elecIso_;
   /// extra selection on electrons

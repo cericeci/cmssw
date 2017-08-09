@@ -9,6 +9,7 @@
 #include "FWCore/Framework/interface/ConsumesCollector.h"
 #include "FWCore/Framework/interface/EDConsumerBase.h"
 
+
 using namespace std;
 namespace TopSingleLepton {
 
@@ -67,6 +68,9 @@ MonitorEnsemble::MonitorEnsemble(const char* label,
     if (elecExtras.existsAs<std::string>("isolation")) {
       elecIso_.reset( new StringCutObjectSelector<reco::PFCandidate>(
           elecExtras.getParameter<std::string>("isolation")));
+    }
+    if (elecExtras.existsAs<std::string>("rho")) {
+			rhoTag = elecExtras.getParameter<edm::InputTag>("rho");
     }
     // electronId is optional; in case it's not found the
     // InputTag will remain empty
@@ -195,17 +199,17 @@ void MonitorEnsemble::book(DQMStore::IBooker & ibooker) {
   ibooker.setCurrentFolder(current);
 
   // determine number of bins for trigger monitoring
-  unsigned int nPaths = triggerPaths_.size();
+  // unsigned int nPaths = triggerPaths_.size();
 
   // --- [STANDARD] --- //
   // Run Number
-  hists_["RunNumb_"] = ibooker.book1D("RunNumber", "Run Nr.", 10, 0, 10);
+  // hists_["RunNumb_"] = ibooker.book1D("RunNumber", "Run Nr.", 10, 0, 10);
   // instantaneous luminosity
-  hists_["InstLumi_"] = ibooker.book1D("InstLumi", "Inst. Lumi.", 100, 0., 1.e3);
+  // hists_["InstLumi_"] = ibooker.book1D("InstLumi", "Inst. Lumi.", 100, 0., 1.e3);
   // number of selected primary vertices
   hists_["pvMult_"] = ibooker.book1D("PvMult", "N_{pvs}", 100, 0., 100.);
   // pt of the leading muon
-  hists_["muonPt_"] = ibooker.book1D("MuonPt", "pt(#mu, TightId, TightIso)", 50, 0., 250.);
+  hists_["muonPt_"] = ibooker.book1D("MuonPt", "pt(#mu TightId, TightIso)", 50, 0., 250.);
   // muon multiplicity after  tight Id
   hists_["muonMultTight_"] = ibooker.book1D("MuonMultTight", "N_{TightId}(#mu)", 10, 0., 10.);
   // muon multiplicity after  isolation
@@ -215,23 +219,23 @@ void MonitorEnsemble::book(DQMStore::IBooker & ibooker) {
   hists_["muonMultTightIso_"] = ibooker.book1D("MuonMultTightIso",
       "N_{TightIso,TightId}(#mu)", 10, 0., 10.);
   // pt of the leading electron
-  hists_["elecPt_"] = ibooker.book1D("ElecPt", "pt(e)", 50, 0., 250.);
+  hists_["elecPt_"] = ibooker.book1D("ElecPt", "pt(e, tightId, tightIso)", 50, 0., 250.);
   // electron multiplicity before std isolation
-  hists_["elecMult_"] = ibooker.book1D("ElecMult", "N_{All}(e)", 10, 0., 10.);
+  hists_["elecMult_"] = ibooker.book1D("ElecMult", "N_{All}(e, tightId)", 10, 0., 10.);
   // electron multiplicity after  std isolation
-  hists_["elecMultIso_"] = ibooker.book1D("ElecMultIso", "N_{Iso}(e)", 10, 0., 10.);
+  hists_["elecMultIso_"] = ibooker.book1D("ElecMultIso", "N_{Iso}(e, tightId, tightIso)", 10, 0., 10.);
   // multiplicity of jets with pt>30
-  hists_["jetMult_"] = ibooker.book1D("JetMult", "N_{30}(jet, loose)", 10, 0., 10.);
+  hists_["jetMult_"] = ibooker.book1D("JetMult", "N_{30}(jet)", 10, 0., 10.);
   // multiplicity of loose jets with pt>30
-  hists_["jetMultLoose_"] = ibooker.book1D("JetMult", "N_{30}(jet, loose)", 10, 0., 10.);
+  hists_["jetMultLoose_"] = ibooker.book1D("JetMult", "N_{30, loose}(jet)", 10, 0., 10.);
   // multiplicity of loose jets with pt>30
   //hists_["jetMultTight_"] = ibooker.book1D("JetMult", "N_{30}(jet, tight)", 10, 0., 10.);
   // trigger efficiency estimates for single lepton triggers
-  hists_["triggerEff_"] = ibooker.book1D("TriggerEff",
-      "Eff(trigger)", nPaths, 0., nPaths);
+  // hists_["triggerEff_"] = ibooker.book1D("TriggerEff",
+  //    "Eff(trigger)", nPaths, 0., nPaths);
   // monitored trigger occupancy for single lepton triggers
-  hists_["triggerMon_"] = ibooker.book1D("TriggerMon",
-      "Mon(trigger)", nPaths, 0., nPaths);
+  // hists_["triggerMon_"] = ibooker.book1D("TriggerMon",
+  //    "Mon(trigger)", nPaths, 0., nPaths);
   // W mass estimate
   hists_["massW_"] = ibooker.book1D("MassW", "M(W)", 60, 0., 300.);
   // Top mass estimate
@@ -245,18 +249,18 @@ void MonitorEnsemble::book(DQMStore::IBooker & ibooker) {
 
   // --- [VERBOSE] --- //
   // eta of the leading muon
-  hists_["muonEta_"] = ibooker.book1D("MuonEta", "#eta(#mu, TightId, TightIso)", 30, -3., 3.);
+  hists_["muonEta_"] = ibooker.book1D("MuonEta", "#eta(#mu TightId, TightIso)", 30, -3., 3.);
   // relative isolation of the candidate muon (depending on the decay channel)
   hists_["muonRelIso_"] = ibooker.book1D(
       "MuonRelIso", "Iso_{Rel}(#mu, TightId) (#Delta#beta Corrected)", 50, 0., 1.);
 	// phi of the leading muon
-  hists_["muonPhi_"] = ibooker.book1D("MuonPhi", "#phi(#mu, TightId, TightIso)", 40, -4., 4.);
+  hists_["muonPhi_"] = ibooker.book1D("MuonPhi", "#phi(#mu TightId, TightIso)", 40, -4., 4.);
   // eta of the leading electron
-  hists_["elecEta_"] = ibooker.book1D("ElecEta", "#eta(e)", 30, -3., 3.);
+  hists_["elecEta_"] = ibooker.book1D("ElecEta", "#eta(e tightId, tightIso)", 30, -3., 3.);
   // std isolation variable of the leading electron
-  hists_["elecRelIso_"] = ibooker.book1D("ElecRelIso", "Iso_{Rel}(e)", 50, 0., 1.);
+  hists_["elecRelIso_"] = ibooker.book1D("ElecRelIso", "Iso_{Rel}(e tightId, tightIso)", 50, 0., 1.);
 	// phi of the leading electron
-  hists_["elecPhi_"] = ibooker.book1D("ElecPhi", "#phi(e)", 40, -4., 4.);
+  hists_["elecPhi_"] = ibooker.book1D("ElecPhi", "#phi(e tightId, tightIso)", 40, -4., 4.);
   // multiplicity of btagged jets (for track counting high efficiency) with
   // pt(L2L3)>30
  // hists_["jetMultBEff_"] = ibooker.book1D("JetMultBEff",
@@ -311,15 +315,15 @@ void MonitorEnsemble::book(DQMStore::IBooker & ibooker) {
   // charged hadron isolation component of the candidate electron (depending on
   // the decay channel)
   hists_["elecChHadIso_"] = ibooker.book1D("ElectronChHadIsoComp",
-      "ChHad_{IsoComponent}(e)", 50, 0., 5.);
+      "ChHad_{IsoComponent}(e, tightId, tightIso)", 50, 0., 5.);
   // neutral hadron isolation component of the candidate electron (depending on
   // the decay channel)
   hists_["elecNeHadIso_"] = ibooker.book1D("ElectronNeHadIsoComp",
-      "NeHad_{IsoComponent}(e)", 50, 0., 5.);
+      "NeHad_{IsoComponent}(e, tightId, tightIso)", 50, 0., 5.);
   // photon isolation component of the candidate electron (depending on the
   // decay channel)
   hists_["elecPhIso_"] = ibooker.book1D("ElectronPhIsoComp",
-      "Photon_{IsoComponent}(e)", 50, 0., 5.);
+      "Photon_{IsoComponent}(e, tightId, tightIso)", 50, 0., 5.);
  
   // multiplicity for combined secondary vertex
   hists_["jetMultCSVtx_"] = ibooker.book1D("JetMultCSV", "N_{30,loose}(CSV)", 10, 0., 10.);
@@ -391,10 +395,10 @@ void MonitorEnsemble::fill(const edm::Event& event,
   ------------------------------------------------------------
   */
   if (!event.eventAuxiliary().run()) return;
-  fill("RunNumb_", event.eventAuxiliary().run());
+//  fill("RunNumb_", event.eventAuxiliary().run());
 
-  double dummy = 5.;
-  fill("InstLumi_", dummy);
+//  double dummy = 5.;
+//  fill("InstLumi_", dummy);
 
   /*
   ------------------------------------------------------------
@@ -406,6 +410,8 @@ void MonitorEnsemble::fill(const edm::Event& event,
 
   // fill monitoring plots for electrons
   edm::Handle<edm::View<reco::PFCandidate> > elecs;
+  edm::Handle< double > _rhoHandle;
+	event.getByLabel(rhoTag,_rhoHandle);
   if (!event.getByToken(elecs_, elecs)) return;
 
   // check availability of electron id
@@ -431,13 +437,26 @@ void MonitorEnsemble::fill(const edm::Event& event,
         double el_ChHadIso = gsf_el->pfIsolationVariables().sumChargedHadronPt;
         double el_NeHadIso = gsf_el->pfIsolationVariables().sumNeutralHadronEt;
         double el_PhIso = gsf_el->pfIsolationVariables().sumPhotonEt;
-        double el_pfRelIso =
-            (el_ChHadIso +
-             max(0., el_NeHadIso + el_PhIso -
-                         0.5 * gsf_el->pfIsolationVariables().sumPUPt)) /
-            gsf_el->pt();
-        if (eMult == 0) {
-          // restrict to the leading electron
+				double absEta = abs(gsf_el->eta());
+				double eA = 0;				
+				if      (absEta < 1.000) eA = 0.1703;
+				else if (absEta < 1.479) eA = 0.1715;
+				else if (absEta < 2.000) eA = 0.1213;
+				else if (absEta < 2.200) eA = 0.1230;
+				else if (absEta < 2.300) eA = 0.1635;
+				else if (absEta < 2.400) eA = 0.1937;
+				else if (absEta < 5.000) eA = 0.2393;
+	
+				double rho = _rhoHandle.isValid() ? (float)(*_rhoHandle) : 0;
+        double el_pfRelIso = (el_ChHadIso + max(0., el_NeHadIso + el_PhIso - rho * eA)) /gsf_el->pt();
+
+				//Only tightId
+
+				//Tight Iso
+
+
+        if (eMult == 0 && (el_pfRelIso < 0.0588)) {
+          // restrict to the leading tight isolated electron
           fill("elecPt_", elec->pt());
           fill("elecEta_", elec->eta());
           fill("elecPhi_", elec->phi());
@@ -446,13 +465,12 @@ void MonitorEnsemble::fill(const edm::Event& event,
           fill("elecNeHadIso_", el_NeHadIso);
           fill("elecPhIso_", el_PhIso);
         }
+        ++eMult;
+				if (!(el_pfRelIso < 0.0588)) continue;
         // in addition to the multiplicity counter buffer the iso
         // electron candidates for later overlap check with jets
-        ++eMult;
-        if (!elecIso_ || (*elecIso_)(*elec)) {
-          isoElecs.push_back(&(*elec));
-          ++eMultIso;
-        }
+				// TightId and TightIso
+        ++eMultIso;
       }
     }
   }
@@ -495,7 +513,7 @@ void MonitorEnsemble::fill(const edm::Event& event,
 				bool    isTightIdMuon = false;
 				bool   isTightIsoMuon = false;
 
-        if((muon->isGlobalMuon() && muon->isPFMuon() && muon->globalTrack()->normalizedChi2() < 10. && muon->globalTrack()->hitPattern().numberOfValidMuonHits() > 0 && muon->numberOfMatchedStations() > 1 && muon->innerTrack()->hitPattern().numberOfValidPixelHits() > 0 && muon->innerTrack()->hitPattern().trackerLayersWithMeasurement() > 5 && fabs(muon->muonBestTrack()->dxy(Pvertex.position())) < 0.2 && fabs(muon->muonBestTrack()->dz(Pvertex.position())) < 0.2) ){
+        if((muon->isGlobalMuon() && muon->isPFMuon() && muon->globalTrack()->normalizedChi2() < 10. && muon->globalTrack()->hitPattern().numberOfValidMuonHits() > 0 && muon->numberOfMatchedStations() > 1 && muon->innerTrack()->hitPattern().numberOfValidPixelHits() > 0 && muon->innerTrack()->hitPattern().trackerLayersWithMeasurement() > 5 && fabs(muon->muonBestTrack()->dxy(Pvertex.position())) < 0.2 && fabs(muon->muonBestTrack()->dz(Pvertex.position())) < 0.5) ){
 					isTightIdMuon = true;
 					mMultTight++;
 				}
@@ -575,7 +593,7 @@ void MonitorEnsemble::fill(const edm::Event& event,
   // loop jet collection
   std::vector<reco::Jet> correctedJets;
   std::vector<double> JetTagValues;
-  unsigned int mult = 0, multLoose = 0, multTight = 0, multCSV = 0;
+  unsigned int mult = 0, multLoose = 0, multCSV = 0;
 
   edm::Handle<edm::View<reco::Jet> > jets;
   if (!event.getByToken(jets_, jets)) {

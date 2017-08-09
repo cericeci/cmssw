@@ -223,26 +223,26 @@ topSingleMuonMediumDQM_miniAOD = cms.EDAnalyzer("TopSingleLeptonDQM_miniAOD",
       label  = cms.string("jets:step1"),
       src    = cms.InputTag("slimmedJets"),
       select = cms.string("pt>30 & abs(eta)<2.5 "),
-      min = cms.int32(1),
+      min = cms.int32(4),
     ), 
     cms.PSet(
-      label  = cms.string("jets:step2"),
-      src    = cms.InputTag("slimmedJets"),
-      select = cms.string("pt>30 & abs(eta)<2.5 "),
-      min = cms.int32(2),
+      label  = cms.string("met:step2"),
+      src    = cms.InputTag("slimmedMETs"),
+      select = cms.string("pt>30"),
+      #min = cms.int32(2),
     ), 
-    cms.PSet(
-      label  = cms.string("jets:step3"),
-      src    = cms.InputTag("slimmedJets"),
-      select = cms.string("pt>30 & abs(eta)<2.5 "),
-      min = cms.int32(3),                                                
-    ), 
-    cms.PSet(
-      label  = cms.string("jets:step4"),
-      src    = cms.InputTag("slimmedJets"),
-      select = cms.string("pt>30 & abs(eta)<2.5 "),
-      min = cms.int32(4),                                                
-    ),
+#    cms.PSet(
+#      label  = cms.string("jets:step3"),
+#      src    = cms.InputTag("slimmedJets"),
+#      select = cms.string("pt>30 & abs(eta)<2.5 "),
+#      min = cms.int32(3),                                                
+#    ), 
+#    cms.PSet(
+#      label  = cms.string("jets:step4"),
+#      src    = cms.InputTag("slimmedJets"),
+#      select = cms.string("pt>30 & abs(eta)<2.5 "),
+#      min = cms.int32(4),                                                
+#    ),
   )
 )
 
