@@ -6,6 +6,7 @@ process = cms.Process('TOPDQM')
 process.load('DQMOffline.Configuration.DQMOffline_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
+process.load('Configuration.StandardSequences.Services_cff')
 
 ## --------------------------------------------------------------------
 ## Frontier Conditions: (adjust accordingly!!!)
@@ -73,8 +74,7 @@ process.output = cms.OutputModule("PoolOutputModule",
 )
 
 ## load jet corrections
-#process.load("JetMETCorrections.Configuration.JetCorrectionServicesAllAlgos_cff")
-#process.prefer("ak4PFL2L3")
+process.load("JetMETCorrections.Configuration.JetCorrectors_cff")
 
 ## check the event content
 process.content = cms.EDAnalyzer("EventContentAnalyzer")
@@ -103,9 +103,9 @@ process.p      = cms.Path(
     #process.DiElectronDQM              +
     #process.ElecMuonDQM                +
     #process.topSingleMuonLooseDQM      +
-    process.topSingleMuonMediumDQM     +
+    process.ak4PFCHSL1FastL2L3CorrectorChain * process.topSingleMuonMediumDQM     +
     #process.topSingleElectronLooseDQM  +
-    process.topSingleElectronMediumDQM #+
+    process.ak4PFCHSL1FastL2L3CorrectorChain * process.topSingleElectronMediumDQM #+
     #process.singleTopMuonMediumDQM     +
     #process.singleTopElectronMediumDQM
 )

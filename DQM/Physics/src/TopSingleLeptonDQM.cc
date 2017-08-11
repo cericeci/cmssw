@@ -118,8 +118,8 @@ MonitorEnsemble::MonitorEnsemble(const char* label,
         cfg.getParameter<edm::ParameterSet>("jetExtras");
     // jetCorrector is optional; in case it's not found
     // the InputTag will remain empty
-    if (jetExtras.existsAs<std::string>("jetCorrector")) {
-      jetCorrector_ = jetExtras.getParameter<std::string>("jetCorrector");
+    if (jetExtras.existsAs<edm::InputTag>("jetCorrector")) {
+			mJetCorrector  = iC.consumes<reco::JetCorrector>(jetExtras.getParameter<edm::InputTag>("jetCorrector"));
     }
     // read jetID information if it exists
     if (jetExtras.existsAs<edm::ParameterSet>("jetID")) {
@@ -207,35 +207,36 @@ void MonitorEnsemble::book(DQMStore::IBooker & ibooker) {
   // instantaneous luminosity
   // hists_["InstLumi_"] = ibooker.book1D("InstLumi", "Inst. Lumi.", 100, 0., 1.e3);
   // number of selected primary vertices
-  hists_["pvMult_"] = ibooker.book1D("PvMult", "N_{pvs}", 100, 0., 100.);
+  hists_["pvMult_"] = ibooker.book1D("PvMult", "N_{good pvs}", 50, 0., 50.);
   // pt of the leading muon
-  hists_["muonPt_"] = ibooker.book1D("MuonPt", "pt(#mu TightId, TightIso)", 50, 0., 250.);
+  hists_["muonPt_"] = ibooker.book1D("MuonPt", "pt(#mu TightId, TightIso)", 40, 0., 200.);
   // muon multiplicity after  tight Id
-  hists_["muonMultTight_"] = ibooker.book1D("MuonMultTight", "N_{TightId}(#mu)", 10, 0., 10.);
+  hists_["muonMult_"] = ibooker.book1D("MuonMult", "N_{loose}(#mu)", 10, 0., 10.);
   // muon multiplicity after  isolation
-  hists_["muonMultIso_"] = ibooker.book1D("MuonMultIso",
-      "N_{TightIso}(#mu)", 10, 0., 10.);
+  //hists_["muonMultIso_"] = ibooker.book1D("MuonMultIso",
+  //    "N_{TightIso}(#mu)", 10, 0., 10.);
   // muon multiplicity after  tight Id and isolation
-  hists_["muonMultTightIso_"] = ibooker.book1D("MuonMultTightIso",
+  hists_["muonMultTight_"] = ibooker.book1D("MuonMultTight",
       "N_{TightIso,TightId}(#mu)", 10, 0., 10.);
   // pt of the leading electron
-  hists_["elecPt_"] = ibooker.book1D("ElecPt", "pt(e, tightId, tightIso)", 50, 0., 250.);
+  hists_["elecPt_"] = ibooker.book1D("ElecPt", "pt(e TightId, TightIso)", 40, 0., 200.);
   // electron multiplicity before std isolation
-  hists_["elecMult_"] = ibooker.book1D("ElecMult", "N_{All}(e, tightId)", 10, 0., 10.);
+  //hists_["elecMult_"] = ibooker.book1D("ElecMult", "N_{All}(e, tightId)", 10, 0., 10.);
   // electron multiplicity after  std isolation
-  hists_["elecMultIso_"] = ibooker.book1D("ElecMultIso", "N_{Iso}(e, tightId, tightIso)", 10, 0., 10.);
+  //hists_["elecMultIso_"] = ibooker.book1D("ElecMultIso", "N_{Iso}(e, tightId, tightIso)", 10, 0., 10.);
   // multiplicity of jets with pt>30
   hists_["jetMult_"] = ibooker.book1D("JetMult", "N_{30}(jet)", 10, 0., 10.);
   // multiplicity of loose jets with pt>30
-  hists_["jetMultLoose_"] = ibooker.book1D("JetMult", "N_{30, loose}(jet)", 10, 0., 10.);
-  // multiplicity of loose jets with pt>30
-  //hists_["jetMultTight_"] = ibooker.book1D("JetMult", "N_{30}(jet, tight)", 10, 0., 10.);
+  hists_["jetMultLoose_"] = ibooker.book1D("JetMultLoose", "N_{30, loose}(jet)", 10, 0., 10.);
+
   // trigger efficiency estimates for single lepton triggers
   // hists_["triggerEff_"] = ibooker.book1D("TriggerEff",
   //    "Eff(trigger)", nPaths, 0., nPaths);
   // monitored trigger occupancy for single lepton triggers
   // hists_["triggerMon_"] = ibooker.book1D("TriggerMon",
   //    "Mon(trigger)", nPaths, 0., nPaths);
+  // MET (pflow)
+  hists_["metPflow_"] = ibooker.book1D("METPflow", "MET_{Pflow}", 50, 0., 200.);
   // W mass estimate
   hists_["massW_"] = ibooker.book1D("MassW", "M(W)", 60, 0., 300.);
   // Top mass estimate
@@ -252,15 +253,18 @@ void MonitorEnsemble::book(DQMStore::IBooker & ibooker) {
   hists_["muonEta_"] = ibooker.book1D("MuonEta", "#eta(#mu TightId, TightIso)", 30, -3., 3.);
   // relative isolation of the candidate muon (depending on the decay channel)
   hists_["muonRelIso_"] = ibooker.book1D(
-      "MuonRelIso", "Iso_{Rel}(#mu, TightId) (#Delta#beta Corrected)", 50, 0., 1.);
+      "MuonRelIso", "Iso_{Rel}(#mu TightId) (#Delta#beta Corrected)", 50, 0., 1.);
 	// phi of the leading muon
   hists_["muonPhi_"] = ibooker.book1D("MuonPhi", "#phi(#mu TightId, TightIso)", 40, -4., 4.);
   // eta of the leading electron
-  hists_["elecEta_"] = ibooker.book1D("ElecEta", "#eta(e tightId, tightIso)", 30, -3., 3.);
+  hists_["elecEta_"] = ibooker.book1D("ElecEta", "#eta(e tightId)", 30, -3., 3.);
   // std isolation variable of the leading electron
-  hists_["elecRelIso_"] = ibooker.book1D("ElecRelIso", "Iso_{Rel}(e tightId, tightIso)", 50, 0., 1.);
+  hists_["elecRelIso_"] = ibooker.book1D("ElecRelIso", "Iso_{Rel}(e TightId, TightIso)", 50, 0., 1.);
 	// phi of the leading electron
-  hists_["elecPhi_"] = ibooker.book1D("ElecPhi", "#phi(e tightId, tightIso)", 40, -4., 4.);
+  hists_["elecPhi_"] = ibooker.book1D("ElecPhi", "#phi(e tightId)", 40, -4., 4.);
+	// multiplicity of tight Id, tight Iso electorns
+  hists_["elecMultTight_"] = ibooker.book1D("ElecMultTight",
+                                              "N_{TightIso,TightId}(e)", 10, 0., 10.);
   // multiplicity of btagged jets (for track counting high efficiency) with
   // pt(L2L3)>30
  // hists_["jetMultBEff_"] = ibooker.book1D("JetMultBEff",
@@ -285,8 +289,6 @@ void MonitorEnsemble::book(DQMStore::IBooker & ibooker) {
   hists_["jet4Eta_"] = ibooker.book1D("Jet4Eta", "#eta_{30,loose}(jet4)", 60, -3., 3.);
   // pt of the 4. leading jet (corrected to L2+L3)
   hists_["jet4Pt_"] = ibooker.book1D("Jet4Pt", "pt_{30,loose}(jet4)", 60, 0., 300.);
-  // MET (pflow)
-  hists_["metPflow_"] = ibooker.book1D("METPflow", "MET_{Pflow}", 50, 0., 200.);
   // dz for muons (to suppress cosmis)
   hists_["muonDelZ_"] = ibooker.book1D("MuonDelZ", "d_{z}(#mu)", 50, -25., 25.);
   // dxy for muons (to suppress cosmics)
@@ -303,33 +305,33 @@ void MonitorEnsemble::book(DQMStore::IBooker & ibooker) {
   // charged hadron isolation component of the candidate muon (depending on the
   // decay channel)
   hists_["muonChHadIso_"] = ibooker.book1D("MuonChHadIsoComp",
-      "ChHad_{IsoComponent}(#mu)", 50, 0., 5.);
+      "ChHad_{IsoComponent}(#mu TightId)", 50, 0., 5.);
   // neutral hadron isolation component of the candidate muon (depending on the
   // decay channel)
   hists_["muonNeHadIso_"] = ibooker.book1D("MuonNeHadIsoComp",
-      "NeHad_{IsoComponent}(#mu)", 50, 0., 5.);
+      "NeHad_{IsoComponent}(#mu TightId)", 50, 0., 5.);
   // photon isolation component of the candidate muon (depending on the decay
   // channel)
   hists_["muonPhIso_"] = ibooker.book1D("MuonPhIsoComp",
-      "Photon_{IsoComponent}(#mu)", 50, 0., 5.);
+      "Photon_{IsoComponent}(#mu )", 50, 0., 5.);
   // charged hadron isolation component of the candidate electron (depending on
   // the decay channel)
   hists_["elecChHadIso_"] = ibooker.book1D("ElectronChHadIsoComp",
-      "ChHad_{IsoComponent}(e, tightId, tightIso)", 50, 0., 5.);
+      "ChHad_{IsoComponent}(e tightId)", 50, 0., 5.);
   // neutral hadron isolation component of the candidate electron (depending on
   // the decay channel)
   hists_["elecNeHadIso_"] = ibooker.book1D("ElectronNeHadIsoComp",
-      "NeHad_{IsoComponent}(e, tightId, tightIso)", 50, 0., 5.);
+      "NeHad_{IsoComponent}(e tightId)", 50, 0., 5.);
   // photon isolation component of the candidate electron (depending on the
   // decay channel)
   hists_["elecPhIso_"] = ibooker.book1D("ElectronPhIsoComp",
-      "Photon_{IsoComponent}(e, tightId, tightIso)", 50, 0., 5.);
+      "Photon_{IsoComponent}(e tightId)", 50, 0., 5.);
  
   // multiplicity for combined secondary vertex
-  hists_["jetMultCSVtx_"] = ibooker.book1D("JetMultCSV", "N_{30,loose}(CSV)", 10, 0., 10.);
+  hists_["jetMultBCSVM_"] = ibooker.book1D("JetMultBCSVM", "N_{30}(CSVM)", 10, 0., 10.);
   // btag discriminator for combined secondary vertex
-  hists_["jetBCVtx_"] = ibooker.book1D("JetDiscCSV",
-      "Disc_{CSV}(JET)", 100, -1., 2.);
+  hists_["jetBCSV__"] = ibooker.book1D("JetDiscCSV",
+      "BJet Disc_{CSV}(JET)", 100, -1., 2.);
   // pt of the 1. leading jet (uncorrected)
   // hists_["jet1PtRaw_"] = ibooker.book1D("Jet1PtRaw", "pt_{Raw}(jet1)", 60, 0., 300.);
   // pt of the 2. leading jet (uncorrected)
@@ -394,7 +396,7 @@ void MonitorEnsemble::fill(const edm::Event& event,
 
   ------------------------------------------------------------
   */
-  if (!event.eventAuxiliary().run()) return;
+//  if (!event.eventAuxiliary().run()) return;
 //  fill("RunNumb_", event.eventAuxiliary().run());
 
 //  double dummy = 5.;
@@ -431,13 +433,13 @@ void MonitorEnsemble::fill(const edm::Event& event,
     reco::GsfElectronRef gsf_el = elec->gsfElectronRef();
     // restrict to electrons with good electronId
     if (electronId_.isUninitialized() ? true : ((double)(*electronId)[gsf_el] >=
-                                                eidCutValue_)) {
+                                                eidCutValue_)) { //This Electron Id is not currently used, but we can keep this for future needs
       if (!elecSelect_ || (*elecSelect_)(*elec)) {
 
         double el_ChHadIso = gsf_el->pfIsolationVariables().sumChargedHadronPt;
         double el_NeHadIso = gsf_el->pfIsolationVariables().sumNeutralHadronEt;
         double el_PhIso = gsf_el->pfIsolationVariables().sumPhotonEt;
-				double absEta = abs(gsf_el->eta());
+				double absEta = abs(gsf_el->superCluster()->eta());
 				double eA = 0;				
 				if      (absEta < 1.000) eA = 0.1703;
 				else if (absEta < 1.479) eA = 0.1715;
@@ -455,27 +457,29 @@ void MonitorEnsemble::fill(const edm::Event& event,
 				//Tight Iso
 
 
-        if (eMult == 0 && (el_pfRelIso < 0.0588)) {
+        if (eMult == 0) {//Leading electron without Iso requirements (tight/loose defined on cfi file)
           // restrict to the leading tight isolated electron
-          fill("elecPt_", elec->pt());
-          fill("elecEta_", elec->eta());
-          fill("elecPhi_", elec->phi());
           fill("elecRelIso_", el_pfRelIso);
           fill("elecChHadIso_", el_ChHadIso);
           fill("elecNeHadIso_", el_NeHadIso);
           fill("elecPhIso_", el_PhIso);
         }
         ++eMult;
-				if (!(el_pfRelIso < 0.0588)) continue;
-        // in addition to the multiplicity counter buffer the iso
-        // electron candidates for later overlap check with jets
+
+				if (!((el_pfRelIso<0.0588 && absEta<1.479)||(el_pfRelIso<0.0571 && absEta>1.479))) continue;
 				// TightId and TightIso
+
+				if (eMultIso == 0){//Only for tight Iso electrons
+				  fill("elecPt_", elec->pt());
+          fill("elecEta_", elec->eta());
+          fill("elecPhi_", elec->phi());
+				}
         ++eMultIso;
       }
     }
   }
-  fill("elecMult_", eMult);
-  fill("elecMultIso_", eMultIso);
+  //fill("elecMult_", eMult);
+  fill("elecMultTight_", eMultIso);
 
   /*
   ------------------------------------------------------------
@@ -486,7 +490,7 @@ void MonitorEnsemble::fill(const edm::Event& event,
   */
 
   // fill monitoring plots for muons
-  unsigned int mMultTight = 0, mMultIso = 0,  mMultTightIso=0;
+  unsigned int mMult = 0, mTight=0, mTightId = 0;
 
   edm::Handle<edm::View<reco::PFCandidate> > muons;
   edm::View<reco::PFCandidate>::const_iterator muonit;
@@ -504,44 +508,37 @@ void MonitorEnsemble::fill(const edm::Event& event,
       fill("muonDelXY_", muon->innerTrack()->vx(), muon->innerTrack()->vy());
 
       // apply preselection
-      if ((!muonSelect_ || (*muonSelect_)(*muonit)) && (!muonIso_ || (*muonIso_)(*muonit)) ) {
-
+      if ((!muonSelect_ || (*muonSelect_)(*muonit))) {
+				mMult++;
         double chHadPt = muon->pfIsolationR04().sumChargedHadronPt;
         double neHadEt = muon->pfIsolationR04().sumNeutralHadronEt;
         double phoEt   = muon->pfIsolationR04().sumPhotonEt;
         double pfRelIso = (chHadPt + max(0., neHadEt + phoEt - 0.5 * muon->pfIsolationR04().sumPUPt)) / muon->pt();  // CB dBeta corrected iso!
-				bool    isTightIdMuon = false;
-				bool   isTightIsoMuon = false;
 
-        if((muon->isGlobalMuon() && muon->isPFMuon() && muon->globalTrack()->normalizedChi2() < 10. && muon->globalTrack()->hitPattern().numberOfValidMuonHits() > 0 && muon->numberOfMatchedStations() > 1 && muon->innerTrack()->hitPattern().numberOfValidPixelHits() > 0 && muon->innerTrack()->hitPattern().trackerLayersWithMeasurement() > 5 && fabs(muon->muonBestTrack()->dxy(Pvertex.position())) < 0.2 && fabs(muon->muonBestTrack()->dz(Pvertex.position())) < 0.5) ){
-					isTightIdMuon = true;
-					mMultTight++;
-				}
-			
-				if(pfRelIso < 0.15){
-					isTightIsoMuon = true;
-					mMultIso++;					
-				}
+        if(!(muon->isGlobalMuon() && muon->isPFMuon() && muon->globalTrack()->normalizedChi2() < 10. && muon->globalTrack()->hitPattern().numberOfValidMuonHits() > 0 && muon->numberOfMatchedStations() > 1 && muon->innerTrack()->hitPattern().numberOfValidPixelHits() > 0 && muon->innerTrack()->hitPattern().trackerLayersWithMeasurement() > 5 && fabs(muon->muonBestTrack()->dxy(Pvertex.position())) < 0.2 && fabs(muon->muonBestTrack()->dz(Pvertex.position())) < 0.5) ) continue; //Only tight muons
 				
-				if (isTightIsoMuon && isTightIdMuon){
-	        if (mMultTightIso == 0) {
-  	        // restrict to leading muon
-  	        fill("muonPt_", muon->pt());
-  	        fill("muonEta_", muon->eta());
-  	        fill("muonPhi_", muon->phi());
+				if (mTightId == 0){
   	        fill("muonRelIso_", pfRelIso);
   	        fill("muonChHadIso_", chHadPt);
   	        fill("muonNeHadIso_", neHadEt);
   	        fill("muonPhIso_", phoEt);
-  	      }
-					mMultTightIso++;
+				}
+				mTightId++;
+				
+				if(!(pfRelIso < 0.15)) continue; //Tight Iso
+
+				if (mTight == 0){//Leading tightId tightIso muon
+  	      fill("muonPt_", muon->pt());
+  	      fill("muonEta_", muon->eta());
+  	      fill("muonPhi_", muon->phi());
   	    }
+				mTight++;
 			}
     }
   }
-  fill("muonMultTight_", mMultTight);
-  fill("muonMultIso_", mMultIso);
-  fill("muonMultTightIso_", mMultTightIso); 
+  fill("muonMult_", mMult);
+  fill("muonMultTight_", mTight);
+
   /*
   ------------------------------------------------------------
 
@@ -556,39 +553,9 @@ void MonitorEnsemble::fill(const edm::Event& event,
 
     if (!event.getByToken(btagCSV_, btagCSV)) return;
   }
-  // load jet corrector if configured such
-  const JetCorrector* corrector = 0;
-  if (!jetCorrector_.empty()) {
-    // check whether a jet correcto is in the event setup or not
-    if (setup.find(edm::eventsetup::EventSetupRecordKey::makeKey<
-            JetCorrectionsRecord>())) {
-      corrector = JetCorrector::getJetCorrector(jetCorrector_, setup);
-    } else {
-      edm::LogVerbatim("TopSingleLeptonDQM")
-          << "\n"
-          << "-----------------------------------------------------------------"
-             "-------------------- \n"
-          << " No JetCorrectionsRecord available from EventSetup:              "
-             "                     \n"
-          << "  - Jets will not be corrected.                                  "
-             "                     \n"
-          << "  - If you want to change this add the following lines to your "
-             "cfg file:              \n"
-          << "                                                                 "
-             "                     \n"
-          << "  ## load jet corrections                                        "
-             "                     \n"
-          << "  "
-             "process.load(\"JetMETCorrections.Configuration."
-             "JetCorrectionServicesAllAlgos_cff\") \n"
-          << "  process.prefer(\"ak5CaloL2L3\")                                "
-             "                     \n"
-          << "                                                                 "
-             "                     \n"
-          << "-----------------------------------------------------------------"
-             "-------------------- \n";
-    }
-  }
+
+	edm::Handle<reco::JetCorrector> corrector;
+	event.getByToken(mJetCorrector, corrector);
 
   // loop jet collection
   std::vector<reco::Jet> correctedJets;
@@ -600,88 +567,61 @@ void MonitorEnsemble::fill(const edm::Event& event,
     return;
   }
 
-  edm::Handle<reco::JetIDValueMap> jetID;
-  if (jetIDSelect_) {
-    if (!event.getByToken(jetIDLabel_, jetID)) return;
-  }
-
   for (edm::View<reco::Jet>::const_iterator jet = jets->begin();
        jet != jets->end(); ++jet) {
-    // check jetID for calo jets
-    unsigned int idx = jet - jets->begin();
-    if (jetIDSelect_ &&
-        dynamic_cast<const reco::CaloJet*>(jets->refAt(idx).get())) {
-      if (!(*jetIDSelect_)((*jetID)[jets->refAt(idx)])) continue;
-    }
-    // chekc additional jet selection for calo, pf and bare reco jets
-    if (dynamic_cast<const reco::CaloJet*>(&*jet)) {
-      reco::CaloJet sel = dynamic_cast<const reco::CaloJet&>(*jet);
-      sel.scaleEnergy(corrector ? corrector->correction(*jet) : 1.);
-      StringCutObjectSelector<reco::CaloJet> jetSelect(jetSelect_);
-      if (!jetSelect(sel)) {
-        continue;
-      }
-    } else if (dynamic_cast<const reco::PFJet*>(&*jet)) {
+		bool isLoose = false;
+    // check additional jet selection for pf jets
+		if (dynamic_cast<const reco::PFJet*>(&*jet)) {
       reco::PFJet sel = dynamic_cast<const reco::PFJet&>(*jet);
-      sel.scaleEnergy(corrector ? corrector->correction(*jet) : 1.);
       StringCutObjectSelector<reco::PFJet> jetSelect(jetSelect_);
-      if (!jetSelect(sel)) continue;
-    } else {
-      reco::Jet sel = *jet;
-      sel.scaleEnergy(corrector ? corrector->correction(*jet) : 1.);
-      StringCutObjectSelector<reco::Jet> jetSelect(jetSelect_);
+      StringCutObjectSelector<reco::PFJet> jetlooseSelect("chargedHadronEnergyFraction()>0 && chargedMultiplicity()>0 && chargedEmEnergyFraction()<0.99 && neutralHadronEnergyFraction()<0.99 && neutralEmEnergyFraction()<0.99 && (chargedMultiplicity()+neutralMultiplicity())>1");
+			if (jetlooseSelect(sel)) isLoose = true;
+      sel.scaleEnergy(corrector->correction(*jet));
       if (!jetSelect(sel)) continue;
     }
 
     // prepare jet to fill monitor histograms
     reco::Jet monitorJet = *jet;
-    monitorJet.scaleEnergy(corrector ? corrector->correction(*jet) : 1.);
-    correctedJets.push_back(monitorJet);
-    ++mult;  // determine jet multiplicity
+		
+    ++mult;  // determine jet (no Id) multiplicity 
+		monitorJet.scaleEnergy(corrector->correction(*jet));
 
-		//if ((jet->neutralHadronEnergy()/jet->correctedP4(0).E()<0.99 &&  jet->neutralEmEnergy()/jet->correctedP4(0).E()<0.99 && jet->numberOfDaughters()>1 && abs(eta)<=2.4){
-			multLoose++;
-  	  if (includeBTag_) {
-  	    // fill b-discriminators
-  	    edm::RefToBase<reco::Jet> jetRef = jets->refAt(idx);
-	
-  	    fill("jetBCVtx_", (*btagCSV)[jetRef]);
-  	    if ((*btagCSV)[jetRef] > btagCSVWP_) ++multCSV;
-	
-  	    // Fill a vector with Jet b-tag WP for later M3+1tag calculation: CSV
-  	    // tagger
-  	    JetTagValues.push_back((*btagCSV)[jetRef]);
-  	  }
-  	  // fill pt (raw or L2L3) for the leading four jets
-  	  if (idx == 0) {
+		if (isLoose){ //Loose Id
+			unsigned int idx = jet - jets->begin();
+    	correctedJets.push_back(monitorJet);
+    	if (includeBTag_) {
+      	// fill b-discriminators
+      	edm::RefToBase<reco::Jet> jetRef = jets->refAt(idx);
+ 	     fill("jetBCSV_", (*btagCSV)[jetRef]);
+ 	     if ((*btagCSV)[jetRef] > btagCSVWP_) ++multCSV;
+      	// Fill a vector with Jet b-tag WP for later M3+1tag calculation: CSV
+      	// tagger
+      	JetTagValues.push_back((*btagCSV)[jetRef]);
+			}
+
+  	  // fill pt/eta for the leading four jets
+  	  if (multLoose == 0) {
   	    fill("jet1Pt_", monitorJet.pt());
-  	    //fill("jet1PtRaw_", jet->pt());
   	    fill("jet1Eta_", monitorJet.eta());
   	  };
-  	  if (idx == 1) {
+  	  if (multLoose == 1) {
   	    fill("jet2Pt_", monitorJet.pt());
-  	    //fill("jet2PtRaw_", jet->pt());
-  		    fill("jet2Eta_", monitorJet.eta());
+  		  fill("jet2Eta_", monitorJet.eta());
   	  }
-  	  if (idx == 2) {
+  	  if (multLoose == 2) {
   	    fill("jet3Pt_", monitorJet.pt());
-  	    //fill("jet3PtRaw_", jet->pt());
   	    fill("jet3Eta_", monitorJet.eta());
   	  }
-  	  if (idx == 3) {
+  	  if (multLoose == 3) {
   	    fill("jet4Pt_", monitorJet.pt());
-  	    //fill("jet4PtRaw_", jet->pt());
     	  fill("jet4Eta_", monitorJet.eta());
   	  }
-			//if ((jet->neutralHadronEnergy()/jet->correctedP4(0).E()<0.90 &&  jet->neutralEmEnergy()/jet->correctedP4(0).E()<0.99 && jet->numberOfDaughters()>1 && abs(eta)<=2.4){
-			//multTight++;
-			//}
- 		//}
+			multLoose++;
+		}
 	}
 	fill("jetMult_"     , mult);
   fill("jetMultLoose_", multLoose);
-  //fill("jetMultTight_", multTight);
-  fill("jetMultCSVtx_", multCSV);
+  fill("jetMultBCSVM_", multCSV);
 
   /*
   ------------------------------------------------------------
@@ -697,7 +637,7 @@ void MonitorEnsemble::fill(const edm::Event& event,
        met_ != mets_.end(); ++met_) {
     edm::Handle<edm::View<reco::MET> > met;
     if (!event.getByToken(*met_, met)) continue;
-    if (met->begin() != met->end()) {
+    if (met->begin() != met->end()) {//If we ever have to use more than one type of met again
       unsigned int idx = met_ - mets_.begin();
       if (idx == 0) fill("metPflow_", met->begin()->et());
     }
@@ -788,7 +728,7 @@ TopSingleLeptonDQM::TopSingleLeptonDQM(const edm::ParameterSet& cfg)
         beamspot.getParameter<std::string>("select")));
   }
 
-  // conifgure the selection
+  // configure the selection
   sel_ = cfg.getParameter<std::vector<edm::ParameterSet> >("selection");
   setup_ = cfg.getParameter<edm::ParameterSet>("setup");
   for (unsigned int i = 0; i < sel_.size(); ++i) {

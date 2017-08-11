@@ -11,6 +11,7 @@ tightJetCut = "(chargedHadronEnergyFraction()>0 && chargedMultiplicity()>0 && ch
 #Loose muon selection
 looseMuonCut  = "(muonRef.isNonnull && (muonRef.isGlobalMuon || muonRef.isTrackerMuon) && muonRef.isPFMuon)"
 looseIsoCut   = "((muonRef.pfIsolationR04.sumChargedHadronPt + max(0., muonRef.pfIsolationR04.sumNeutralHadronEt + muonRef.pfIsolationR04.sumPhotonEt - 0.5 * muonRef.pfIsolationR04.sumPUPt) ) / muonRef.pt < 0.25)"
+
 #Medium muon selection. Also requires either good global muon or tight segment compatibility
 mediumMuonCut = looseMuonCut + " muonRef.innerTrack.validFraction > 0.8"
 
@@ -20,14 +21,14 @@ tightMuonCut  = "muonRef.isNonnull && muonRef.isGlobalMuon && muonRef.isPFMuon &
 tightIsoCut   = "(muonRef.pfIsolationR04.sumChargedHadronPt + max(0., muonRef.pfIsolationR04.sumNeutralHadronEt + muonRef.pfIsolationR04.sumPhotonEt - 0.5 * muonRef.pfIsolationR04.sumPUPt) ) / muonRef.pt < 0.15"
 
 #Electron isolation selections
-looseEleCut = "((gsfElectronRef.full5x5_sigmaIetaIeta() < 0.011 && gsfElectronRef.superCluster().isNonnull() && gsfElectronRef.superCluster().seed().isNonnull() && (gsfElectronRef.deltaEtaSuperClusterTrackAtVtx() - gsfElectronRef.superCluster().eta() + gsfElectronRef.superCluster().seed().eta()) < 0.00477 && abs(gsfElectronRef.deltaPhiSuperClusterTrackAtVtx()) < 0.222 && gsfElectronRef.hadronicOverEm() < 0.298 && abs(1.0 - gsfElectronRef.eSuperClusterOverP())*1.0/gsfElectronRef.ecalEnergy() < 0.241 && gsfElectronRef.gsfTrack.hitPattern().numberOfHits('MISSING_INNER_HITS') <= 1 && abs(gsfElectronRef.eta) < 1.479) ||  (gsfElectronRef.full5x5_sigmaIetaIeta() < 0.0314 && gsfElectronRef.superCluster().isNonnull() && gsfElectronRef.superCluster().seed().isNonnull() && (gsfElectronRef.deltaEtaSuperClusterTrackAtVtx() - gsfElectronRef.superCluster().eta() + gsfElectronRef.superCluster().seed().eta()) < 0.00868 && abs(gsfElectronRef.deltaPhiSuperClusterTrackAtVtx()) < 0.213 && gsfElectronRef.hadronicOverEm() < 0.101  && abs(1.0 - gsfElectronRef.eSuperClusterOverP())*1.0/gsfElectronRef.ecalEnergy() < 0.14 && gsfElectronRef.gsfTrack.hitPattern().numberOfHits('MISSING_INNER_HITS') <= 1 && abs(gsfElectronRef.eta) > 1.479))"
+looseEleCut = "(( gsfElectronRef.full5x5_sigmaIetaIeta() < 0.011 && gsfElectronRef.superCluster().isNonnull() && gsfElectronRef.superCluster().seed().isNonnull() && (gsfElectronRef.deltaEtaSuperClusterTrackAtVtx() - gsfElectronRef.superCluster().eta() + gsfElectronRef.superCluster().seed().eta()) < 0.00477 && abs(gsfElectronRef.deltaPhiSuperClusterTrackAtVtx()) < 0.222 && gsfElectronRef.hadronicOverEm() < 0.298 && abs(1.0 - gsfElectronRef.eSuperClusterOverP())*1.0/gsfElectronRef.ecalEnergy() < 0.241 && gsfElectronRef.gsfTrack.hitPattern().numberOfHits('MISSING_INNER_HITS') <= 1 && abs(gsfElectronRef.superCluster().eta()) < 1.479) || (gsfElectronRef.full5x5_sigmaIetaIeta() < 0.0314 && gsfElectronRef.superCluster().isNonnull() && gsfElectronRef.superCluster().seed().isNonnull() && (gsfElectronRef.deltaEtaSuperClusterTrackAtVtx() - gsfElectronRef.superCluster().eta() + gsfElectronRef.superCluster().seed().eta()) < 0.00868 && abs(gsfElectronRef.deltaPhiSuperClusterTrackAtVtx()) < 0.213 && gsfElectronRef.hadronicOverEm() < 0.101  && abs(1.0 - gsfElectronRef.eSuperClusterOverP())*1.0/gsfElectronRef.ecalEnergy() < 0.14 && gsfElectronRef.gsfTrack.hitPattern().numberOfHits('MISSING_INNER_HITS') <= 1 && abs(gsfElectronRef.superCluster().eta()) > 1.479))"
 
-#Redefined on .cc
+#Redefined on TopSingleLeptonDQM.cc
 #ElelooseIsoCut  = "(((gsfElectronRef.pfIsolationVariables.sumChargedHadronPt + max(0., gsfElectronRef.pfIsolationVariables.sumNeutralHadronEt + gsfElectronRef.pfIsolationVariables.sumPhotonEt - 0.5 * gsfElectronRef.pfIsolationVariables.sumPUPt) ) / gsfElectronRef.pt < 0.0994 && abs(gsfElectronRef.eta) < 1.479) || ((gsfElectronRef.pfIsolationVariables.sumChargedHadronPt + max(0., gsfElectronRef.pfIsolationVariables.sumNeutralHadronEt + gsfElectronRef.pfIsolationVariables.sumPhotonEt - 0.5 * gsfElectronRef.pfIsolationVariables.sumPUPt) ) / gsfElectronRef.pt < 0.107 && abs(gsfElectronRef.eta) > 1.479))"
 
-tightEleCut = "((gsfElectronRef.full5x5_sigmaIetaIeta() < 0.00998 && gsfElectronRef.superCluster().isNonnull() && gsfElectronRef.superCluster().seed().isNonnull() && (gsfElectronRef.deltaEtaSuperClusterTrackAtVtx() - gsfElectronRef.superCluster().eta() + gsfElectronRef.superCluster().seed().eta()) < 0.00308  && abs(gsfElectronRef.deltaPhiSuperClusterTrackAtVtx()) < 0.0816 && gsfElectronRef.hadronicOverEm() < 0.0414 && abs(1.0 - gsfElectronRef.eSuperClusterOverP())*1.0/gsfElectronRef.ecalEnergy() < 0.0129 && gsfElectronRef.gsfTrack.hitPattern().numberOfHits('MISSING_INNER_HITS') <= 1 && abs(gsfElectronRef.eta) < 1.479) ||  (gsfElectronRef.full5x5_sigmaIetaIeta() < 0.0292 && gsfElectronRef.superCluster().isNonnull() && gsfElectronRef.superCluster().seed().isNonnull() && (gsfElectronRef.deltaEtaSuperClusterTrackAtVtx() - gsfElectronRef.superCluster().eta() + gsfElectronRef.superCluster().seed().eta()) < 0.00605 && abs(gsfElectronRef.deltaPhiSuperClusterTrackAtVtx()) < 0.0394  && gsfElectronRef.hadronicOverEm() < 0.0641  && abs(1.0 - gsfElectronRef.eSuperClusterOverP())*1.0/gsfElectronRef.ecalEnergy() <	0.0129 && gsfElectronRef.gsfTrack.hitPattern().numberOfHits('MISSING_INNER_HITS') <= 1 && abs(gsfElectronRef.eta) > 1.479))"
+tightEleCut = "((gsfElectronRef.full5x5_sigmaIetaIeta() < 0.00998 && gsfElectronRef.superCluster().isNonnull() && gsfElectronRef.superCluster().seed().isNonnull() && (gsfElectronRef.deltaEtaSuperClusterTrackAtVtx() - gsfElectronRef.superCluster().eta() + gsfElectronRef.superCluster().seed().eta()) < 0.00308  && abs(gsfElectronRef.deltaPhiSuperClusterTrackAtVtx()) < 0.0816 && gsfElectronRef.hadronicOverEm() < 0.0414 && abs(1.0 - gsfElectronRef.eSuperClusterOverP())*1.0/gsfElectronRef.ecalEnergy() < 0.0129 && gsfElectronRef.gsfTrack.hitPattern().numberOfHits('MISSING_INNER_HITS') <= 1 && abs(gsfElectronRef.superCluster().eta()) < 1.479) ||  (gsfElectronRef.full5x5_sigmaIetaIeta() < 0.0292 && gsfElectronRef.superCluster().isNonnull() && gsfElectronRef.superCluster().seed().isNonnull() && (gsfElectronRef.deltaEtaSuperClusterTrackAtVtx() - gsfElectronRef.superCluster().eta() + gsfElectronRef.superCluster().seed().eta()) < 0.00605 && abs(gsfElectronRef.deltaPhiSuperClusterTrackAtVtx()) < 0.0394  && gsfElectronRef.hadronicOverEm() < 0.0641  && abs(1.0 - gsfElectronRef.eSuperClusterOverP())*1.0/gsfElectronRef.ecalEnergy() <	0.0129 && gsfElectronRef.gsfTrack.hitPattern().numberOfHits('MISSING_INNER_HITS') <= 1 && abs(gsfElectronRef.superCluster().eta()) > 1.479))"
 
-#Redefined on .cc
+#Redefined on TopSingleLeptonDQM.cc
 #EletightIsoCut  = "(((gsfElectronRef.pfIsolationVariables.sumChargedHadronPt + max(0., gsfElectronRef.pfIsolationVariables.sumNeutralHadronEt + gsfElectronRef.pfIsolationVariables.sumPhotonEt - 0.5 * gsfElectronRef.pfIsolationVariables.sumPUPt) ) / gsfElectronRef.pt < 0.0588 && abs(gsfElectronRef.eta) < 1.479) || ((gsfElectronRef.pfIsolationVariables.sumChargedHadronPt + max(0., gsfElectronRef.pfIsolationVariables.sumNeutralHadronEt + gsfElectronRef.pfIsolationVariables.sumPhotonEt - 0.5 * gsfElectronRef.pfIsolationVariables.sumPUPt) ) / gsfElectronRef.pt < 0.0571 && abs(gsfElectronRef.eta) > 1.479))"
 
 
@@ -90,7 +91,7 @@ topSingleLeptonDQM = cms.EDAnalyzer("TopSingleLeptonDQM",
     jetExtras = cms.PSet(
       ## when omitted monitor plots for pt will be filled from uncorrected
       ## jets                                            
-      jetCorrector = cms.string("topDQMak5PFCHSL2L3"),
+      ## jetCorrector = cms.string("topDQMak5PFCHSL2L3"),
       ## when omitted monitor plots will be filled w/o additional cut on
       ## jetID                                                   
       #jetID  = cms.PSet(
@@ -204,7 +205,7 @@ topSingleMuonLooseDQM = cms.EDAnalyzer("TopSingleLeptonDQM",
     jetExtras = cms.PSet(
       ## when omitted monitor plots for pt will be filled from uncorrected
       ## jets                                               
-      jetCorrector = cms.string("topDQMak5PFCHSL2L3"),
+      ## jetCorrector = cms.string("topDQMak5PFCHSL2L3"),
       ## when omitted monitor plots will be filled w/o additional cut on
       ## jetID                                                                                                                     
       #jetID  = cms.PSet(
@@ -219,8 +220,8 @@ topSingleMuonLooseDQM = cms.EDAnalyzer("TopSingleLeptonDQM",
       jetBTaggers  = cms.PSet(
 		cvsVertex = cms.PSet(
           label = cms.InputTag("pfCombinedInclusiveSecondaryVertexV2BJetTags"),
-	          workingPoint = cms.double(0.970)
-	          # CSV Tight from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation74X
+	          workingPoint = cms.double(0.890)
+	          # CSV Medium from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation74X
         )
       ),                                                
     ),
@@ -278,7 +279,7 @@ topSingleMuonLooseDQM = cms.EDAnalyzer("TopSingleLeptonDQM",
     cms.PSet(
       label  = cms.string("jets/pf:step1"),
       src    = cms.InputTag("ak4PFJetsCHS"),
-      jetCorrector = cms.string("topDQMak5PFCHSL2L3"),
+      ## jetCorrector = cms.string("topDQMak5PFCHSL2L3"),
       #select = cms.string("pt>30 & abs(eta)<2.5 & emEnergyFraction>0.01"),
       select = cms.string("pt>30 & abs(eta)<2.4 "),
       #jetID  = cms.PSet(
@@ -290,7 +291,7 @@ topSingleMuonLooseDQM = cms.EDAnalyzer("TopSingleLeptonDQM",
     cms.PSet(
       label  = cms.string("jets/pf:step2"),
       src    = cms.InputTag("ak4PFJetsCHS"),
-      jetCorrector = cms.string("topDQMak5PFCHSL2L3"),
+      ## jetCorrector = cms.string("topDQMak5PFCHSL2L3"),
       select = cms.string("pt>30 & abs(eta)<2.4 "),
       #jetID  = cms.PSet(
         #label  = cms.InputTag("ak5JetID"),
@@ -301,7 +302,7 @@ topSingleMuonLooseDQM = cms.EDAnalyzer("TopSingleLeptonDQM",
     cms.PSet(
       label  = cms.string("jets/pf:step3"),
       src    = cms.InputTag("ak4PFJetsCHS"),
-      jetCorrector = cms.string("topDQMak5PFCHSL2L3"),
+      ## jetCorrector = cms.string("topDQMak5PFCHSL2L3"),
       select = cms.string("pt>30 & abs(eta)<2.4 "),
       #jetID  = cms.PSet(
         #label  = cms.InputTag("ak5JetID"),
@@ -355,7 +356,16 @@ topSingleMuonMediumDQM = cms.EDAnalyzer("TopSingleLeptonDQM",
       select = cms.string(PVCut)
     ),
     ## [optional] : when omitted all monitoring plots for muons
-    ## will be filled w/o extras                                           
+    ## will be filled w/o extras      
+    elecExtras = cms.PSet(
+      ## when omitted electron plots will be filled w/o additional pre-
+      ## selection of the electron candidates
+      select     = cms.string(tightEleCut + "& pt>20 & abs(eta)<2.5 & (abs(gsfElectronRef.superCluster().eta()) <= 1.4442 || abs(gsfElectronRef.superCluster().eta()) >= 1.5660)"),
+			rho = cms.InputTag("fixedGridRhoFastjetAll"),
+      ## when omitted isolated electron multiplicity plot will be equi-
+      ## valent to inclusive electron multiplicity plot 
+      ## isolation  = cms.string(ElelooseIsoCut),
+    ),                                     
     muonExtras = cms.PSet(
       ## when omitted muon plots will be filled w/o additional pre-
       ## selection of the muon candidates                                                
@@ -369,7 +379,7 @@ topSingleMuonMediumDQM = cms.EDAnalyzer("TopSingleLeptonDQM",
     jetExtras = cms.PSet(
       ## when omitted monitor plots for pt will be filled from uncorrected
       ## jets
-      jetCorrector = cms.string("topDQMak5PFCHSL2L3"),
+      jetCorrector = cms.InputTag("ak4PFCHSL1FastL2L3Corrector"),  #Use pak4PFCHSL1FastL2L3Residual for data!!!
       ## when omitted monitor plots will be filled w/o additional cut on
       ## jetID                                                                                                   
       #jetID  = cms.PSet(
@@ -379,13 +389,13 @@ topSingleMuonMediumDQM = cms.EDAnalyzer("TopSingleLeptonDQM",
       ## when omitted no extra selection will be applied on jets before
       ## filling the monitor histograms; if jetCorrector is present the
       ## selection will be applied to corrected jets                                                
-      select = cms.string("pt>30 & abs(eta)< 2.4 & " + looseJetCut),
+      select = cms.string("pt>30 & abs(eta)< 2.4"),
       ## when omitted monitor histograms for b-tagging will not be filled                                                                                                   
       jetBTaggers  = cms.PSet(
-		cvsVertex = cms.PSet(
+				cvsVertex = cms.PSet(
           label = cms.InputTag("pfCombinedInclusiveSecondaryVertexV2BJetTags"),
-	          workingPoint = cms.double(0.970)
-	          # CSV Tight from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation74X
+	          workingPoint = cms.double(0.890)
+	          # CSV Medium from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation74X
         )
       ),                                                                                                
     ),
@@ -437,18 +447,18 @@ topSingleMuonMediumDQM = cms.EDAnalyzer("TopSingleLeptonDQM",
     cms.PSet(
       label  = cms.string("muons:step0"),
       src    = cms.InputTag("pfIsolatedMuonsEI"),
-      select = cms.string(tightMuonCut +"&&"+ tightIsoCut + " && pt>20 & abs(eta)<2.1"), # CB what about iso? CD Added tightIso      
+      select = cms.string(looseMuonCut + " && pt>20 & abs(eta)<2.1"), # CB what about iso? CD Added tightIso      
       min    = cms.int32(1),
-      max    = cms.int32(1),
+      #max    = cms.int32(1),
     ),
     cms.PSet(
       label  = cms.string("jets/pf:step1"),
       #src    = cms.InputTag("ak4PFJetsCHS"),
       src    = cms.InputTag("ak4PFJetsCHS"),
-			#jetCorrector = cms.string("topDQMak5PFCHSL2L3"),
-      jetCorrector = cms.string("topDQMak5PFCHSL2L3"),
+			#jetCorrector = cms.string("ak4PFCHSL1FastL2L3Corrector"),
+      ## jetCorrector = cms.string("topDQMak5PFCHSL2L3"),
       #select = cms.string("pt>30 & abs(eta)<2.5 & emEnergyFraction>0.01"),
-      select = cms.string("pt>30 & abs(eta)<2.4 & "+ looseJetCut),
+      select = cms.string("pt>30 & abs(eta)<2.4"),
       #jetID  = cms.PSet(
         #label  = cms.InputTag("ak5JetID"),
         #select = cms.string("fHPD < 0.98 & n90Hits>1 & restrictedEMF<1")
@@ -456,7 +466,7 @@ topSingleMuonMediumDQM = cms.EDAnalyzer("TopSingleLeptonDQM",
       min = cms.int32(4),
     ), 
     cms.PSet(
-      label  = cms.string("met/pf:step2"),
+      label  = cms.string("met:step2"),
       src    = cms.InputTag("pfMet"),
       #jetCorrector = cms.string("topDQMak5PFCHSL2L3"),
       select = cms.string("pt>30"),
@@ -518,7 +528,7 @@ topSingleElectronLooseDQM = cms.EDAnalyzer("TopSingleLeptonDQM",
     jetExtras = cms.PSet(
       ## when omitted monitor plots for pt will be filled from uncorrected
       ## jets
-      jetCorrector = cms.string("topDQMak5PFCHSL2L3"),
+      ## jetCorrector = cms.string("topDQMak5PFCHSL2L3"),
       ## when omitted monitor plots will be filled w/o additional cut on
       ## jetID                                                   
       #jetID  = cms.PSet(
@@ -589,7 +599,7 @@ topSingleElectronLooseDQM = cms.EDAnalyzer("TopSingleLeptonDQM",
     cms.PSet(
       label  = cms.string("jets/pf:step1"),
       src    = cms.InputTag("ak4PFJetsCHS"),
-      jetCorrector = cms.string("topDQMak5PFCHSL2L3"),
+      ##jetCorrector = cms.string("topDQMak5PFCHSL2L3"),
       select = cms.string("pt>30 & abs(eta)<2.4 "),
       #jetID  = cms.PSet(
         #label  = cms.InputTag("ak5JetID"),
@@ -600,7 +610,7 @@ topSingleElectronLooseDQM = cms.EDAnalyzer("TopSingleLeptonDQM",
     cms.PSet(
       label  = cms.string("jets/pf:step2"),
       src    = cms.InputTag("ak4PFJetsCHS"),
-      jetCorrector = cms.string("topDQMak5PFCHSL2L3"),
+      ## jetCorrector = cms.string("topDQMak5PFCHSL2L3"),
       select = cms.string("pt>30 & abs(eta)<2.4 "),
       #jetID  = cms.PSet(
         #label  = cms.InputTag("ak5JetID"),
@@ -611,7 +621,7 @@ topSingleElectronLooseDQM = cms.EDAnalyzer("TopSingleLeptonDQM",
     cms.PSet(
       label  = cms.string("jets/pf:step3"),
       src    = cms.InputTag("ak4PFJetsCHS"),
-      jetCorrector = cms.string("topDQMak5PFCHSL2L3"),
+      ## jetCorrector = cms.string("topDQMak5PFCHSL2L3"),
       select = cms.string("pt>30 & abs(eta)<2.4 "),
       #jetID  = cms.PSet(
         #label  = cms.InputTag("ak5JetID"),
@@ -622,7 +632,7 @@ topSingleElectronLooseDQM = cms.EDAnalyzer("TopSingleLeptonDQM",
     cms.PSet(
       label  = cms.string("jets/pf:step4"),
       src    = cms.InputTag("ak4PFJetsCHS"),
-      jetCorrector = cms.string("topDQMak5PFCHSL2L3"),
+      ##jetCorrector = cms.string("topDQMak5PFCHSL2L3"),
       select = cms.string("pt>30 & abs(eta)<2.4 "),
       #jetID  = cms.PSet(
         #label  = cms.InputTag("ak5JetID"),
@@ -672,8 +682,19 @@ topSingleElectronMediumDQM = cms.EDAnalyzer("TopSingleLeptonDQM",
       #electronId = cms.PSet( src = cms.InputTag("mvaTrigV0"), cutValue = cms.double(0.0) ),
       ## when omitted electron plots will be filled w/o additional pre-
       ## selection of the electron candidates
-      select     = cms.string(looseEleCut + "& pt>20 & abs(eta)<2.5"),
+      select     = cms.string(tightEleCut + "& pt>20 & abs(eta)<2.5 & (abs(gsfElectronRef.superCluster().eta()) <= 1.4442 || abs(gsfElectronRef.superCluster().eta()) >= 1.5660)"),
 			rho = cms.InputTag("fixedGridRhoFastjetAll"),
+      ## when omitted isolated electron multiplicity plot will be equi-
+      ## valent to inclusive electron multiplicity plot 
+      ## isolation  = cms.string(ElelooseIsoCut),
+    ),
+    muonExtras = cms.PSet(
+      ## when omitted electron plots will be filled w/o cut on electronId
+      #electronId = cms.PSet( src = cms.InputTag("mvaTrigV0"), cutValue = cms.double(0.0) ),
+      ## when omitted electron plots will be filled w/o additional pre-
+      ## selection of the electron candidates
+      select     = cms.string(looseMuonCut + " & pt>20 & abs(eta)<2.1"),
+			isolation  = cms.string(looseIsoCut),
       ## when omitted isolated electron multiplicity plot will be equi-
       ## valent to inclusive electron multiplicity plot 
       ## isolation  = cms.string(ElelooseIsoCut),
@@ -683,7 +704,7 @@ topSingleElectronMediumDQM = cms.EDAnalyzer("TopSingleLeptonDQM",
     jetExtras = cms.PSet(
       ## when omitted monitor plots for pt will be filled from uncorrected
       ## jets
-      jetCorrector = cms.string("topDQMak5PFCHSL2L3"),
+			jetCorrector = cms.InputTag("ak4PFCHSL1FastL2L3Corrector"), #Use pak4PFCHSL1FastL2L3Residual for data!!!
       ## when omitted monitor plots will be filled w/o additional cut on
       ## jetID
       #jetID  = cms.PSet(
@@ -693,13 +714,13 @@ topSingleElectronMediumDQM = cms.EDAnalyzer("TopSingleLeptonDQM",
       ## when omitted no extra selection will be applied on jets before
       ## filling the monitor histograms; if jetCorrector is present the
       ## selection will be applied to corrected jets 
-      select = cms.string("pt>30 & abs(eta)<2.4 & " + looseJetCut),
+      select = cms.string("pt>30 & abs(eta)<2.4"),
       ## when omitted monitor histograms for b-tagging will not be filled
       jetBTaggers  = cms.PSet(
 			cvsVertex = cms.PSet(
           label = cms.InputTag("pfCombinedInclusiveSecondaryVertexV2BJetTags"),
-	          workingPoint = cms.double(0.970)
-	          # CSV Tight from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation74X
+	          workingPoint = cms.double(0.890)
+	          # CSV Medium from https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation74X
         )
       ),                                                
     ),
@@ -747,15 +768,15 @@ topSingleElectronMediumDQM = cms.EDAnalyzer("TopSingleLeptonDQM",
     cms.PSet(
       label = cms.string("elecs:step0"),
       src   = cms.InputTag("pfIsolatedElectronsEI"),
-      select = cms.string("pt>30 & abs(eta)<2.5 & " + tightEleCut),
+      select = cms.string("pt>20 & abs(eta)<2.5 & (abs(gsfElectronRef.superCluster().eta()) <= 1.4442 || abs(gsfElectronRef.superCluster().eta()) >= 1.5660) &&" + tightEleCut),
       min = cms.int32(1),
-      max = cms.int32(1),
+      #max = cms.int32(1),
     ),
     cms.PSet(
       label = cms.string("jets/pf:step1"),
       src   = cms.InputTag("ak4PFJetsCHS"),
-      jetCorrector = cms.string("topDQMak5PFCHSL2L3"),
-      select = cms.string("pt>30 & abs(eta)<2.4 & " + looseJetCut),
+			#jetCorrector = cms.string("ak4PFCHSL1FastL2L3Corrector"),
+      select = cms.string("pt>30 & abs(eta)<2.4"),
       #jetID  = cms.PSet(
         #label  = cms.InputTag("ak5JetID"),
         #select = cms.string("fHPD < 0.98 & n90Hits>1 & restrictedEMF<1")
@@ -763,15 +784,9 @@ topSingleElectronMediumDQM = cms.EDAnalyzer("TopSingleLeptonDQM",
       min = cms.int32(4),
     ), 
     cms.PSet(
-      label  = cms.string("met/pf:step2"),
+      label  = cms.string("met:step2"),
       src    = cms.InputTag("pfMet"),
-      #jetCorrector = cms.string("topDQMak5PFCHSL2L3"),
       select = cms.string("pt>30"),
-      #jetID  = cms.PSet(
-        #label  = cms.InputTag("ak5JetID"),
-        #select = cms.string("fHPD < 0.98 & n90Hits>1 & restrictedEMF<1")
-   		#),
-      #min = cms.int32(4),
     ),
   )
 )

@@ -19,7 +19,9 @@
 #include "FWCore/Framework/interface/ConsumesCollector.h"
 #include "FWCore/Framework/interface/EDConsumerBase.h"
 #include "FWCore/Utilities/interface/EDGetToken.h"
-#include "RecoEgamma/EgammaTools/interface/EffectiveAreas.h"
+#include "JetMETCorrections/JetCorrector/interface/JetCorrector.h"
+
+
 
 /**
    \class   MonitorEnsemble TopDQMHelpers.h
@@ -132,6 +134,7 @@ class MonitorEnsemble {
 
   /// electronId label
   edm::EDGetTokenT<edm::ValueMap<float> > electronId_;
+  edm::EDGetTokenT<reco::JetCorrector> mJetCorrector;
 
   /// electronId pattern we expect the following pattern:
   ///  0: fails
