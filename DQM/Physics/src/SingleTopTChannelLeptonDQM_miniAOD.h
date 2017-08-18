@@ -111,6 +111,8 @@ class MonitorEnsemble {
   /// to be of form signalPath:MonitorPath
   std::vector<std::string> triggerPaths_;
 
+  edm::InputTag rhoTag;
+    
   /// electronId label
   //    edm::InputTag electronId_;
   edm::EDGetTokenT<edm::ValueMap<float> > electronId_;
@@ -119,8 +121,10 @@ class MonitorEnsemble {
   double eidCutValue_;
   /// extra isolation criterion on electron
   std::string elecIso_;
+  //std::unique_ptr<StringCutObjectSelector<pat::Electron> > elecIso_;
   /// extra selection on electrons
   std::string elecSelect_;
+  //std::unique_ptr<StringCutObjectSelector<pat::Electron> > elecSelect_;
 
   /// extra selection on primary vertices; meant to investigate the pile-up
   /// effect
@@ -128,9 +132,11 @@ class MonitorEnsemble {
 
   /// extra isolation criterion on muon
   std::string muonIso_;
+  //std::unique_ptr<StringCutObjectSelector<pat::Muon> > muonIso_;
+  
   /// extra selection on muons
   std::string muonSelect_;
-
+  //std::unique_ptr<StringCutObjectSelector<pat::Muon> > muonSelect_;
   /// jetCorrector
   std::string jetCorrector_;
   /// jetID as an extra selection type
@@ -142,6 +148,7 @@ class MonitorEnsemble {
   /// extra selection on jets (here given as std::string as it depends
   /// on the the jet type, which selections are valid and which not)
   std::string jetSelect_;
+  std::unique_ptr<StringCutObjectSelector<pat::Jet> > jetSelect;
   /// include btag information or not
   /// to be determined from the cfg
   bool includeBTag_;
@@ -174,6 +181,8 @@ class MonitorEnsemble {
   std::unique_ptr<StringCutObjectSelector<pat::Electron, true> > elecSelect;
   std::unique_ptr<StringCutObjectSelector<pat::Electron, true> > elecIso;
 
+    
+    
 
 };
 
@@ -286,6 +295,8 @@ class SingleTopTChannelLeptonDQM_miniAOD : public DQMEDAnalyzer {
   std::vector<std::unique_ptr<SelectionStep<pat::Jet> > > jetSteps_;
 
   std::unique_ptr<SelectionStep<pat::MET> > metStep_;
+  //std::vector<edm::ParameterSet> sel_;
+  //edm::ParameterSet setup_;
   std::vector<edm::ParameterSet> sel;
 };
 

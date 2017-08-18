@@ -262,7 +262,7 @@ void MonitorEnsemble::book(DQMStore::IBooker & ibooker) {
   hists_["elecRelIso_"] = ibooker.book1D("ElecRelIso", "Iso_{Rel}(e TightId)", 50, 0., 1.);
     
   hists_["elecMultTight_"] = ibooker.book1D("ElecMultTight",
-                                              "N_{TightIso,TightId}(#e)", 10, 0., 10.);
+                                              "N_{TightIso,TightId}(e)", 10, 0., 10.);
   
     
   // multiplicity of btagged jets (for track counting high efficiency) with
@@ -422,7 +422,7 @@ void MonitorEnsemble::fill(const edm::Event& event,
   ------------------------------------------------------------
   */
     
-  if (!event.eventAuxiliary().run()) return;
+  //if (!event.eventAuxiliary().run()) return;
     
   //fill("RunNumb_", event.eventAuxiliary().run());
 
@@ -443,7 +443,7 @@ void MonitorEnsemble::fill(const edm::Event& event,
     
   edm::Handle< double > _rhoHandle;
   event.getByLabel(rhoTag,_rhoHandle);
-  if (!event.getByToken(elecs_, elecs)) return;
+  //if (!event.getByToken(elecs_, elecs)) return;
     
 
   // check availability of electron id
@@ -711,6 +711,36 @@ void MonitorEnsemble::fill(const edm::Event& event,
       eventKinematics.massBTopQuark(correctedJets, JetTagValues, 0.89); //hard coded CSVv2 value
   
   if (btopMass >= 0) fill("massBTop_", btopMass);
+    
+  // fill plots for trigger monitoring
+  if ((lowerEdge_ == -1. && upperEdge_ == -1.) ||
+    (lowerEdge_ < wMass && wMass < upperEdge_)) {
+    if (!triggerTable_.isUninitialized())
+      fill(event, *triggerTable, "trigger", triggerPaths_);
+    if (logged_ <= hists_.find("eventLogger_")->second->getNbinsY()) {
+    // log runnumber, lumi block, event number & some
+    // more pysics infomation for interesting events
+     fill("eventLogger_", 0.5, logged_ + 0.5, event.eventAuxiliary().run());
+     fill("eventLogger_", 1.5, logged_ + 0.5,
+        event.eventAuxiliary().luminosityBlock());
+     fill("eventLogger_", 2.5, logged_ + 0.5, event.eventAuxiliary().event());
+     if (correctedJets.size() > 0)
+       fill("eventLogger_", 3.5, logged_ + 0.5, correctedJets[0].pt());
+     if (correctedJets.size() > 1)
+       fill("eventLogger_", 4.5, logged_ + 0.5, correctedJets[1].pt());
+     if (correctedJets.size() > 2)
+       fill("eventLogger_", 5.5, logged_ + 0.5, correctedJets[2].pt());
+     if (correctedJets.size() > 3)
+       fill("eventLogger_", 6.5, logged_ + 0.5, correctedJets[3].pt());
+       fill("eventLogger_", 7.5, logged_ + 0.5, wMass);
+       fill("eventLogger_", 8.5, logged_ + 0.5, topMass);
+       ++logged_;
+     }
+  }
+    
+    
+    
+    
 
 }
 }

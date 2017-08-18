@@ -66,7 +66,8 @@ topSingleLeptonDQM_miniAOD = cms.EDAnalyzer("TopSingleLeptonDQM_miniAOD",
   preselection = cms.PSet(
 
     vertex = cms.PSet(
-      src    = cms.InputTag("offlineSlimmedPrimaryVertices")#,
+      src    = cms.InputTag("offlineSlimmedPrimaryVertices"),#,
+      select = cms.string("abs(z) < 24. & position.rho < 2. & ndof > 4 & !isFake")
     )                                        
   ),  
   selection = cms.VPSet(
@@ -137,7 +138,8 @@ topSingleMuonLooseDQM_miniAOD = cms.EDAnalyzer("TopSingleLeptonDQM_miniAOD",
   ),
   preselection = cms.PSet(
     vertex = cms.PSet(
-      src    = cms.InputTag("offlineSlimmedPrimaryVertices")#,
+      src    = cms.InputTag("offlineSlimmedPrimaryVertices"),#,
+      select = cms.string("abs(z) < 24. & position.rho < 2. & ndof > 4 & !isFake")
     )
   ),
   selection = cms.VPSet(
@@ -228,7 +230,8 @@ topSingleMuonMediumDQM_miniAOD = cms.EDAnalyzer("TopSingleLeptonDQM_miniAOD",
   ),
   preselection = cms.PSet(
     vertex = cms.PSet(
-      src    = cms.InputTag("offlineSlimmedPrimaryVertices")#,
+      src    = cms.InputTag("offlineSlimmedPrimaryVertices"),#,
+      select = cms.string("abs(z) < 24. & position.rho < 2. & ndof > 4 & !isFake")
     )
   ),
   selection = cms.VPSet(
@@ -321,7 +324,8 @@ topSingleElectronLooseDQM_miniAOD = cms.EDAnalyzer("TopSingleLeptonDQM_miniAOD",
   ),
   preselection = cms.PSet(
     vertex = cms.PSet(
-      src    = cms.InputTag("offlineSlimmedPrimaryVertices")#,
+      src    = cms.InputTag("offlineSlimmedPrimaryVertices"),#,
+      select = cms.string("abs(z) < 24. & position.rho < 2. & ndof > 4 & !isFake")
     )
   ),
   selection = cms.VPSet(
@@ -414,7 +418,8 @@ topSingleElectronMediumDQM_miniAOD = cms.EDAnalyzer("TopSingleLeptonDQM_miniAOD"
   ),
   preselection = cms.PSet(
     vertex = cms.PSet(
-      src    = cms.InputTag("offlineSlimmedPrimaryVertices")#,
+      src    = cms.InputTag("offlineSlimmedPrimaryVertices"),#,
+      select = cms.string("abs(z) < 24. & position.rho < 2. & ndof > 4 & !isFake")
     )
   ),
   selection = cms.VPSet(
