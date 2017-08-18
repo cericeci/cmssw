@@ -22,7 +22,6 @@
 #include "JetMETCorrections/JetCorrector/interface/JetCorrector.h"
 
 
-
 /**
    \class   MonitorEnsemble TopDQMHelpers.h
    "DQM/Physics/interface/TopDQMHelpers.h"
