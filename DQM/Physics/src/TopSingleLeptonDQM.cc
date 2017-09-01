@@ -24,12 +24,13 @@ MonitorEnsemble::MonitorEnsemble(const char* label,
                                  const edm::ParameterSet& cfg,
                                  edm::ConsumesCollector&& iC)
     : label_(label),
-      elecIso_(nullptr),
       elecSelect_(nullptr),
       pvSelect_(nullptr),
       muonIso_(nullptr),
       muonSelect_(nullptr),
-      jetIDSelect_(nullptr),
+			jetIDSelect_(nullptr),
+      jetlooseSelection_(nullptr),
+      jetSelection_(nullptr),
       includeBTag_(false),
       lowerEdge_(-1.),
       upperEdge_(-1.),
@@ -65,10 +66,6 @@ MonitorEnsemble::MonitorEnsemble(const char* label,
     }
     // isolation is optional; in case it's not found no
     // isolation will be applied
-    if (elecExtras.existsAs<std::string>("isolation")) {
-      elecIso_.reset( new StringCutObjectSelector<reco::PFCandidate>(
-          elecExtras.getParameter<std::string>("isolation")));
-    }
     if (elecExtras.existsAs<std::string>("rho")) {
 			rhoTag = elecExtras.getParameter<edm::InputTag>("rho");
     }
@@ -135,6 +132,8 @@ MonitorEnsemble::MonitorEnsemble(const char* label,
     // CaloJets at the moment)
     if (jetExtras.existsAs<std::string>("select")) {
       jetSelect_ = jetExtras.getParameter<std::string>("select");
+			jetSelection_.reset(new StringCutObjectSelector<reco::PFJet>(jetSelect_));
+			jetlooseSelection_.reset(new StringCutObjectSelector<reco::PFJet>("chargedHadronEnergyFraction()>0 && chargedMultiplicity()>0 && chargedEmEnergyFraction()<0.99 && neutralHadronEnergyFraction()<0.99 && neutralEmEnergyFraction()<0.99 && (chargedMultiplicity()+neutralMultiplicity())>1"));
     }
     // jetBDiscriminators are optional; in case they are
     // not found the InputTag will remain empty; they
@@ -330,7 +329,7 @@ void MonitorEnsemble::book(DQMStore::IBooker & ibooker) {
   // multiplicity for combined secondary vertex
   hists_["jetMultBCSVM_"] = ibooker.book1D("JetMultBCSVM", "N_{30}(CSVM)", 10, 0., 10.);
   // btag discriminator for combined secondary vertex
-  hists_["jetBCSV__"] = ibooker.book1D("JetDiscCSV",
+  hists_["jetBCSV_"] = ibooker.book1D("JetDiscCSV",
       "BJet Disc_{CSV}(JET)", 100, -1., 2.);
   // pt of the 1. leading jet (uncorrected)
   // hists_["jet1PtRaw_"] = ibooker.book1D("Jet1PtRaw", "pt_{Raw}(jet1)", 60, 0., 300.);
@@ -391,20 +390,6 @@ void MonitorEnsemble::fill(const edm::Event& event,
   /*
   ------------------------------------------------------------
 
-  Run and Inst. Luminosity information (Inst. Lumi. filled now with a dummy
-  value=5.0)
-
-  ------------------------------------------------------------
-  */
-//  if (!event.eventAuxiliary().run()) return;
-//  fill("RunNumb_", event.eventAuxiliary().run());
-
-//  double dummy = 5.;
-//  fill("InstLumi_", dummy);
-
-  /*
-  ------------------------------------------------------------
-
   Electron Monitoring
 
   ------------------------------------------------------------
@@ -439,8 +424,10 @@ void MonitorEnsemble::fill(const edm::Event& event,
         double el_ChHadIso = gsf_el->pfIsolationVariables().sumChargedHadronPt;
         double el_NeHadIso = gsf_el->pfIsolationVariables().sumNeutralHadronEt;
         double el_PhIso = gsf_el->pfIsolationVariables().sumPhotonEt;
-				double absEta = abs(gsf_el->superCluster()->eta());
-				double eA = 0;				
+				double absEta = std::abs(gsf_el->superCluster()->eta());
+
+				//Effective Area computation				
+				double eA = 0;
 				if      (absEta < 1.000) eA = 0.1703;
 				else if (absEta < 1.479) eA = 0.1715;
 				else if (absEta < 2.000) eA = 0.1213;
@@ -452,13 +439,8 @@ void MonitorEnsemble::fill(const edm::Event& event,
 				double rho = _rhoHandle.isValid() ? (float)(*_rhoHandle) : 0;
         double el_pfRelIso = (el_ChHadIso + max(0., el_NeHadIso + el_PhIso - rho * eA)) /gsf_el->pt();
 
-				//Only tightId
-
-				//Tight Iso
-
-
-        if (eMult == 0) {//Leading electron without Iso requirements (tight/loose defined on cfi file)
-          // restrict to the leading tight isolated electron
+				//Only TightId
+        if (eMult == 0) {// Restricted to the leading tight electron
           fill("elecRelIso_", el_pfRelIso);
           fill("elecChHadIso_", el_ChHadIso);
           fill("elecNeHadIso_", el_NeHadIso);
@@ -466,10 +448,11 @@ void MonitorEnsemble::fill(const edm::Event& event,
         }
         ++eMult;
 
-				if (!((el_pfRelIso<0.0588 && absEta<1.479)||(el_pfRelIso<0.0571 && absEta>1.479))) continue;
-				// TightId and TightIso
+				if (!((el_pfRelIso<0.0588 && absEta<1.479)||(el_pfRelIso<0.0571 && absEta>1.479))) continue; // PF Isolation with Effective Area Corrections according to https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedElectronIdentificationRun2
 
-				if (eMultIso == 0){//Only for tight Iso electrons
+
+				// TightId and TightIso
+				if (eMultIso == 0){//Only leading
 				  fill("elecPt_", elec->pt());
           fill("elecEta_", elec->eta());
           fill("elecPhi_", elec->phi());
@@ -515,7 +498,7 @@ void MonitorEnsemble::fill(const edm::Event& event,
         double phoEt   = muon->pfIsolationR04().sumPhotonEt;
         double pfRelIso = (chHadPt + max(0., neHadEt + phoEt - 0.5 * muon->pfIsolationR04().sumPUPt)) / muon->pt();  // CB dBeta corrected iso!
 
-        if(!(muon->isGlobalMuon() && muon->isPFMuon() && muon->globalTrack()->normalizedChi2() < 10. && muon->globalTrack()->hitPattern().numberOfValidMuonHits() > 0 && muon->numberOfMatchedStations() > 1 && muon->innerTrack()->hitPattern().numberOfValidPixelHits() > 0 && muon->innerTrack()->hitPattern().trackerLayersWithMeasurement() > 5 && fabs(muon->muonBestTrack()->dxy(Pvertex.position())) < 0.2 && fabs(muon->muonBestTrack()->dz(Pvertex.position())) < 0.5) ) continue; //Only tight muons
+        if(!(muon->isGlobalMuon() && muon->isPFMuon() && muon->globalTrack()->normalizedChi2() < 10. && muon->globalTrack()->hitPattern().numberOfValidMuonHits() > 0 && muon->numberOfMatchedStations() > 1 && muon->innerTrack()->hitPattern().numberOfValidPixelHits() > 0 && muon->innerTrack()->hitPattern().trackerLayersWithMeasurement() > 5 && std::abs(muon->muonBestTrack()->dxy(Pvertex.position())) < 0.2 && std::abs(muon->muonBestTrack()->dz(Pvertex.position())) < 0.5) ) continue; //Only tight muons
 				
 				if (mTightId == 0){
   	        fill("muonRelIso_", pfRelIso);
@@ -573,11 +556,9 @@ void MonitorEnsemble::fill(const edm::Event& event,
     // check additional jet selection for pf jets
 		if (dynamic_cast<const reco::PFJet*>(&*jet)) {
       reco::PFJet sel = dynamic_cast<const reco::PFJet&>(*jet);
-      StringCutObjectSelector<reco::PFJet> jetSelect(jetSelect_);
-      StringCutObjectSelector<reco::PFJet> jetlooseSelect("chargedHadronEnergyFraction()>0 && chargedMultiplicity()>0 && chargedEmEnergyFraction()<0.99 && neutralHadronEnergyFraction()<0.99 && neutralEmEnergyFraction()<0.99 && (chargedMultiplicity()+neutralMultiplicity())>1");
-			if (jetlooseSelect(sel)) isLoose = true;
+			if ((*jetlooseSelection_)(sel)) isLoose = true;
       sel.scaleEnergy(corrector->correction(*jet));
-      if (!jetSelect(sel)) continue;
+      if (!(*jetSelection_)(sel)) continue;
     }
 
     // prepare jet to fill monitor histograms

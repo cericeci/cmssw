@@ -39,22 +39,26 @@ singleTopTChannelLeptonDQM_miniAOD = cms.EDAnalyzer("SingleTopTChannelLeptonDQM_
       verbosity = cms.string("DEBUG")
     ),
 
+    pvExtras = cms.PSet(
+      select = cms.string("abs(z) < 24. & position.rho < 2. & ndof > 4 & !isFake")
+    ),
     elecExtras = cms.PSet(
                                                                         
-      select = cms.string("pt>15 & abs(eta)<2.5 & abs(gsfTrack.d0)<1 & abs(gsfTrack.dz)<20"),
- 
-      isolation = cms.string(ElelooseIsoCut),
+      select = cms.string(looseElecCut+ "&& pt>20 & abs(eta)<2.5 & (abs(superCluster.eta) <= 1.4442 || abs(superCluster.eta) >= 1.5660)"),
+      rho = cms.InputTag("fixedGridRhoFastjetAll"),
+      #isolation = cms.string(ElelooseIsoCut),
+                          
     ),
 
     muonExtras = cms.PSet(
                                                                                
-      select = cms.string("pt>10 & abs(eta)<2.1 & isGlobalMuon & abs(globalTrack.d0)<1 & abs(globalTrack.dz)<20"),
- 
+      select = cms.string(looseMuonCut + " && pt>20 & abs(eta)<2.1"),
+      isolation = cms.string(looseIsoCut),
     ),
  
     jetExtras = cms.PSet(
 
-      select = cms.string("pt>15 & abs(eta)<2.5 & emEnergyFraction>0.01"),
+      select = cms.string("pt>30 & abs(eta)<2.4"),
     ),
 
     triggerExtras = cms.PSet(
@@ -80,12 +84,12 @@ singleTopTChannelLeptonDQM_miniAOD = cms.EDAnalyzer("SingleTopTChannelLeptonDQM_
         select = cms.string("fHPD < 0.98 & n90Hits>1 & restrictedEMF<1")
       ),
       min = cms.int32(2),
-    )
+    ),
   )
 )
 
-singleTopMuonMediumDQM_miniAOD = cms.EDAnalyzer("SingleTopTChannelLeptonDQM_miniAOD",
 
+singleTopMuonMediumDQM_miniAOD = cms.EDAnalyzer("SingleTopTChannelLeptonDQM_miniAOD",
   setup = cms.PSet(
 
     directory = cms.string("Physics/Top/SingleTopMuonMediumDQM_miniAOD/"),
@@ -100,49 +104,47 @@ singleTopMuonMediumDQM_miniAOD = cms.EDAnalyzer("SingleTopTChannelLeptonDQM_mini
     monitoring = cms.PSet(
       verbosity = cms.string("DEBUG")
     ),
+
     pvExtras = cms.PSet(
       select = cms.string("abs(z) < 24. & position.rho < 2. & ndof > 4 & !isFake")
     ),
     elecExtras = cms.PSet(
       select = cms.string(tightElecCut + "&& pt>20 & abs(eta)<2.5 & (abs(superCluster.eta) <= 1.4442 || abs(superCluster.eta) >= 1.5660)"),
       rho = cms.InputTag("fixedGridRhoFastjetAll"),
-        #isolation = cms.string(ElelooseIsoCut),
+      #isolation = cms.string(ElelooseIsoCut),
     ),
                      
     muonExtras = cms.PSet(
       select    = cms.string(looseMuonCut + " && pt>20 & abs(eta)<2.1"),
       isolation = cms.string(looseIsoCut)
     ),
-
-
     jetExtras = cms.PSet(
 
-      select = cms.string("pt>30 & abs(eta)<2.4 "), # & neutralEmEnergyFraction >0.01 & chargedEmEnergyFraction>0.01"),
+      select = cms.string("pt>30 & abs(eta)<2.4"), # & neutralEmEnergyFraction >0.01 & chargedEmEnergyFraction>0.01"),
       jetBTaggers  = cms.PSet(
         trackCountingEff = cms.PSet(
           label = cms.InputTag("trackCountingHighEffBJetTags" ),
           workingPoint = cms.double(1.25)
         ),
         trackCountingPur = cms.PSet(
-          label = cms.InputTag("trackCountingHighPurBJetTags" ),
-          workingPoint = cms.double(3.00)
+         label = cms.InputTag("trackCountingHighPurBJetTags" ),
+          workingPoint = cms.double(3.41)
         ),
         secondaryVertex  = cms.PSet(
           label = cms.InputTag("simpleSecondaryVertexHighEffBJetTags"),
           workingPoint = cms.double(2.05)
         ),
-        cvsVertex = cms.PSet(
+        combinedSecondaryVertex  = cms.PSet(
           label = cms.InputTag("combinedSecondaryVertexBJetTags"),
           workingPoint = cms.double(0.898)
         )
-      ),
-    ),
-    massExtras = cms.PSet(
-      lowerEdge = cms.double( 70.),
-      upperEdge = cms.double(110.)
-    ),
+     ),
+   ),
+   massExtras = cms.PSet(
+     lowerEdge = cms.double( 70.),
+     upperEdge = cms.double(110.)
+   ),
   ),
-
   preselection = cms.PSet(
     vertex = cms.PSet(
       src    = cms.InputTag("offlineSlimmedPrimaryVertices"),#,
@@ -151,30 +153,26 @@ singleTopMuonMediumDQM_miniAOD = cms.EDAnalyzer("SingleTopTChannelLeptonDQM_mini
   ),
 
   selection = cms.VPSet(
-                        #cms.PSet(
-                        #label  = cms.string("presel"),
-                        #src    = cms.InputTag("offlineSlimmedPrimaryVertices"),
-                        #),
     cms.PSet(
       label  = cms.string("muons:step0"),
       src    = cms.InputTag("slimmedMuons"),
       select = cms.string(looseMuonCut + " && pt > 20 & abs(eta)<2.1"), #tightMuonCut +"&&"+ tightIsoCut + " && pt>20 & abs(eta)<2.1"), # CB what about iso? CD Added tightIso
-        min    = cms.int32(1),
-        #max    = cms.int32(1),
-      ),
-      cms.PSet(
-        label  = cms.string("jets:step1"),
-        src    = cms.InputTag("slimmedJets"),
-        select = cms.string("pt>30 & abs(eta)<2.4 "),
-        min = cms.int32(2),
-      ),
-      cms.PSet(
-        label  = cms.string("met:step2"),
-        src    = cms.InputTag("slimmedMETs"),
-        select = cms.string("pt>30"),
-        #min = cms.int32(2),
-      ),
-   )
+      min    = cms.int32(1),
+      #max    = cms.int32(1),
+    ),
+    cms.PSet(
+      label  = cms.string("jets:step1"),
+      src    = cms.InputTag("slimmedJets"),
+      select = cms.string("pt>30 & abs(eta)<2.4 "),
+      min = cms.int32(2),
+    ),
+    cms.PSet(
+      label  = cms.string("met:step2"),
+      src    = cms.InputTag("slimmedMETs"),
+      select = cms.string("pt>30"),
+      #min = cms.int32(2),
+    ),
+  )
 )
 
 singleTopElectronMediumDQM_miniAOD = cms.EDAnalyzer("SingleTopTChannelLeptonDQM_miniAOD",
@@ -212,7 +210,7 @@ singleTopElectronMediumDQM_miniAOD = cms.EDAnalyzer("SingleTopTChannelLeptonDQM_
 
     jetExtras = cms.PSet(
 
-      select = cms.string("pt>30 & abs(eta)<2.4 "),
+      select = cms.string("pt>30 & abs(eta)<2.4"),
       jetBTaggers  = cms.PSet(
         trackCountingEff = cms.PSet(
           label = cms.InputTag("trackCountingHighEffBJetTags" ),
@@ -220,7 +218,7 @@ singleTopElectronMediumDQM_miniAOD = cms.EDAnalyzer("SingleTopTChannelLeptonDQM_
         ),
         trackCountingPur = cms.PSet(
           label = cms.InputTag("trackCountingHighPurBJetTags" ),
-          workingPoint = cms.double(3.00)
+          workingPoint = cms.double(3.41)
         ),
         secondaryVertex  = cms.PSet(
           label = cms.InputTag("simpleSecondaryVertexHighEffBJetTags"),
@@ -229,13 +227,14 @@ singleTopElectronMediumDQM_miniAOD = cms.EDAnalyzer("SingleTopTChannelLeptonDQM_
         combinedSecondaryVertex  = cms.PSet(
           label = cms.InputTag("combinedSecondaryVertexBJetTags"),
           workingPoint = cms.double(0.898)
-        )
+        ),
       ),
     ),
     massExtras = cms.PSet(
       lowerEdge = cms.double( 70.),
       upperEdge = cms.double(110.)
     ),
+               
   ),
 
   preselection = cms.PSet(
@@ -246,10 +245,6 @@ singleTopElectronMediumDQM_miniAOD = cms.EDAnalyzer("SingleTopTChannelLeptonDQM_
   ),
 
   selection = cms.VPSet(
-                        #cms.PSet(
-                        #label  = cms.string("presel"),
-                        #src    = cms.InputTag("offlineSlimmedPrimaryVertices"),
-                        #),
     cms.PSet(
       label  = cms.string("elecs:step0"),
       src    = cms.InputTag("slimmedElectrons"),
@@ -261,7 +256,7 @@ singleTopElectronMediumDQM_miniAOD = cms.EDAnalyzer("SingleTopTChannelLeptonDQM_
       label  = cms.string("jets:step1"),
       src    = cms.InputTag("slimmedJets"),
       select = cms.string("pt>30 & abs(eta)<2.4 "),
-      min = cms.int32(4),
+      min = cms.int32(2),
     ),
     cms.PSet(
       label  = cms.string("met:step2"),

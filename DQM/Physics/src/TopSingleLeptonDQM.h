@@ -152,9 +152,9 @@ class MonitorEnsemble {
 	// electron ISO things
 
 	edm::InputTag rhoTag;
-  /// extra isolation criterion on electron
-  std::unique_ptr<StringCutObjectSelector<reco::PFCandidate> > elecIso_;
+
   /// extra selection on electrons
+  //  std::unique_ptr<StringCutObjectSelector<reco::PFCandidate> > elecIso_;
   std::unique_ptr<StringCutObjectSelector<reco::PFCandidate> > elecSelect_;
 
   /// extra selection on primary vertices; meant to investigate the pile-up
@@ -169,6 +169,7 @@ class MonitorEnsemble {
 
   /// jetCorrector
   std::string jetCorrector_;
+
   /// jetID as an extra selection type
   edm::EDGetTokenT<reco::JetIDValueMap> jetIDLabel_;
   /// extra jetID selection on calo jets
@@ -176,6 +177,8 @@ class MonitorEnsemble {
   /// extra selection on jets (here given as std::string as it depends
   /// on the the jet type, which selections are valid and which not)
   std::string jetSelect_;
+	std::unique_ptr<StringCutObjectSelector<reco::PFJet> > jetlooseSelection_;
+	std::unique_ptr<StringCutObjectSelector<reco::PFJet> > jetSelection_;
   /// include btag information or not
   /// to be determined from the cfg
   bool includeBTag_;
