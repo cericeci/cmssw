@@ -178,27 +178,19 @@ singleTopMuonMediumDQM = cms.EDAnalyzer("SingleTopTChannelLeptonDQM",
       isolation = cms.string(looseIsoCut)
     ),
     jetExtras = cms.PSet(
-      jetCorrector = cms.string("topDQMak5PFCHSL2L3"),
-      select = cms.string("pt>15 & abs(eta)<2.5"),                                                       
+      jetCorrector = cms.InputTag("ak4PFCHSL1FastL2L3Corrector"),  #Use pak4PFCHSL1FastL2L3Residual for data!!!                                            
+      select = cms.string("pt>30 & abs(eta)< 2.4"),
       jetBTaggers  = cms.PSet(
-        trackCountingEff = cms.PSet(
-          label = cms.InputTag("pfTrackCountingHighEffBJetTags" ),
-          workingPoint = cms.double(1.25)
-        ),
-        trackCountingPur = cms.PSet(
-          label = cms.InputTag("pfTrackCountingHighPurBJetTags" ),
-          workingPoint = cms.double(3.41)
-        ),
-        secondaryVertex  = cms.PSet(
-          label = cms.InputTag("pfSimpleSecondaryVertexHighEffBJetTags"),
-          workingPoint = cms.double(2.05)
-        ),
-        combinedSecondaryVertex  = cms.PSet(
-          label = cms.InputTag("pfCombinedInclusiveSecondaryVertexV2BJetTags"),
-          workingPoint = cms.double(0.970)
-        )
-     )                                                
-   )
+         combinedSecondaryVertex = cms.PSet(
+           label = cms.InputTag("pfCombinedInclusiveSecondaryVertexV2BJetTags"),
+	   workingPoint = cms.double(0.890)
+      )
+    ),
+  ),
+    massExtras = cms.PSet(
+    lowerEdge = cms.double( 70.),
+    upperEdge = cms.double(110.)
+  ),
   ),
   ## ------------------------------------------------------
   ## PRESELECTION
