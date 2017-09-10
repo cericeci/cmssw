@@ -196,6 +196,10 @@ singleTopMuonMediumDQM = cms.EDAnalyzer("SingleTopTChannelLeptonDQM",
   ## PRESELECTION
   ##
   preselection = cms.PSet(
+    vertex = cms.PSet(
+      src    = cms.InputTag("offlinePrimaryVertices"),
+      select = cms.string(PVCut)
+    )
   ),
   ## ------------------------------------------------------
   ## SELECTION

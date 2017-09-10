@@ -848,7 +848,6 @@ SingleTopTChannelLeptonDQM::SingleTopTChannelLeptonDQM(
   JetSteps.clear();
   CaloJetSteps.clear();
   PFJetSteps.clear();
-
   // configure preselection
   edm::ParameterSet presel =
       cfg.getParameter<edm::ParameterSet>("preselection");
@@ -859,14 +858,14 @@ SingleTopTChannelLeptonDQM::SingleTopTChannelLeptonDQM(
         trigger.getParameter<edm::InputTag>("src"));
     triggerPaths_ = trigger.getParameter<std::vector<std::string>>("select");
   }
-  if (presel.existsAs<edm::ParameterSet>("vertex")) {
+/*  if (presel.existsAs<edm::ParameterSet>("vertex")) {
     edm::ParameterSet vertex = presel.getParameter<edm::ParameterSet>("vertex");
     vertex_ = vertex.getParameter<edm::InputTag>("src");
     vertex__ =
         consumes<reco::Vertex>(vertex.getParameter<edm::InputTag>("src"));
     vertexSelect_.reset(new StringCutObjectSelector<reco::Vertex>(
         vertex.getParameter<std::string>("select")));
-  }
+  }*/
   if (presel.existsAs<edm::ParameterSet>("beamspot")) {
     edm::ParameterSet beamspot =
         presel.getParameter<edm::ParameterSet>("beamspot");
@@ -876,7 +875,7 @@ SingleTopTChannelLeptonDQM::SingleTopTChannelLeptonDQM(
     beamspotSelect_.reset(new StringCutObjectSelector<reco::BeamSpot>(
         beamspot.getParameter<std::string>("select")));
   }
-  // conifgure the selection
+  // configure the selection
    std::vector<edm::ParameterSet> sel = 
       cfg.getParameter<std::vector<edm::ParameterSet>>("selection");
 
@@ -958,14 +957,14 @@ void SingleTopTChannelLeptonDQM::analyze(const edm::Event& event,
     if (!event.getByToken(beamspot__, beamspot)) return;
     if (!(*beamspotSelect_)(*beamspot)) return;
   }
-
+/*
   if (!vertex__.isUninitialized()) {
     edm::Handle<edm::View<reco::Vertex>> vertex;
     if (!event.getByToken(vertex__, vertex)) return;
     edm::View<reco::Vertex>::const_iterator pv = vertex->begin();
     if (!(*vertexSelect_)(*pv)) return;
   }
-
+*/
   // apply selection steps
   unsigned int passed = 0;
   unsigned int nJetSteps = -1;
