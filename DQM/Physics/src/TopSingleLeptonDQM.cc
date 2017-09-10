@@ -64,8 +64,7 @@ MonitorEnsemble::MonitorEnsemble(const char* label,
       elecSelect_.reset( new StringCutObjectSelector<reco::PFCandidate>(
           elecExtras.getParameter<std::string>("select")));
     }
-    // isolation is optional; in case it's not found no
-    // isolation will be applied
+
     if (elecExtras.existsAs<std::string>("rho")) {
 			rhoTag = elecExtras.getParameter<edm::InputTag>("rho");
     }
@@ -79,7 +78,7 @@ MonitorEnsemble::MonitorEnsemble(const char* label,
       eidCutValue_ = elecId.getParameter<double>("cutValue");
     }
   }
-  // pvExtras are opetional; they may be omitted or empty
+  // pvExtras are optional; they may be omitted or empty
   if (cfg.existsAs<edm::ParameterSet>("pvExtras")) {
     edm::ParameterSet pvExtras =
         cfg.getParameter<edm::ParameterSet>("pvExtras");
@@ -188,7 +187,6 @@ MonitorEnsemble::MonitorEnsemble(const char* label,
   }
   // and don't forget to do the histogram booking
   directory_ = cfg.getParameter<std::string>("directory");
-  // book(ibooker);
 }
 
 void MonitorEnsemble::book(DQMStore::IBooker & ibooker) {
@@ -498,7 +496,7 @@ void MonitorEnsemble::fill(const edm::Event& event,
         double phoEt   = muon->pfIsolationR04().sumPhotonEt;
         double pfRelIso = (chHadPt + max(0., neHadEt + phoEt - 0.5 * muon->pfIsolationR04().sumPUPt)) / muon->pt();  // CB dBeta corrected iso!
 
-        if(!(muon->isGlobalMuon() && muon->isPFMuon() && muon->globalTrack()->normalizedChi2() < 10. && muon->globalTrack()->hitPattern().numberOfValidMuonHits() > 0 && muon->numberOfMatchedStations() > 1 && muon->innerTrack()->hitPattern().numberOfValidPixelHits() > 0 && muon->innerTrack()->hitPattern().trackerLayersWithMeasurement() > 5 && std::abs(muon->muonBestTrack()->dxy(Pvertex.position())) < 0.2 && std::abs(muon->muonBestTrack()->dz(Pvertex.position())) < 0.5) ) continue; //Only tight muons
+        if(!(muon->isGlobalMuon() && muon->isPFMuon() && muon->globalTrack()->normalizedChi2() < 10. && muon->globalTrack()->hitPattern().numberOfValidMuonHits() > 0 && muon->numberOfMatchedStations() > 1 && muon->innerTrack()->hitPattern().numberOfValidPixelHits() > 0 && muon->innerTrack()->hitPattern().trackerLayersWithMeasurement() > 5 && fabs(muon->muonBestTrack()->dxy(Pvertex.position())) < 0.2 && fabs(muon->muonBestTrack()->dz(Pvertex.position())) < 0.5) ) continue; //Only tight muons
 				
 				if (mTightId == 0){
   	        fill("muonRelIso_", pfRelIso);
@@ -574,6 +572,7 @@ void MonitorEnsemble::fill(const edm::Event& event,
       	// fill b-discriminators
       	edm::RefToBase<reco::Jet> jetRef = jets->refAt(idx);
  	     fill("jetBCSV_", (*btagCSV)[jetRef]);
+
  	     if ((*btagCSV)[jetRef] > btagCSVWP_) ++multCSV;
       	// Fill a vector with Jet b-tag WP for later M3+1tag calculation: CSV
       	// tagger

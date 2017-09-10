@@ -3,7 +3,7 @@
 
 #include <string>
 #include <vector>
-#include "FWCore/Utilities/interface/EDGetToken.h"
+
 #include "FWCore/Framework/interface/Event.h"
 #include "DQMServices/Core/interface/DQMStore.h"
 #include "DQMServices/Core/interface/MonitorElement.h"
@@ -154,7 +154,7 @@ class MonitorEnsemble {
 	edm::InputTag rhoTag;
 
   /// extra selection on electrons
-  //  std::unique_ptr<StringCutObjectSelector<reco::PFCandidate> > elecIso_;
+
   std::unique_ptr<StringCutObjectSelector<reco::PFCandidate> > elecSelect_;
 
   /// extra selection on primary vertices; meant to investigate the pile-up
@@ -172,10 +172,9 @@ class MonitorEnsemble {
 
   /// jetID as an extra selection type
   edm::EDGetTokenT<reco::JetIDValueMap> jetIDLabel_;
-  /// extra jetID selection on calo jets
+
   std::unique_ptr<StringCutObjectSelector<reco::JetID> > jetIDSelect_;
-  /// extra selection on jets (here given as std::string as it depends
-  /// on the the jet type, which selections are valid and which not)
+  /// extra selection on jets 
   std::string jetSelect_;
 	std::unique_ptr<StringCutObjectSelector<reco::PFJet> > jetlooseSelection_;
 	std::unique_ptr<StringCutObjectSelector<reco::PFJet> > jetSelection_;
