@@ -36,8 +36,6 @@ MonitorEnsemble::MonitorEnsemble(const char* label,
   edm::ParameterSet sources = cfg.getParameter<edm::ParameterSet>("sources");
   muons_ = iC.consumes<edm::View<reco::PFCandidate>>(
       sources.getParameter<edm::InputTag>("muons"));
-  elecs_gsf_ = iC.consumes<edm::View<reco::GsfElectron>>(
-      sources.getParameter<edm::InputTag>("elecs_gsf"));
   elecs_ = iC.consumes<edm::View<reco::PFCandidate>>(
       sources.getParameter<edm::InputTag>("elecs"));
   jets_ = iC.consumes<edm::View<reco::Jet>>(
@@ -423,15 +421,12 @@ void MonitorEnsemble::fill(const edm::Event& event,
   */
 
   // fill monitoring plots for electrons
-  edm::Handle<edm::View<reco::GsfElectron>> elecs_gsf;
   edm::Handle<edm::View<reco::PFCandidate>> elecs;
   edm::View<reco::PFCandidate>::const_iterator elec_it;
 
   reco::GsfElectronRef elec;
 
   if (!event.getByToken(elecs_, elecs)) return;
-
-  if (!event.getByToken(elecs_gsf_, elecs_gsf)) return;
 
   // check availability of electron id
   edm::Handle<edm::ValueMap<float>> electronId;

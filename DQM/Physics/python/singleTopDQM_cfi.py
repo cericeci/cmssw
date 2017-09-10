@@ -154,15 +154,13 @@ singleTopTChannelLeptonDQM = cms.EDAnalyzer("SingleTopTChannelLeptonDQM",
 )
 
 singleTopMuonMediumDQM = cms.EDAnalyzer("SingleTopTChannelLeptonDQM",
-
     setup = cms.PSet(
     directory = cms.string("Physics/Top/SingleTopMuonMediumDQM/"),
     sources = cms.PSet(
     muons = cms.InputTag("pfIsolatedMuonsEI"),
-    elecs_gsf = cms.InputTag("gedGsfElectrons"),
     elecs = cms.InputTag("pfIsolatedElectronsEI"),
     jets  = cms.InputTag("ak4PFJetsCHS"),
-    mets  = cms.VInputTag("met", "tcMet", "pfMetEI"),
+    mets  = cms.VInputTag("pfMet"),
     pvs   = cms.InputTag("offlinePrimaryVertices")
     ),
     monitoring = cms.PSet(
@@ -253,7 +251,6 @@ singleTopElectronMediumDQM = cms.EDAnalyzer("SingleTopTChannelLeptonDQM",
     ## [mandatory]
     sources = cms.PSet(
       muons = cms.InputTag("pfIsolatedMuonsEI"),
-      elecs_gsf = cms.InputTag("gedGsfElectrons"),
       elecs = cms.InputTag("pfIsolatedElectronsEI"),
       jets  = cms.InputTag("ak4PFJetsCHS"),
       mets  = cms.VInputTag("met", "tcMet", "pfMetEI"),
