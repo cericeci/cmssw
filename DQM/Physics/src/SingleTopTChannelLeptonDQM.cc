@@ -513,19 +513,13 @@ void MonitorEnsemble::fill(const edm::Event& event,
 
   edm::Handle<edm::View<reco::PFCandidate>> muons;
   edm::View<reco::PFCandidate>::const_iterator muonit;
-  reco::MuonRef muon;
   reco::Muon mu;
 
   if (!event.getByToken(muons_, muons)) return;
-  for (muonit = muons->begin(); muonit != muons->end();
-       ++muonit) {  // for now, to use Reco::Muon need to substitute  muonit
-                    // with muon
-                    // and comment the MuonRef and PFCandidate parts
+  for (edm::View<reco::PFCandidate>::const_iterator muonit = muons->begin(); muonit != muons->end(); ++muonit) {
 
     if (muonit->muonRef().isNull()) continue;
     reco::MuonRef muon = muonit->muonRef();
-
-    if (muon->innerTrack().isNull()) continue;
 
     // restrict to globalMuons
     if (muon->isGlobalMuon()) {

@@ -166,8 +166,16 @@ singleTopMuonMediumDQM = cms.EDAnalyzer("SingleTopTChannelLeptonDQM",
     monitoring = cms.PSet(
       verbosity = cms.string("DEBUG")
     ),
-    muonExtras = cms.PSet(  
-      select    = cms.string("abs(muonRef.eta)<2.1")
+    pvExtras = cms.PSet(
+      select = cms.string(PVCut)
+    ),
+    elecExtras = cms.PSet(
+      select     = cms.string(tightEleCut + "& pt>20 & abs(eta)<2.5 & (abs(gsfElectronRef.superCluster().eta()) <= 1.4442 || abs(gsfElectronRef.superCluster().eta()) >= 1.5660)"),
+      rho = cms.InputTag("fixedGridRhoFastjetAll"),
+    ),                                     
+    muonExtras = cms.PSet(                                               
+      select    = cms.string(looseMuonCut + " && pt>20 & abs(eta)<2.1"),                                              
+      isolation = cms.string(looseIsoCut)
     ),
     jetExtras = cms.PSet(
       jetCorrector = cms.string("topDQMak5PFCHSL2L3"),
@@ -201,40 +209,26 @@ singleTopMuonMediumDQM = cms.EDAnalyzer("SingleTopTChannelLeptonDQM",
   ## SELECTION
   ##
   selection = cms.VPSet(
-   cms.PSet(
-      label  = cms.string("presel"),
-      src    = cms.InputTag("offlinePrimaryVertices"),
-      select = cms.string('!isFake && ndof >= 4 && abs(z)<24. && position.Rho <= 2.0 '),
-     
-   ),
-   cms.PSet(
+    cms.PSet(
       label  = cms.string("muons/pf:step0"),
       src    = cms.InputTag("pfIsolatedMuonsEI"),
-      select = cms.string("muonRef.pt>20 & abs(muonRef.eta)<2.1 & muonRef.isNonnull & muonRef.innerTrack.isNonnull & muonRef.isGlobalMuon & muonRef.isTrackerMuon & muonRef.innerTrack.numberOfValidHits>10 & muonRef.globalTrack.hitPattern.numberOfValidMuonHits>0 & muonRef.globalTrack.normalizedChi2<10 & muonRef.innerTrack.hitPattern.pixelLayersWithMeasurement>=1 &  muonRef.numberOfMatches>1 & abs(muonRef.innerTrack.dxy)<0.02 & (muonRef.pfIsolationR04.sumChargedHadronPt + muonRef.pfIsolationR04.sumNeutralHadronEt + muonRef.pfIsolationR04.sumPhotonEt)/muonRef.pt < 0.15"),
-
+      select = cms.string(looseMuonCut + " && pt>20 & abs(eta)<2.1"),     
       min    = cms.int32(1),
-      max    = cms.int32(1),
     ),
     cms.PSet(
       label  = cms.string("jets/pf:step1"),
       src    = cms.InputTag("ak4PFJetsCHS"),
-      jetCorrector = cms.string("topDQMak5PFCHSL2L3"),
-      select = cms.string(" pt>30 & abs(eta)<4.5 & numberOfDaughters>1 & ((abs(eta)>2.4) || ( chargedHadronEnergyFraction > 0 & chargedMultiplicity>0 & chargedEmEnergyFraction<0.99)) & neutralEmEnergyFraction < 0.99 & neutralHadronEnergyFraction < 0.99"), 
-
-      min = cms.int32(1),
-      max = cms.int32(1),
+      select = cms.string("pt>30 & abs(eta)<2.4"),
+      min = cms.int32(2),
     ), 
     cms.PSet(
-     label  = cms.string("jets/pf:step2"),
-     src    = cms.InputTag("ak4PFJetsCHS"),
-     jetCorrector = cms.string("topDQMak5PFCHSL2L3"),
-     select = cms.string(" pt>30 & abs(eta)<4.5 & numberOfDaughters>1 & ((abs(eta)>2.4) || ( chargedHadronEnergyFraction > 0 & chargedMultiplicity>0 & chargedEmEnergyFraction<0.99)) & neutralEmEnergyFraction < 0.99 & neutralHadronEnergyFraction < 0.99"),
-     
-     min = cms.int32(2),
-     max = cms.int32(2),
-    )
+      label  = cms.string("met:step2"),
+      src    = cms.InputTag("pfMet"),
+      select = cms.string("pt>30"),                                             
+    ),
   )
 )
+
 
 singleTopElectronMediumDQM = cms.EDAnalyzer("SingleTopTChannelLeptonDQM",
   ## ------------------------------------------------------
