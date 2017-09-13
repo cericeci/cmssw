@@ -181,7 +181,7 @@ singleTopMuonMediumDQM = cms.EDAnalyzer("SingleTopTChannelLeptonDQM",
       jetCorrector = cms.InputTag("ak4PFCHSL1FastL2L3Corrector"),  #Use pak4PFCHSL1FastL2L3Residual for data!!!                                            
       select = cms.string("pt>30 & abs(eta)< 2.4"),
       jetBTaggers  = cms.PSet(
-         combinedSecondaryVertex = cms.PSet(
+         cvsVertex = cms.PSet(
            label = cms.InputTag("pfCombinedInclusiveSecondaryVertexV2BJetTags"),
 	   workingPoint = cms.double(0.890)
       )
