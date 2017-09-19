@@ -211,7 +211,7 @@ void MonitorEnsemble::book(DQMStore::IBooker & ibooker) {
   hists_["muonMultTight_"] = ibooker.book1D("MuonMultTight",
       "N_{TightIso,TightId}(#mu)", 10, 0., 10.);
   // pt of the leading electron
-  hists_["elecPt_"] = ibooker.book1D("ElecPt", "pt(e)", 40, 0., 200.);
+  hists_["elecPt_"] = ibooker.book1D("ElecPt", "pt(e TightId, TightIso)", 40, 0., 200.);
   // multiplicity of jets with pt>30 (corrected to L1+L2+L3)
   hists_["jetMult_"] = ibooker.book1D("JetMult", "N_{30}(jet)", 10, 0., 10.);
 	// multiplicity of loose Id jets with pt>30
@@ -243,16 +243,15 @@ void MonitorEnsemble::book(DQMStore::IBooker & ibooker) {
   // eta of the leading muon
   hists_["muonEta_"] = ibooker.book1D("MuonEta", "#eta(#mu TightId, TightIso)", 30, -3., 3.);
   // relative isolation of the candidate muon (depending on the decay channel)
-  hists_["muonRelIso_"] = ibooker.book1D(
-      "MuonRelIso", "Iso_{Rel}(#mu TightId) (#Delta#beta Corrected)", 50, 0., 1.);
+  hists_["muonRelIso_"] = ibooker.book1D("MuonRelIso", "Iso_{Rel}(#mu TightId) (#Delta#beta Corrected)", 50, 0., 1.);
 	// phi of the leading muon
   hists_["muonPhi_"] = ibooker.book1D("MuonPhi", "#phi(#mu TightId, TightIso)", 40, -4., 4.);
   // eta of the leading electron
-  hists_["elecEta_"] = ibooker.book1D("ElecEta", "#eta(e tightId)", 30, -3., 3.);
+  hists_["elecEta_"] = ibooker.book1D("ElecEta", "#eta(e tightId, TightIso)", 30, -3., 3.);
   // std isolation variable of the leading electron
-  hists_["elecRelIso_"] = ibooker.book1D("ElecRelIso", "Iso_{Rel}(e TightId, TightIso)", 50, 0., 1.);
+  hists_["elecRelIso_"] = ibooker.book1D("ElecRelIso", "Iso_{Rel}(e TightId)", 50, 0., 1.);
 	// phi of the leading electron
-  hists_["elecPhi_"] = ibooker.book1D("ElecPhi", "#phi(e tightId)", 40, -4., 4.);
+  hists_["elecPhi_"] = ibooker.book1D("ElecPhi", "#phi(e tightId, TightIso)", 40, -4., 4.);
 	// multiplicity of tight Id, tight Iso electorns
   hists_["elecMultTight_"] = ibooker.book1D("ElecMultTight",
                                               "N_{TightIso,TightId}(e)", 10, 0., 10.);
@@ -290,7 +289,7 @@ void MonitorEnsemble::book(DQMStore::IBooker & ibooker) {
   // photon isolation component of the candidate muon (depending on the decay
   // channel)
   hists_["muonPhIso_"] = ibooker.book1D("MuonPhIsoComp",
-      "Photon_{IsoComponent}(#mu )", 50, 0., 5.);
+      "Photon_{IsoComponent}(#mu TightId)", 50, 0., 5.);
   // charged hadron isolation component of the candidate electron (depending on
   // the decay channel)
   hists_["elecChHadIso_"] = ibooker.book1D("ElectronChHadIsoComp",
@@ -338,12 +337,8 @@ void MonitorEnsemble::book(DQMStore::IBooker & ibooker) {
 
 void MonitorEnsemble::fill(const edm::Event& event,
                            const edm::EventSetup& setup) {
-	cout << "____________________________START THIS ___________________________2" << endl;
   // fetch trigger event if configured such
   edm::Handle<edm::TriggerResults> triggerTable;
-  /*if (!triggerTable_.isUninitialized()) {
-    if (!event.getByToken(triggerTable_, triggerTable)) return;
-  }*/
 
   /*
     ------------------------------------------------------------
@@ -353,23 +348,17 @@ void MonitorEnsemble::fill(const edm::Event& event,
     ------------------------------------------------------------
   */
 
-	cout << "____________________________START THIS ___________________________VERTEX" << endl;
   // fill monitoring plots for primary verices
   edm::Handle<edm::View<reco::Vertex> > pvs;
   
-	cout << "First Line \n";
   if (!event.getByToken(pvs_, pvs)) return;
-	const reco::Vertex& Pvertex = pvs->front();
-	cout << "Second Line \n"; 
+	const reco::Vertex& Pvertex = pvs->front(); 
   unsigned int pvMult = 0;
-	cout << "Third Line \n";
   for (edm::View<reco::Vertex>::const_iterator pv = pvs->begin();
        pv != pvs->end(); ++pv) {
     if (!pvSelect_ || (*pvSelect_)(*pv)) pvMult++;
   }
-	cout << "For Line \n";
   fill("pvMult_", pvMult);
-	cout << "Filled \n";
   /*
      ------------------------------------------------------------
 
@@ -378,7 +367,6 @@ void MonitorEnsemble::fill(const edm::Event& event,
      ------------------------------------------------------------
   */
 
-	cout << "____________________________START THIS ___________________________ELECTRONS" << endl;
   // fill monitoring plots for electrons
   edm::Handle<edm::View<reco::PFCandidate>> elecs;
   reco::GsfElectron e;
@@ -462,7 +450,6 @@ void MonitorEnsemble::fill(const edm::Event& event,
      ------------------------------------------------------------
   */
 
-	cout << "____________________________START THIS ___________________________MUONS" << endl;
   // fill monitoring plots for muons
   unsigned int mMult = 0, mTight=0, mTightId = 0;
 
@@ -524,7 +511,6 @@ void MonitorEnsemble::fill(const edm::Event& event,
   ------------------------------------------------------------
   */
 
-	cout << "____________________________START THIS ___________________________JETS" << endl;
   // check availability of the btaggers
   edm::Handle<reco::JetTagCollection> btagEff, btagPur, btagVtx, btagCSV;
   if (includeBTag_) {
@@ -598,7 +584,7 @@ void MonitorEnsemble::fill(const edm::Event& event,
 		}
 	}
 	fill("jetMult_"     , mult);
-  fill("jetMultLoose_", multLoose);
+  fill("jetLooseMult_", multLoose);
   fill("jetMultBCSVM_", multCSV);
 
 
@@ -610,7 +596,6 @@ void MonitorEnsemble::fill(const edm::Event& event,
   ------------------------------------------------------------
   */
 
-	cout << "____________________________START THIS ___________________________MET" << endl;
   // fill monitoring histograms for met
   reco::MET mET;
   for (std::vector<edm::EDGetTokenT<edm::View<reco::MET>>>::const_iterator
@@ -622,6 +607,7 @@ void MonitorEnsemble::fill(const edm::Event& event,
       unsigned int idx = met_ - mets_.begin();
       if (idx == 0) {
         fill("metPflow_", met->begin()->et());
+				mET = *(met->begin());
       }
     }
   }
@@ -634,7 +620,6 @@ void MonitorEnsemble::fill(const edm::Event& event,
      ------------------------------------------------------------
   */
 
-	cout << "____________________________START THIS ___________________________EVENT" << endl;
   // fill W boson and top mass estimates
   Calculate eventKinematics(MAXJETS, WMASS);
   double wMass = eventKinematics.massWBoson(correctedJets);
@@ -682,7 +667,7 @@ void MonitorEnsemble::fill(const edm::Event& event,
     double MTT = eventKinematics.tmassTopQuark(&e, mET, TaggedJetCand);
     fill("eMTT_", MTT);
   }
-}
+ }
 }
 
 SingleTopTChannelLeptonDQM::SingleTopTChannelLeptonDQM(
