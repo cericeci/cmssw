@@ -520,7 +520,34 @@ void MonitorEnsemble::fill(const edm::Event& event,
 
 	edm::Handle<reco::JetCorrector> corrector;
 	event.getByToken(mJetCorrector, corrector);
-
+ // load jet
+// corrector if configured such
+//  const JetCorrector* corrector = 0;
+//  if (!jetCorrector_.empty()) {
+    // check whether a jet correcto is in the event setup or not
+//    if (setup.find(edm::eventsetup::EventSetupRecordKey::makeKey<
+//            JetCorrectionsRecord>())) {
+//      corrector = JetCorrector::getJetCorrector(jetCorrector_, setup);
+//    } else {
+//      edm::LogVerbatim("SingleTopTChannelLeptonDQM")
+//          << "\n"
+//          << "-----------------------------------------------------------------"
+//             "-------------------- \n"
+//          << " No JetCorrectionsRecord available from EventSetup:\n"
+//          << "  - Jets will not be corrected.\n"
+//          << "  - If you want to change this add the following lines to your "
+//             "cfg file:\n"
+//          << "\n"
+//          << "  ## load jet corrections\n"
+//          << "  "
+//             "process.load(\"JetMETCorrections.Configuration."
+//             "JetCorrectionServicesAllAlgos_cff\") \n"
+//          << "  process.prefer(\"ak5CaloL2L3\")\n"
+//          << "\n"
+//          << "-----------------------------------------------------------------"
+//             "-------------------- \n";
+//    }
+//}
   // loop jet collection
   std::vector<reco::Jet> correctedJets;
   std::vector<double> JetTagValues;
@@ -536,6 +563,39 @@ void MonitorEnsemble::fill(const edm::Event& event,
   for (edm::View<reco::Jet>::const_iterator jet = jets->begin();
        jet != jets->end(); ++jet) {
 		bool isLoose = false;
+    // check jetID for calo jets
+    unsigned int idx = jet - jets->begin();
+    if (dynamic_cast<const reco::CaloJet*>(&*jet)) {
+      if (jetIDSelect_ &&
+          dynamic_cast<const reco::CaloJet*>(jets->refAt(idx).get())) {
+        if (!(*jetIDSelect_)((*jetID)[jets->refAt(idx)])) continue;
+      }
+    }
+
+    // check additional jet selection for calo, pf and bare reco jets
+//    if (dynamic_cast<const reco::CaloJet*>(&*jet)) {
+//      reco::CaloJet sel = dynamic_cast<const reco::CaloJet&>(*jet);
+//      sel.scaleEnergy(corrector ? corrector->correction(*jet) : 1.);
+//      if ( jetSelectCalo==0)
+//	jetSelectCalo.reset(new StringCutObjectSelector<reco::CaloJet>(jetSelect_));
+//      if (!((*jetSelectCalo)(sel))) {
+//        continue;
+//      }
+//    } else if (dynamic_cast<const reco::PFJet*>(&*jet)) {
+//      reco::PFJet sel = dynamic_cast<const reco::PFJet&>(*jet);
+//      sel.scaleEnergy(corrector ? corrector->correction(*jet) : 1.);
+//      if ( jetSelectPF==0)
+//	jetSelectPF.reset(new StringCutObjectSelector<reco::PFJet>(jetSelect_));
+//      if (!((*jetSelectPF)(sel))) continue;
+//    } else {
+//      reco::Jet sel = *jet;
+//      sel.scaleEnergy(corrector ? corrector->correction(*jet) : 1.);
+//      if ( jetSelectJet==0)
+//	jetSelectJet.reset(new StringCutObjectSelector<reco::Jet>(jetSelect_));
+//
+//      if (!((*jetSelectJet)(sel))) continue;
+//}
+
     // check additional jet selection for pf jets
 		if (dynamic_cast<const reco::PFJet*>(&*jet)) {
       reco::PFJet sel = dynamic_cast<const reco::PFJet&>(*jet);
@@ -584,7 +644,7 @@ void MonitorEnsemble::fill(const edm::Event& event,
 		}
 	}
 	fill("jetMult_"     , mult);
-  fill("jetLooseMult_", multLoose);
+  fill("jetMultLoose_", multLoose);
   fill("jetMultBCSVM_", multCSV);
 
 
@@ -640,7 +700,7 @@ void MonitorEnsemble::fill(const edm::Event& event,
       fill("eventLogger_", 1.5, logged_ + 0.5,
            event.eventAuxiliary().luminosityBlock());
       fill("eventLogger_", 2.5, logged_ + 0.5, event.eventAuxiliary().event());
-      if (!correctedJets.empty())
+      if (correctedJets.size() > 0)
         fill("eventLogger_", 3.5, logged_ + 0.5, correctedJets[0].pt());
       if (correctedJets.size() > 1)
         fill("eventLogger_", 4.5, logged_ + 0.5, correctedJets[1].pt());
@@ -799,14 +859,14 @@ void SingleTopTChannelLeptonDQM::analyze(const edm::Event& event,
       if (type == "presel") {
         selection_[key].second->fill(event, setup);
       }
-      if (type == "elecs" && ElectronStep != nullptr) {
+      if (type == "elecs" && ElectronStep != 0) {
         if (ElectronStep->select(event)) {
           ++passed;
           selection_[key].second->fill(event, setup);
         } else
           break;
       }
-      if (type == "elecs/pf" && PFElectronStep != nullptr) {
+      if (type == "elecs/pf" && PFElectronStep != 0) {
 
         if (PFElectronStep->select(event, "electron")) {
           ++passed;
@@ -816,14 +876,14 @@ void SingleTopTChannelLeptonDQM::analyze(const edm::Event& event,
         } else
           break;
       }
-      if (type == "muons" && MuonStep != nullptr) {
+      if (type == "muons" && MuonStep != 0) {
         if (MuonStep->select(event)) {
           ++passed;
           selection_[key].second->fill(event, setup);
         } else
           break;
       }
-      if (type == "muons/pf" && PFMuonStep != nullptr) {
+      if (type == "muons/pf" && PFMuonStep != 0) {
         if (PFMuonStep->select(event, "muon")) {
           ++passed;
           selection_[key].second->fill(event, setup);
@@ -860,7 +920,7 @@ void SingleTopTChannelLeptonDQM::analyze(const edm::Event& event,
             break;
         }
       }
-      if (type == "met" && METStep != nullptr) {
+      if (type == "met" && METStep != 0) {
         if (METStep->select(event)) {
           ++passed;
           selection_[key].second->fill(event, setup);
