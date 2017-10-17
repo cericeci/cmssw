@@ -6,6 +6,7 @@ process = cms.Process('TOPDQM')
 process.load('DQMOffline.Configuration.DQMOffline_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
+process.load('Configuration.StandardSequences.Services_cff')
 
 ## --------------------------------------------------------------------
 ## Frontier Conditions: (adjust accordingly!!!)
@@ -27,9 +28,7 @@ process.GlobalTag.globaltag = 'MCRUN2_74_V9'
 process.source = cms.Source("PoolSource",
     #fileNames = cms.untracked.vstring("file:input.root',")
     fileNames = cms.untracked.vstring(
-    	'/store/relval/CMSSW_9_2_4/RelValTTbar_13/GEN-SIM-RECO/92X_upgrade2017_realistic_v2-v1/00000/108F62FE-415C-E711-9C64-0025905A60F8.root',
-    	'/store/relval/CMSSW_9_2_4/RelValTTbar_13/GEN-SIM-RECO/92X_upgrade2017_realistic_v2-v1/00000/4ABE82F0-435C-E711-9708-0CC47A4D76C8.root',
-    	'/store/relval/CMSSW_9_2_4/RelValTTbar_13/GEN-SIM-RECO/92X_upgrade2017_realistic_v2-v1/00000/82D55BD7-435C-E711-92FB-0025905A608C.root',
+    	'/store/relval/CMSSW_9_3_0_pre5/RelValTTbar_13/GEN-SIM-RECO/PU25ns_93X_mc2017_realistic_v2-v1/00000/0485A60F-0C94-E711-93CB-0025905A608C.root',
     #"/store/relval/CMSSW_6_2_0_pre1-START61_V8/RelValTTbarLepton/GEN-SIM-RECO/v1/00000/C6CC53CC-6E6D-E211-8EAB-003048D3756A.root',"
     
     #/RelValTTbar/CMSSW_7_0_0_pre6-PRE_ST62_V8-v1/GEN-SIM-RECO
@@ -73,8 +72,7 @@ process.output = cms.OutputModule("PoolOutputModule",
 )
 
 ## load jet corrections
-#process.load("JetMETCorrections.Configuration.JetCorrectionServicesAllAlgos_cff")
-#process.prefer("ak4PFL2L3")
+process.load("JetMETCorrections.Configuration.JetCorrectors_cff")
 
 ## check the event content
 process.content = cms.EDAnalyzer("EventContentAnalyzer")
@@ -103,11 +101,11 @@ process.p      = cms.Path(
     #process.DiElectronDQM              +
     #process.ElecMuonDQM                +
     #process.topSingleMuonLooseDQM      +
-    process.topSingleMuonMediumDQM     +
+    process.ak4PFCHSL1FastL2L3CorrectorChain * process.topSingleMuonMediumDQM     +
     #process.topSingleElectronLooseDQM  +
-    process.topSingleElectronMediumDQM #+
-    #process.singleTopMuonMediumDQM     +
-    #process.singleTopElectronMediumDQM
+    process.ak4PFCHSL1FastL2L3CorrectorChain * process.topSingleElectronMediumDQM +
+    process.ak4PFCHSL1FastL2L3CorrectorChain * process.singleTopMuonMediumDQM      +
+    process.ak4PFCHSL1FastL2L3CorrectorChain * process.singleTopElectronMediumDQM
 )
 process.endjob = cms.Path(
     process.endOfProcess

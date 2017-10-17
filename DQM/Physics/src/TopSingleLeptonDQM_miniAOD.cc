@@ -724,7 +724,7 @@ void MonitorEnsemble::fill(const edm::Event& event,
      fill("eventLogger_", 1.5, logged_ + 0.5,
         event.eventAuxiliary().luminosityBlock());
      fill("eventLogger_", 2.5, logged_ + 0.5, event.eventAuxiliary().event());
-     if (correctedJets.size() > 0)
+     if (!correctedJets.empty())
        fill("eventLogger_", 3.5, logged_ + 0.5, correctedJets[0].pt());
      if (correctedJets.size() > 1)
        fill("eventLogger_", 4.5, logged_ + 0.5, correctedJets[1].pt());
@@ -846,7 +846,7 @@ void TopSingleLeptonDQM_miniAOD::analyze(const edm::Event& event,
       if (type == "empty") {
         selection_[key].second->fill(event, setup);
       }
-      if (type == "muons" && MuonStep != 0) {
+      if (type == "muons" && MuonStep != nullptr) {
         if (MuonStep->select(event)) {
           ++passed;
 
@@ -855,7 +855,7 @@ void TopSingleLeptonDQM_miniAOD::analyze(const edm::Event& event,
           break;
       }
 
-      if (type == "elecs" && ElectronStep != 0) {
+      if (type == "elecs" && ElectronStep != nullptr) {
 
         if (ElectronStep->select(event)) {
           ++passed;
@@ -864,7 +864,7 @@ void TopSingleLeptonDQM_miniAOD::analyze(const edm::Event& event,
           break;
       }
 
-      if (type == "pvs" && PvStep != 0) {
+      if (type == "pvs" && PvStep != nullptr) {
         if (PvStep->selectVertex(event)) {
           ++passed;
           selection_[key].second->fill(event, setup);
@@ -874,7 +874,7 @@ void TopSingleLeptonDQM_miniAOD::analyze(const edm::Event& event,
 
       if (type == "jets") {
         nJetSteps++;
-        if (JetSteps[nJetSteps] != NULL) {
+        if (JetSteps[nJetSteps] != nullptr) {
           if (JetSteps[nJetSteps]->select(event, setup)) {
             ++passed;
             selection_[key].second->fill(event, setup);
@@ -883,7 +883,7 @@ void TopSingleLeptonDQM_miniAOD::analyze(const edm::Event& event,
         }
       }
 
-      if (type == "met" && METStep != 0) {
+      if (type == "met" && METStep != nullptr) {
         if (METStep->select(event)) {
           ++passed;
           selection_[key].second->fill(event, setup);
