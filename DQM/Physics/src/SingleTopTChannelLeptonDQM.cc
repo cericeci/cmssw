@@ -518,10 +518,13 @@ void MonitorEnsemble::fill(const edm::Event& event,
     if (!event.getByToken(btagCSV_, btagCSV)) return;
   }
 
-
-// load jet corrector if configured such
+	edm::Handle<reco::JetCorrector> corrector;
+	event.getByToken(mJetCorrector, corrector);
+ // load jet
+// corrector if configured such
 //  const JetCorrector* corrector = 0;
 //  if (!jetCorrector_.empty()) {
+
     // check whether a jet correcto is in the event setup or not
 //    if (setup.find(edm::eventsetup::EventSetupRecordKey::makeKey<
 //            JetCorrectionsRecord>())) {
@@ -546,9 +549,6 @@ void MonitorEnsemble::fill(const edm::Event& event,
 //             "-------------------- \n";
 //    }
 //}
-	edm::Handle<reco::JetCorrector> corrector;
-	event.getByToken(mJetCorrector, corrector);
-
   // loop jet collection
   std::vector<reco::Jet> correctedJets;
   std::vector<double> JetTagValues;
@@ -564,14 +564,14 @@ void MonitorEnsemble::fill(const edm::Event& event,
   for (edm::View<reco::Jet>::const_iterator jet = jets->begin();
        jet != jets->end(); ++jet) {
 		bool isLoose = false;
-    // check jetID for calo jets
-    unsigned int idx = jet - jets->begin();
-    if (dynamic_cast<const reco::CaloJet*>(&*jet)) {
-      if (jetIDSelect_ &&
-          dynamic_cast<const reco::CaloJet*>(jets->refAt(idx).get())) {
-        if (!(*jetIDSelect_)((*jetID)[jets->refAt(idx)])) continue;
-      }
-    }
+    // check jetID for calo jets, keep functionality if we ever want to go back to those
+//    unsigned int idx = jet - jets->begin();
+//    if (dynamic_cast<const reco::CaloJet*>(&*jet)) {
+//      if (jetIDSelect_ &&
+//          dynamic_cast<const reco::CaloJet*>(jets->refAt(idx).get())) {
+//        if (!(*jetIDSelect_)((*jetID)[jets->refAt(idx)])) continue;
+//      }
+//    }
 
     // check additional jet selection for pf jets
 		if (dynamic_cast<const reco::PFJet*>(&*jet)) {
@@ -579,23 +579,23 @@ void MonitorEnsemble::fill(const edm::Event& event,
 			if ((*jetlooseSelection_)(sel)) isLoose = true;
       sel.scaleEnergy(corrector->correction(*jet));
       if (!(*jetSelection_)(sel)) continue;
-    else if (dynamic_cast<const reco::CaloJet*>(&*jet)) {
-      reco::CaloJet sel = dynamic_cast<const reco::CaloJet&>(*jet);
-      sel.scaleEnergy(corrector ? corrector->correction(*jet) : 1.);
-      if ( jetSelectCalo==nullptr)
-	jetSelectCalo.reset(new StringCutObjectSelector<reco::CaloJet>(jetSelect_));
-      if (!((*jetSelectCalo)(sel))) {
-        continue;
-      }
+//    else if (dynamic_cast<const reco::CaloJet*>(&*jet)) {
+//      reco::CaloJet sel = dynamic_cast<const reco::CaloJet&>(*jet);
+//      sel.scaleEnergy(corrector ? corrector->correction(*jet) : 1.);
+//      if ( jetSelectCalo==nullptr)
+//	jetSelectCalo.reset(new StringCutObjectSelector<reco::CaloJet>(jetSelect_));
+//      if (!((*jetSelectCalo)(sel))) {
+//        continue;
+//      }
     }
-    else {
-      reco::Jet sel = *jet;
-      sel.scaleEnergy(corrector ? corrector->correction(*jet) : 1.);
-      if ( jetSelectJet==nullptr)
-	jetSelectJet.reset(new StringCutObjectSelector<reco::Jet>(jetSelect_));
-
-      if (!((*jetSelectJet)(sel))) continue;
-    }
+//    else {
+//      reco::Jet sel = *jet;
+//      sel.scaleEnergy(corrector ? corrector->correction(*jet) : 1.);
+//      if ( jetSelectJet==nullptr)
+//	jetSelectJet.reset(new StringCutObjectSelector<reco::Jet>(jetSelect_));
+//
+//      if (!((*jetSelectJet)(sel))) continue;
+//    }
 
     // prepare jet to fill monitor histograms
     reco::Jet monitorJet = *jet;
