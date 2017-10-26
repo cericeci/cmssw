@@ -13,12 +13,12 @@ EletightIsoCut  = "(pfIsolationVariables.sumChargedHadronPt + max(0., pfIsolatio
 ElelooseIsoCut  = "(pfIsolationVariables.sumChargedHadronPt + max(0., pfIsolationVariables.sumNeutralHadronEt + pfIsolationVariables.sumPhotonEt - 0.5 * pfIsolationVariables.sumPUPt) ) / pt < 0.15"
 
 
-looseElecCut = "((full5x5_sigmaIetaIeta < 0.011 && superCluster.isNonnull && superCluster.seed.isNonnull && (deltaEtaSuperClusterTrackAtVtx - superCluster.eta + superCluster.seed.eta) < 0.00477 && abs(deltaPhiSuperClusterTrackAtVtx) < 0.222 && hadronicOverEm < 0.298 && abs(1.0 - eSuperClusterOverP)*1.0/ecalEnergy < 0.241 && gsfTrack.hitPattern.numberOfHits('MISSING_INNER_HITS') <= 1 && abs(superCluster.eta) < 1.479) ||  (full5x5_sigmaIetaIeta() < 0.0314 && superCluster.isNonnull && superCluster.seed.isNonnull && (deltaEtaSuperClusterTrackAtVtx - superCluster.eta + superCluster.seed.eta) < 0.00868 && abs(deltaPhiSuperClusterTrackAtVtx) < 0.213 && hadronicOverEm < 0.101  && abs(1.0 - eSuperClusterOverP)*1.0/ecalEnergy < 0.14 && gsfTrack.hitPattern.numberOfHits('MISSING_INNER_HITS') <= 1 && abs(superCluster.eta) > 1.479))"
+looseElecCut = "((full5x5_sigmaIetaIeta < 0.011 && superCluster.isNonnull && superCluster.seed.isNonnull && (deltaEtaSuperClusterTrackAtVtx - superCluster.eta + superCluster.seed.eta) < 0.00477 && abs(deltaPhiSuperClusterTrackAtVtx) < 0.222 && hadronicOverEm < 0.298 && abs(1.0 - eSuperClusterOverP)*1.0/ecalEnergy < 0.241 && gsfTrack.hitPattern.numberOfLostHits('MISSING_INNER_HITS') <= 1 && abs(superCluster.eta) < 1.479) ||  (full5x5_sigmaIetaIeta() < 0.0314 && superCluster.isNonnull && superCluster.seed.isNonnull && (deltaEtaSuperClusterTrackAtVtx - superCluster.eta + superCluster.seed.eta) < 0.00868 && abs(deltaPhiSuperClusterTrackAtVtx) < 0.213 && hadronicOverEm < 0.101  && abs(1.0 - eSuperClusterOverP)*1.0/ecalEnergy < 0.14 && gsfTrack.hitPattern.numberOfLostHits('MISSING_INNER_HITS') <= 1 && abs(superCluster.eta) > 1.479))"
 
 elecIPcut = "(abs(gsfTrack.d0)<0.05 & abs(gsfTrack.dz)<0.1 & abs(superCluster.eta) < 1.479)||(abs(gsfTrack.d0)<0.1 && abs(gsfTrack.dz)<0.2 && abs(superCluster.eta) > 1.479)"
 
 
-tightElecCut = "((full5x5_sigmaIetaIeta < 0.00998 && superCluster.isNonnull && superCluster.seed.isNonnull && (deltaEtaSuperClusterTrackAtVtx - superCluster.eta + superCluster.seed.eta) < 0.00308 && abs(deltaPhiSuperClusterTrackAtVtx) < 0.0816 && hadronicOverEm < 0.0414 && abs(1.0 - eSuperClusterOverP)*1.0/ecalEnergy < 0.0129 && gsfTrack.hitPattern.numberOfHits('MISSING_INNER_HITS') <= 1 && abs(superCluster.eta) < 1.479) ||  (full5x5_sigmaIetaIeta() < 0.0292 && superCluster.isNonnull && superCluster.seed.isNonnull && (deltaEtaSuperClusterTrackAtVtx - superCluster.eta + superCluster.seed.eta) < 0.00605 && abs(deltaPhiSuperClusterTrackAtVtx) < 0.0394 && hadronicOverEm < 0.0641  && abs(1.0 - eSuperClusterOverP)*1.0/ecalEnergy < 0.0129 && gsfTrack.hitPattern.numberOfHits('MISSING_INNER_HITS') <= 1 && abs(superCluster.eta) > 1.479))"
+tightElecCut = "((full5x5_sigmaIetaIeta < 0.00998 && superCluster.isNonnull && superCluster.seed.isNonnull && (deltaEtaSuperClusterTrackAtVtx - superCluster.eta + superCluster.seed.eta) < 0.00308 && abs(deltaPhiSuperClusterTrackAtVtx) < 0.0816 && hadronicOverEm < 0.0414 && abs(1.0 - eSuperClusterOverP)*1.0/ecalEnergy < 0.0129 && gsfTrack.hitPattern.numberOfLostHits('MISSING_INNER_HITS') <= 1 && abs(superCluster.eta) < 1.479) ||  (full5x5_sigmaIetaIeta() < 0.0292 && superCluster.isNonnull && superCluster.seed.isNonnull && (deltaEtaSuperClusterTrackAtVtx - superCluster.eta + superCluster.seed.eta) < 0.00605 && abs(deltaPhiSuperClusterTrackAtVtx) < 0.0394 && hadronicOverEm < 0.0641  && abs(1.0 - eSuperClusterOverP)*1.0/ecalEnergy < 0.0129 && gsfTrack.hitPattern.numberOfLostHits('MISSING_INNER_HITS') <= 1 && abs(superCluster.eta) > 1.479))"
 
 
 singleTopTChannelLeptonDQM_miniAOD = cms.EDAnalyzer("SingleTopTChannelLeptonDQM_miniAOD",
@@ -245,6 +245,17 @@ singleTopElectronMediumDQM_miniAOD = cms.EDAnalyzer("SingleTopTChannelLeptonDQM_
   ),
 
   selection = cms.VPSet(
+#   cms.PSet(
+#      label  = cms.string("presel"),
+#      src    = cms.InputTag("offlineSlimmedPrimaryVertices"),
+#   ),
+#   cms.PSet(
+#      label = cms.string("elecs:step0"),
+#      src   = cms.InputTag("slimmedElectrons"),
+#      select = cms.string("pt>30 & abs(eta)<2.5 & abs(gsfTrack.d0)<0.02 && gsfTrack.hitPattern().numberOfLostHits('MISSING_INNER_HITS') <= 0 && (abs(superCluster.eta) <= 1.4442 || abs(superCluster.eta) >= 1.5660) && " + EletightIsoCut),
+#      min = cms.int32(1),
+#      max = cms.int32(1),
+#    ),
     cms.PSet(
       label  = cms.string("elecs:step0"),
       src    = cms.InputTag("slimmedElectrons"),
