@@ -21,6 +21,10 @@ class ppEra_Run2_2017_ppRef(pp):
         self.recoSeq=''
         self.cbSc='pp'
         self.addEI=True
+<<<<<<< HEAD
+=======
+        self.isRepacked=True
+>>>>>>> 235104b8b90a5c9670b360aefcaf22eaf215db53
         self.eras=Run2_2017_ppRef
         self.promptCustoms += [ 'Configuration/DataProcessing/RecoTLR.customisePostEra_Run2_2017_ppRef' ]
         self.expressCustoms += [ 'Configuration/DataProcessing/RecoTLR.customisePostEra_Run2_2017_ppRef' ]

@@ -43,6 +43,7 @@ void Calculate::operator()(const reco::Jet& bJet, reco::RecoCandidate* lepton,
   double metT = sqrt(pow(met.px(), 2) + pow(met.py(), 2));
   double lepT = sqrt(pow(lepton->px(), 2) + pow(lepton->py(), 2));
   double bT = sqrt(pow(bJet.px(), 2) + pow(bJet.py(), 2));
+	
   reco::Particle::LorentzVector WT = lepton->p4() + met.p4();
   tmassWBoson_ =
       sqrt(pow(metT + lepT, 2) - (WT.px() * WT.px()) - (WT.py() * WT.py()));

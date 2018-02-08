@@ -68,6 +68,7 @@ def customisePostEra_Run2_2017_ppRef(process):
     customisePostEra_Run2_2017(process)
     return process
 
+<<<<<<< HEAD
 # 2018 equivalents
 def customisePostEra_Run2_2018(process):
     #start with a repeat of 2017
@@ -85,6 +86,8 @@ def customisePostEra_Run2_2018_harvesting_trackingOnly(process):
     return process
 
 
+=======
+>>>>>>> 235104b8b90a5c9670b360aefcaf22eaf215db53
 ##############################################################################
 def customisePPData(process):
     #deprecated process= customiseCommon(process)

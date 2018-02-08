@@ -15,7 +15,7 @@ process.GlobalTag.globaltag = 'MCRUN2_74_V9'
 
 ## input file (adapt input file name correspondingly)
 process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring("file:topDQM_production.root"),
+    fileNames = cms.untracked.vstring("file:topDQM_production_El.root"),
     processingMode = cms.untracked.string('RunsAndLumis')
 )
 
@@ -34,10 +34,10 @@ process.options = cms.untracked.PSet(
 process.DQMStore.collateHistograms        = True
 process.EDMtoMEConverter.convertOnEndLumi = True
 process.EDMtoMEConverter.convertOnEndRun  = True
-process.dqmSaver.saveByRun      = cms.untracked.int32( -1)
+process.dqmSaver.saveByRun      = cms.untracked.int32(1)
 process.dqmSaver.saveAtJobEnd   = cms.untracked.bool(True)
-process.dqmSaver.forceRunNumber = cms.untracked.int32(  1)
-process.dqmSaver.workflow       = cms.untracked.string('/TopVal/CMSSW_3_8_4/RECO') ## adapt apropriately
+process.dqmSaver.forceRunNumber = cms.untracked.int32(-1)
+process.dqmSaver.workflow       = cms.untracked.string('/TopVal/CMSSW_9_4_0/RECOMu2016') ## adapt apropriately
 
 
 ## path definitions

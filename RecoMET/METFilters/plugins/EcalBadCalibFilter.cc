@@ -92,7 +92,11 @@ bool EcalBadCalibFilter::filter(edm::StreamID, edm::Event & iEvent, const edm::E
   // Calo Geometry - needed for computing E_t
   edm::ESHandle<CaloGeometry> pG;
   iSetup.get<CaloGeometryRecord>().get(pG);
+<<<<<<< HEAD
   const CaloGeometry* geo = pG.product();
+=======
+ 
+>>>>>>> 235104b8b90a5c9670b360aefcaf22eaf215db53
   
   // by default the event is OK
   bool pass = true;
@@ -120,7 +124,11 @@ bool EcalBadCalibFilter::filter(edm::StreamID, edm::Event & iEvent, const edm::E
     ene=ecalhit->energy();
  
     // compute transverse energy
+<<<<<<< HEAD
     const GlobalPoint & posecal=geo->getPosition(ecaldet);
+=======
+    GlobalPoint posecal=pG->getPosition(ecaldet);
+>>>>>>> 235104b8b90a5c9670b360aefcaf22eaf215db53
     float pf = posecal.perp()/posecal.mag();
     et=ene*pf;
     
@@ -128,13 +136,25 @@ bool EcalBadCalibFilter::filter(edm::StreamID, edm::Event & iEvent, const edm::E
     // print some debug info
     if (debug_) {
       
+<<<<<<< HEAD
+=======
+      int ix,iy,iz;
+      ix=0,iy=0,iz=0;
+      
+>>>>>>> 235104b8b90a5c9670b360aefcaf22eaf215db53
       // ref: DataFormats/EcalDetId/interface/EcalSubdetector.h
       // EcalBarrel
       if (ecaldet.subdetId()==1) {
 	EBDetId ebdet(ecalit);
+<<<<<<< HEAD
 	int ix=ebdet.ieta();
 	int iy=ebdet.iphi();
 	int iz=ebdet.zside();
+=======
+	ix=ebdet.ieta();
+	iy=ebdet.iphi();
+	iz=ebdet.zside();
+>>>>>>> 235104b8b90a5c9670b360aefcaf22eaf215db53
 	
 	edm::LogInfo("EcalBadCalibFilter") << "DetId=" <<  ecaldet.rawId();
 	edm::LogInfo("EcalBadCalibFilter") << "ieta=" << ix << " iphi=" << iy << " iz=" << iz;
@@ -142,11 +162,19 @@ bool EcalBadCalibFilter::filter(edm::StreamID, edm::Event & iEvent, const edm::E
       }
 
       // EcalEndcap
+<<<<<<< HEAD
       else if (ecaldet.subdetId()==2) {
 	EEDetId eedet(ecalit);
 	int ix=eedet.ix();
 	int iy=eedet.iy();
 	int iz=eedet.zside();
+=======
+      if (ecaldet.subdetId()==2) {
+	EEDetId eedet(ecalit);
+	ix=eedet.ix();
+	iy=eedet.iy();
+	iz=eedet.zside();
+>>>>>>> 235104b8b90a5c9670b360aefcaf22eaf215db53
 
 	edm::LogInfo("EcalBadCalibFilter") << "DetId=" <<  ecaldet.rawId();
 	edm::LogInfo("EcalBadCalibFilter") << "ix=" << ix << " iy=" << iy << " iz=" << iz;

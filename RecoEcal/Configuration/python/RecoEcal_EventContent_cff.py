@@ -106,11 +106,14 @@ from Configuration.Eras.Modifier_pp_on_XeXe_2017_cff import pp_on_XeXe_2017
 from Configuration.Eras.Modifier_ppRef_2017_cff import ppRef_2017
 #HI-specific products needed in pp scenario special configurations
 for e in [pA_2016, peripheralPbPb, pp_on_XeXe_2017, ppRef_2017]:
+<<<<<<< HEAD
     for ec in [RecoEcalAOD.outputCommands, RecoEcalRECO.outputCommands, RecoEcalFEVT.outputCommands]:
         e.toModify( ec, func=lambda outputCommands: outputCommands.extend(['keep recoSuperClusters_correctedIslandBarrelSuperClusters_*_*',
                                                                            'keep recoSuperClusters_correctedIslandEndcapSuperClusters_*_*'
                                                                            ])
                     )
+=======
+>>>>>>> 235104b8b90a5c9670b360aefcaf22eaf215db53
     for ec in [RecoEcalRECO.outputCommands, RecoEcalFEVT.outputCommands]:
         e.toModify( ec, func=lambda outputCommands: outputCommands.extend(['keep recoCaloClusters_islandBasicClusters_*_*'])
                     )
