@@ -21,8 +21,8 @@ elecIPcut = "(abs(gsfTrack.d0)<0.05 & abs(gsfTrack.dz)<0.1 & abs(superCluster.et
 tightElecCut = "((full5x5_sigmaIetaIeta < 0.00998 && superCluster.isNonnull && superCluster.seed.isNonnull && (deltaEtaSuperClusterTrackAtVtx - superCluster.eta + superCluster.seed.eta) < 0.00308 && abs(deltaPhiSuperClusterTrackAtVtx) < 0.0816 && hadronicOverEm < 0.0414 && abs(1.0 - eSuperClusterOverP)*1.0/ecalEnergy < 0.0129 && gsfTrack.hitPattern.numberOfLostHits('MISSING_INNER_HITS') <= 1 && abs(superCluster.eta) < 1.479) ||  (full5x5_sigmaIetaIeta() < 0.0292 && superCluster.isNonnull && superCluster.seed.isNonnull && (deltaEtaSuperClusterTrackAtVtx - superCluster.eta + superCluster.seed.eta) < 0.00605 && abs(deltaPhiSuperClusterTrackAtVtx) < 0.0394 && hadronicOverEm < 0.0641  && abs(1.0 - eSuperClusterOverP)*1.0/ecalEnergy < 0.0129 && gsfTrack.hitPattern.numberOfLostHits('MISSING_INNER_HITS') <= 1 && abs(superCluster.eta) > 1.479))"
 
 
-
-topSingleLeptonDQM_miniAOD = cms.EDAnalyzer("TopSingleLeptonDQM_miniAOD",
+from DQMServices.Core.DQMEDAnalyzer import DQMEDAnalyzer
+topSingleLeptonDQM_miniAOD = DQMEDAnalyzer("TopSingleLeptonDQM_miniAOD",
   setup = cms.PSet(
     directory = cms.string("Physics/Top/TopSingleLeptonDQM_miniAOD/"),
     sources = cms.PSet(
@@ -80,7 +80,7 @@ topSingleLeptonDQM_miniAOD = cms.EDAnalyzer("TopSingleLeptonDQM_miniAOD",
   )
 )
 
-topSingleMuonLooseDQM_miniAOD = cms.EDAnalyzer("TopSingleLeptonDQM_miniAOD",
+topSingleMuonLooseDQM_miniAOD = DQMEDAnalyzer("TopSingleLeptonDQM_miniAOD",
 
   setup = cms.PSet(
     directory = cms.string("Physics/Top/TopSingleMuonLooseDQM_miniAOD/"),
@@ -175,7 +175,7 @@ topSingleMuonLooseDQM_miniAOD = cms.EDAnalyzer("TopSingleLeptonDQM_miniAOD",
     ), 
   )
 )
-topSingleMuonMediumDQM_miniAOD = cms.EDAnalyzer("TopSingleLeptonDQM_miniAOD",
+topSingleMuonMediumDQM_miniAOD = DQMEDAnalyzer("TopSingleLeptonDQM_miniAOD",
   setup = cms.PSet(
     directory = cms.string("Physics/Top/TopSingleMuonMediumDQM_miniAOD/"),
     sources = cms.PSet(
@@ -269,7 +269,7 @@ topSingleMuonMediumDQM_miniAOD = cms.EDAnalyzer("TopSingleLeptonDQM_miniAOD",
   )
 )
 
-topSingleElectronLooseDQM_miniAOD = cms.EDAnalyzer("TopSingleLeptonDQM_miniAOD",
+topSingleElectronLooseDQM_miniAOD = DQMEDAnalyzer("TopSingleLeptonDQM_miniAOD",
   setup = cms.PSet(
     directory = cms.string("Physics/Top/TopSingleElectronLooseDQM_miniAOD/"),
     sources = cms.PSet(
@@ -362,7 +362,7 @@ topSingleElectronLooseDQM_miniAOD = cms.EDAnalyzer("TopSingleLeptonDQM_miniAOD",
   )
 )
 
-topSingleElectronMediumDQM_miniAOD = cms.EDAnalyzer("TopSingleLeptonDQM_miniAOD",
+topSingleElectronMediumDQM_miniAOD = DQMEDAnalyzer("TopSingleLeptonDQM_miniAOD",
   setup = cms.PSet(
 
     directory = cms.string("Physics/Top/TopSingleElectronMediumDQM_miniAOD/"),

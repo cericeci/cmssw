@@ -25,7 +25,8 @@ looseEleCut = "(( gsfElectronRef.full5x5_sigmaIetaIeta() < 0.011 && gsfElectronR
 
 tightEleCut = "((gsfElectronRef.full5x5_sigmaIetaIeta() < 0.00998 && gsfElectronRef.superCluster().isNonnull() && gsfElectronRef.superCluster().seed().isNonnull() && (gsfElectronRef.deltaEtaSuperClusterTrackAtVtx() - gsfElectronRef.superCluster().eta() + gsfElectronRef.superCluster().seed().eta()) < 0.00308  && abs(gsfElectronRef.deltaPhiSuperClusterTrackAtVtx()) < 0.0816 && gsfElectronRef.hadronicOverEm() < 0.0414 && abs(1.0 - gsfElectronRef.eSuperClusterOverP())*1.0/gsfElectronRef.ecalEnergy() < 0.0129 && gsfElectronRef.gsfTrack.hitPattern().numberOfLostHits('MISSING_INNER_HITS') <= 1 && abs(gsfElectronRef.superCluster().eta()) < 1.479) ||  (gsfElectronRef.full5x5_sigmaIetaIeta() < 0.0292 && gsfElectronRef.superCluster().isNonnull() && gsfElectronRef.superCluster().seed().isNonnull() && (gsfElectronRef.deltaEtaSuperClusterTrackAtVtx() - gsfElectronRef.superCluster().eta() + gsfElectronRef.superCluster().seed().eta()) < 0.00605 && abs(gsfElectronRef.deltaPhiSuperClusterTrackAtVtx()) < 0.0394  && gsfElectronRef.hadronicOverEm() < 0.0641  && abs(1.0 - gsfElectronRef.eSuperClusterOverP())*1.0/gsfElectronRef.ecalEnergy() <	0.0129 && gsfElectronRef.gsfTrack.hitPattern().numberOfLostHits('MISSING_INNER_HITS') <= 1 && abs(gsfElectronRef.superCluster().eta()) > 1.479))"
 
-singleTopTChannelLeptonDQM = cms.EDAnalyzer("SingleTopTChannelLeptonDQM",
+from DQMServices.Core.DQMEDAnalyzer import DQMEDAnalyzer
+singleTopTChannelLeptonDQM = DQMEDAnalyzer("SingleTopTChannelLeptonDQM",
   ## ------------------------------------------------------
   ## SETUP
   ##
@@ -153,7 +154,7 @@ singleTopTChannelLeptonDQM = cms.EDAnalyzer("SingleTopTChannelLeptonDQM",
   )
 )
 
-singleTopMuonMediumDQM = cms.EDAnalyzer("SingleTopTChannelLeptonDQM",
+singleTopMuonMediumDQM = DQMEDAnalyzer("SingleTopTChannelLeptonDQM",
     setup = cms.PSet(
     directory = cms.string("Physics/Top/SingleTopMuonMediumDQM/"),
     sources = cms.PSet(
@@ -226,7 +227,7 @@ singleTopMuonMediumDQM = cms.EDAnalyzer("SingleTopTChannelLeptonDQM",
 )
 
 
-singleTopElectronMediumDQM = cms.EDAnalyzer("SingleTopTChannelLeptonDQM",
+singleTopElectronMediumDQM = DQMEDAnalyzer("SingleTopTChannelLeptonDQM",
     setup = cms.PSet(
     directory = cms.string("Physics/Top/SingleTopElectronMediumDQM/"),
     sources = cms.PSet(
