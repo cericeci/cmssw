@@ -22,7 +22,6 @@ tightElecCut = "((full5x5_sigmaIetaIeta < 0.00998 && superCluster.isNonnull && s
 
 from DQMServices.Core.DQMEDAnalyzer import DQMEDAnalyzer
 singleTopTChannelLeptonDQM_miniAOD = DQMEDAnalyzer("SingleTopTChannelLeptonDQM_miniAOD",
-
   setup = cms.PSet(
  
     directory = cms.string("Physics/Top/SingleTopDQM_miniAOD/"),

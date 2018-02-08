@@ -17,7 +17,11 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 ## For more details have a look at: WGuideFrontierConditions
 ## --------------------------------------------------------------------
 ##process.GlobalTag.globaltag = 'GR_R_42_V14::All' 
-process.GlobalTag.globaltag = 'MCRUN2_74_V9'
+#process.GlobalTag.globaltag = 'MCRUN2_74_V9'
+
+from Configuration.AlCa.GlobalTag import GlobalTag
+process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase1_2017_realistic', '')
+ 
 
 
 #dbs search --query 'find file where site=srm-eoscms.cern.ch and dataset=/RelValTTbar/CMSSW_7_0_0_pre3-PRE_ST62_V8-v1/GEN-SIM-RECO'
@@ -27,6 +31,11 @@ process.GlobalTag.globaltag = 'MCRUN2_74_V9'
 process.source = cms.Source("PoolSource",
     #fileNames = cms.untracked.vstring("file:input.root',")
     fileNames = cms.untracked.vstring(
+
+    	'/store/relval/CMSSW_9_2_4/RelValTTbarLepton_13/MINIAODSIM/92X_upgrade2017_realistic_v2-v1/00000/A4DA3BEB-3C5C-E711-AA32-003048FFD79E.root',
+'/store/relval/CMSSW_9_2_4/RelValTTbarLepton_13/MINIAODSIM/92X_upgrade2017_realistic_v2-v1/00000/D83C1AEF-3C5C-E711-82F4-0CC47A4D7600.root'
+
+
     #"/store/relval/CMSSW_6_2_0_pre1-START61_V8/RelValTTbarLepton/GEN-SIM-RECO/v1/00000/C6CC53CC-6E6D-E211-8EAB-003048D3756A.root',"
     
     #/RelValTTbar/CMSSW_7_0_0_pre6-PRE_ST62_V8-v1/GEN-SIM-RECO
@@ -36,16 +45,6 @@ process.source = cms.Source("PoolSource",
         #        '/store/relval/CMSSW_7_1_0_pre4/RelValTTbarLepton_13/GEN-SIM-RECO/POSTLS171_V1-v2/00000/48ED95A2-66AA-E311-9865-02163E00E5AE.root'
 #        '/store/relval/CMSSW_7_1_0_pre9/RelValTTbarLepton_13/GEN-SIM-RECO/POSTLS171_V11-v1/00000/90D92DC6-67F0-E311-8D2E-0025905A613C.root'
 
-         '/store/mc/RunIISpring15MiniAODv2/TT_TuneCUETP8M1_13TeV-powheg-pythia8/MINIAODSIM/74X_mcRun2_asymptotic_v2_ext3-v1/10000/003964D7-D06E-E511-A8DA-001517F7F524.root',
-         '/store/mc/RunIISpring15MiniAODv2/TT_TuneCUETP8M1_13TeV-powheg-pythia8/MINIAODSIM/74X_mcRun2_asymptotic_v2_ext3-v1/10000/0041D4C0-D86E-E511-8D6B-001E67A3E8F9.root',
-         '/store/mc/RunIISpring15MiniAODv2/TT_TuneCUETP8M1_13TeV-powheg-pythia8/MINIAODSIM/74X_mcRun2_asymptotic_v2_ext3-v1/10000/00962466-E86E-E511-9105-0026189438D7.root',
-         '/store/mc/RunIISpring15MiniAODv2/TT_TuneCUETP8M1_13TeV-powheg-pythia8/MINIAODSIM/74X_mcRun2_asymptotic_v2_ext3-v1/10000/00A7C4B3-766E-E511-973F-002618943904.root',
-         '/store/mc/RunIISpring15MiniAODv2/TT_TuneCUETP8M1_13TeV-powheg-pythia8/MINIAODSIM/74X_mcRun2_asymptotic_v2_ext3-v1/10000/020B5100-426E-E511-888A-0026189437F9.root',
-         '/store/mc/RunIISpring15MiniAODv2/TT_TuneCUETP8M1_13TeV-powheg-pythia8/MINIAODSIM/74X_mcRun2_asymptotic_v2_ext3-v1/10000/024E3A40-706F-E511-AE4B-68B5996BD98E.root',
-         '/store/mc/RunIISpring15MiniAODv2/TT_TuneCUETP8M1_13TeV-powheg-pythia8/MINIAODSIM/74X_mcRun2_asymptotic_v2_ext3-v1/10000/025CB88B-706F-E511-9F87-6CC2173D46A0.root'
-
-#    '/store/mc/RunIIFall15DR76/TT_TuneCUETP8M1_13TeV-powheg-pythia8/MINIAODSIM/25nsFlat10to25TSG_76X_mcRun2_asymptotic_v11_ext3-v1/00000/B4414D37-CF97-E511-B2C4-002590747DE2.root',
-#    '/store/mc/RunIIFall15DR76/TT_TuneCUETP8M1_13TeV-powheg-pythia8/MINIAODSIM/25nsFlat10to25TSG_76X_mcRun2_asymptotic_v11_ext3-v1/00000/B4414D37-CF97-E511-B2C4-002590747DE2.root',
 #    '/store/mc/RunIIFall15DR76/TT_TuneCUETP8M1_13TeV-powheg-pythia8/MINIAODSIM/25nsFlat10to25TSG_76X_mcRun2_asymptotic_v11_ext3-v1/20000/006945CA-3088-E511-96C4-0025905A497A.root',
 #    '/store/mc/RunIIFall15DR76/TT_TuneCUETP8M1_13TeV-powheg-pythia8/MINIAODSIM/25nsFlat10to25TSG_76X_mcRun2_asymptotic_v11_ext3-v1/20000/04B296F0-2A88-E511-A760-002618943856.root',
 #    '/store/mc/RunIIFall15DR76/TT_TuneCUETP8M1_13TeV-powheg-pythia8/MINIAODSIM/25nsFlat10to25TSG_76X_mcRun2_asymptotic_v11_ext3-v1/20000/04F9A001-2888-E511-ABEC-0025905A60B6.root',
