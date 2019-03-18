@@ -174,7 +174,6 @@ public:
       finalise2_unmatchRPCMB();
     else
       finalise0();    
-    finalise2_unmatchRPCMB();
   }
 
   //version for the "normal" patterns, i.e. without pdfSum threshold
