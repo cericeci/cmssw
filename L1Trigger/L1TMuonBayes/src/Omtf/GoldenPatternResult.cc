@@ -1,5 +1,8 @@
 #include "L1Trigger/L1TMuonBayes/interface/Omtf/GoldenPatternResult.h"
 #include "L1Trigger/L1TMuonBayes/interface/Omtf/OMTFConfiguration.h"
+#include "DataFormats/MuonDetId/interface/CSCDetId.h"
+#include "DataFormats/MuonDetId/interface/RPCDetId.h"
+#include "DataFormats/MuonDetId/interface/DTChamberId.h"
 #include <iostream>
 #include <ostream>
 #include <iomanip>
@@ -8,7 +11,7 @@
 
 ////////////////////////////////////////////
 ////////////////////////////////////////////
-int GoldenPatternResult::finalizeFunction = 0;
+int GoldenPatternResult::finalizeFunction = 4;
 
 ////////////////////////////////////////////
 ////////////////////////////////////////////
@@ -186,6 +189,45 @@ void GoldenPatternResult::finalise2() {
   valid = true;
   //by default result becomes valid here, but can be overwritten later
 }
+
+void GoldenPatternResult::finalise2_unmatchRPCMB() {
+  for(unsigned int iLogicLayer=0; iLogicLayer < stubResults.size(); ++iLogicLayer) {
+    unsigned int connectedLayer = omtfConfig->getLogicToLogic().at(iLogicLayer);
+    //here we require that in case of the DT layers, both phi and phiB is fired
+    if(firedLayerBits & (1<<connectedLayer) ) {
+      if( firedLayerBits & (1<<iLogicLayer) ) {//now in the GoldenPattern::process1Layer1RefLayer the pdf bin 0 is returned when the layer is not fired, so this is 'if' is to assured that this pdf val is not added here
+        //std::cout << "FIRED : " << firedLayerBits << std::endl;
+        //std::cout << "iLogic : " << iLogicLayer << std::endl;
+
+        if ((iLogicLayer == 10) || (iLogicLayer == 11)){//RPB1 Logic Layers
+          if (firedLayerBits & (1 << 0) || firedLayerBits & (1 << 1)){ //MB1 Logic Layer (notice that they are phi + phib so two cases)
+            //Might need to be careful in the future as we might have multiple muons in different stations. It can't happen with our set of patterns... (?)
+            //DTChamberId dtID  = DTChamberId(stubResults[0].getMuonStub()->detId);
+            //RPCDetId rpcID = RPCDetId(stubResults[iLogicLayer].getMuonStub()->detId);
+            //if (dtID.wheel() == rpcID.ring() && fabs(dtID.station - rpcID.station()) < 2) continue;
+            //std::cout << "DT in GOLD: " << dtID.wheel() << " , " << dtID.station() << " , " << dtID.sector() << std::endl; 
+            //std::cout << "RPC in GOLD: " << rpcID.ring() << " , " << rpcID.station() << " , " << rpcID.sector() << std::endl; 
+            continue;
+          }
+        }
+        pdfSum += stubResults[iLogicLayer].getPdfVal();
+        //std::cout << "PDF : " << pdfSum << std::endl;
+        if (omtfConfig->fwVersion() <= 4) {
+          if(!omtfConfig->getBendingLayers().count(iLogicLayer)) //in DT case, the phi and phiB layers are threaded as one, so the firedLayerCnt is increased only for the phi layer
+            firedLayerCnt++;
+        }
+        else
+          firedLayerCnt++;
+      }
+    }
+    else {
+      firedLayerBits &= ~(1<<iLogicLayer);
+    }
+  }
+  valid = true;
+  //by default result becomes valid here, but can be overwritten later
+}
+
 
 ////////////////////////////////////////////
 ////////////////////////////////////////////

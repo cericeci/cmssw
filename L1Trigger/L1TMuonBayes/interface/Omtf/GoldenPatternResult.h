@@ -170,8 +170,11 @@ public:
       finalise2();
     else if(finalizeFunction == 3)
       finalise3();
+    else if(finalizeFunction == 4)
+      finalise2_unmatchRPCMB();
     else
-      finalise0();
+      finalise0();    
+    finalise2_unmatchRPCMB();
   }
 
   //version for the "normal" patterns, i.e. without pdfSum threshold
@@ -186,6 +189,8 @@ public:
   //for patterns generation
   void finalise3();
 
+  //Not take RPB1 if you have MB1
+  void finalise2_unmatchRPCMB();
   //bool empty() const;
 
   friend std::ostream & operator << (std::ostream &out, const GoldenPatternResult & aResult);
