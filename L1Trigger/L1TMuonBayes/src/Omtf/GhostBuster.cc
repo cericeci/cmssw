@@ -9,7 +9,6 @@ namespace {
 }
 
 AlgoMuons GhostBuster::select(AlgoMuons refHitCands, int charge){
-
   AlgoMuons refHitCleanCands;
   // Sort candidates with decreased goodness,
   // where goodness definied in < operator of AlgoMuon

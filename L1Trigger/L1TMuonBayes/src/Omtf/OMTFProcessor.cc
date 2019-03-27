@@ -274,6 +274,7 @@ const void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcesso
   //////////////////////////////////////
   {
     for(auto& itGP: this->theGPs) {
+      //itGP->setFinalizeFunction(4);
       itGP->finalise(procIndx);
       //debug
       /*for(unsigned int iRefHit = 0; iRefHit < itGP->getResults()[procIndx].size(); ++iRefHit) {

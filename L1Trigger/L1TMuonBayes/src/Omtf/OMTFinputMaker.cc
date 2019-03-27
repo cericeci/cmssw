@@ -241,7 +241,11 @@ void OMTFinputMaker::addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers, const L1MuD
     const L1MuDTChambThContainer *dtThDigis,
     unsigned int iProcessor, l1t::tftype procTyp)
 {
-
+  std::cout << digi.whNum() << " , " << digi.stNum() << " , " << digi.scNum() << " , " << digi.bxNum() << std::endl;
+  //if (digi.stNum() == 1){
+  //    std::cout << "Stub out" << std::endl;
+  //    return;
+  //}
   DTChamberId detid(digi.whNum(), digi.stNum(), digi.scNum()+1);
 
   ///Check Trigger primitive quality
@@ -269,6 +273,7 @@ void OMTFinputMaker::addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers, const L1MuD
   auto iter = config->getHwToLogicLayer().find(hwNumber);
   unsigned int iLayer = iter->second;
   unsigned int iInput= getInputNumber(detid.rawId(), iProcessor, procTyp);
+  std::cout << "iLayer is: " << iLayer << std::endl;
   //MuonStub& stub = muonStubsInLayers[iLayer][iInput];
   MuonStub stub;
 
@@ -294,6 +299,7 @@ void OMTFinputMaker::addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers, const L1MuD
 void OMTFinputMaker::addCSCstubs(MuonStubPtrs2D& muonStubsInLayers, unsigned int rawid, const CSCCorrelatedLCTDigi& digi,
    unsigned int iProcessor, l1t::tftype procTyp)
 {
+
   unsigned int hwNumber = config->getLayerNumber(rawid);
   if(config->getHwToLogicLayer().find(hwNumber) == config->getHwToLogicLayer().end())
     return;
@@ -313,6 +319,8 @@ void OMTFinputMaker::addCSCstubs(MuonStubPtrs2D& muonStubsInLayers, unsigned int
 
   //stub.etaType = ?? TODO
   stub.detId = rawid;
+
+  std::cout << "CSC, " << iLayer << std::endl;
 
   addStub(muonStubsInLayers, iLayer, iInput, stub);
   ///Accept CSC digis only up to eta=1.26.
@@ -336,13 +344,19 @@ void OMTFinputMaker::addRPCstub(MuonStubPtrs2D& muonStubsInLayers, const RPCDetI
 
   //      std::cout << " HStrip_1: " << iPhiHalfStrip1 <<" HStrip_2: "<<iPhiHalfStrip2<<" iPhi: " << iPhi << " cluster: ["<< cluster.first << ", "<<  cluster.second <<"]"<< std::endl;
   //if (cSize>3) continue; this icut is allready in rpcClusterization.getClusters
+  std::cout << "RPC : " << roll.region() << " , " << roll.ring() << " , " << roll.station() << " , " << roll.sector() << " , " << cluster.bx << std::endl;
+  //if (roll.region() == 0 && roll.station() == 1){
+  //    std::cout << "Stub out" << std::endl;
+  //    return;
+  //}
+
   unsigned int rawid = roll.rawId();
   unsigned int hwNumber = config->getLayerNumber(rawid);
   unsigned int iLayer = config->getHwToLogicLayer().at(hwNumber);
   unsigned int iInput= getInputNumber(rawid, iProcessor, procTyp);
   //      std::cout <<"ADDING HIT: iLayer = " << iLayer << " iInput: " << iInput << " iPhi: " << iPhi << std::endl;
   //if (iLayer==17 && (iInput==0 || iInput==1)) continue;  // FIXME (MK) there is no RPC link for that input, because it is taken by DAQ link
-
+  std::cout << "iLayer is: " << iLayer << std::endl;
   MuonStub stub;
   stub.type = MuonStub::RPC;
   stub.phiHw  =  angleConverter.getProcessorPhi(getProcessorPhiZero(iProcessor), procTyp, roll, cluster.firstStrip, cluster.lastStrip);
