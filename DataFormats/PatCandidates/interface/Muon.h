@@ -36,12 +36,12 @@ namespace pat {
   typedef std::vector<Muon> MuonCollection; 
   typedef edm::Ref<MuonCollection> MuonRef; 
   typedef edm::RefVector<MuonCollection> MuonRefVector; 
-} //namespace pat
+}  //namespace pat
 
 namespace reco {
   /// pipe operator (introduced to use pat::Muon with PFTopProjectors)
   std::ostream& operator<<(std::ostream& out, const pat::Muon& obj);
-} //namespace reco
+}  //namespace reco
 
 // Class definition
 namespace pat {
@@ -49,7 +49,6 @@ namespace pat {
   class PATMuonSlimmer;
 
   class Muon : public Lepton<reco::Muon> {
-
     public:
 
       /// default constructor
