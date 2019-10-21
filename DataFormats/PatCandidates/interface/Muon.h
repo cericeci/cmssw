@@ -33,8 +33,8 @@
 // Define typedefs for convenience
 namespace pat {
   class Muon;
-  typedef std::vector<Muon>              MuonCollection; 
-  typedef edm::Ref<MuonCollection>       MuonRef; 
+  typedef std::vector<Muon> MuonCollection; 
+  typedef edm::Ref<MuonCollection> MuonRef; 
   typedef edm::RefVector<MuonCollection> MuonRefVector; 
 }
 
@@ -284,7 +284,6 @@ namespace pat {
       float lowptMvaValue() const { return lowptMvaValue_; }
       void  setLowPtMvaValue(float lowptmva){ lowptMvaValue_ = lowptmva; }
 
-
       /// Soft Muon MVA
       float softMvaValue() const { return softMvaValue_; }
       void  setSoftMvaValue(float softmva){ softMvaValue_ = softmva; }
@@ -314,7 +313,7 @@ namespace pat {
       float simEta() const {     return simEta_;}
       float simPhi() const {     return simPhi_;}
       float simMatchQuality() const {     return simMatchQuality_;}
-
+      
       void initSimInfo(void); 
       void setSimType(reco::MuonSimType type){ simType_ = type; }
       void setExtSimType(reco::ExtendedMuonSimType type){ simExtType_ = type; }
