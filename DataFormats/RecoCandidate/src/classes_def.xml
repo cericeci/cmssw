@@ -79,8 +79,14 @@
   <class name="edm::AssociationMap<edm::OneToOne<std::vector<reco::Track>,edm::OwnVector<reco::Candidate,edm::ClonePolicy<reco::Candidate> >,unsigned int> >">
      <field name="transientMap_" transient="true" />
   </class>
+  <class name="edm::AssociationMap<edm::OneToOne<std::vector<reco::Muon>,edm::OwnVector<reco::Candidate,edm::ClonePolicy<reco::Candidate> >,unsigned int> >">
+     <field name="transientMap_" transient="true" />
+  </class>
   <class name="edm::helpers::KeyVal<edm::RefProd<std::vector<reco::Track> >,edm::RefProd<edm::OwnVector<reco::Candidate,edm::ClonePolicy<reco::Candidate> > > >" />
+  <class name="edm::helpers::KeyVal<edm::RefProd<std::vector<reco::Muon> >,edm::RefProd<edm::OwnVector<reco::Candidate,edm::ClonePolicy<reco::Candidate> > > >" />
+
   <class name="edm::Wrapper<edm::AssociationMap<edm::OneToOne<std::vector<reco::Track>,edm::OwnVector<reco::Candidate,edm::ClonePolicy<reco::Candidate> >,unsigned int> > >" />
+  <class name="edm::Wrapper<edm::AssociationMap<edm::OneToOne<std::vector<reco::Muon>,edm::OwnVector<reco::Candidate,edm::ClonePolicy<reco::Candidate> >,unsigned int> > >" />
 
   <class name="edm::Wrapper<reco::SimToRecoCollection>" />
   <class name="edm::Wrapper<reco::RecoToSimCollection>" />
@@ -92,6 +98,15 @@
    <field name="transientMap_" transient="true"/>
   </class>
 
+  <class name="edm::Wrapper<reco::SimToRecoMuCollection>" />
+  <class name="edm::Wrapper<reco::RecoMuToSimCollection>" />
+
+  <class name="reco::SimToRecoMuCollection" >
+   <field name="transientMap_" transient="true"/>
+  </class>
+  <class name="reco::RecoMuToSimCollection" >
+   <field name="transientMap_" transient="true"/>
+  </class>
 
   <class name="edm::ValueMap<reco::IsoDeposit>" />
   <class name="edm::ValueMap<reco::FitQuality>" />
@@ -99,6 +114,11 @@
   <class name="edm::Wrapper<edm::AssociationMap<edm::OneToManyWithQualityGeneric<edm::View<reco::Track>,vector<TrackingParticle>,double,unsigned int,edm::RefToBaseProd<reco::Track>,edm::RefProd<vector<TrackingParticle> >,edm::RefToBase<reco::Track>,edm::Ref<vector<TrackingParticle>,TrackingParticle,edm::refhelper::FindUsingAdvance<vector<TrackingParticle>,TrackingParticle> > > > >" />
 <class name="edm::Wrapper<edm::AssociationMap<edm::OneToManyWithQualityGeneric<vector<TrackingParticle>,edm::View<reco::Track>,double,unsigned int,edm::RefProd<vector<TrackingParticle> >,edm::RefToBaseProd<reco::Track>,edm::Ref<vector<TrackingParticle>,TrackingParticle,edm::refhelper::FindUsingAdvance<vector<TrackingParticle>,TrackingParticle> >,edm::RefToBase<reco::Track> > > >" />
 <class name="edm::Wrapper<edm::AssociationMap<edm::OneToOne<vector<reco::Track>,edm::OwnVector<reco::Candidate,edm::ClonePolicy<reco::Candidate> >,unsigned int> > >" />
+
+  <class name="edm::Wrapper<edm::AssociationMap<edm::OneToManyWithQualityGeneric<edm::View<reco::Muon>,vector<TrackingParticle>,double,unsigned int,edm::RefToBaseProd<reco::Muon>,edm::RefProd<vector<TrackingParticle> >,edm::RefToBase<reco::Muon>,edm::Ref<vector<TrackingParticle>,TrackingParticle,edm::refhelper::FindUsingAdvance<vector<TrackingParticle>,TrackingParticle> > > > >" />
+<class name="edm::Wrapper<edm::AssociationMap<edm::OneToManyWithQualityGeneric<vector<TrackingParticle>,edm::View<reco::Muon>,double,unsigned int,edm::RefProd<vector<TrackingParticle> >,edm::RefToBaseProd<reco::Muon>,edm::Ref<vector<TrackingParticle>,TrackingParticle,edm::refhelper::FindUsingAdvance<vector<TrackingParticle>,TrackingParticle> >,edm::RefToBase<reco::Muon> > > >" />
+<class name="edm::Wrapper<edm::AssociationMap<edm::OneToOne<vector<reco::Muon>,edm::OwnVector<reco::Candidate,edm::ClonePolicy<reco::Candidate> >,unsigned int> > >" />
+
 <class name="edm::Wrapper<edm::AssociationMap<edm::OneToValue<vector<reco::RecoChargedCandidate>,float,unsigned int> > >" />
 <class name="edm::Wrapper<edm::AssociationMap<edm::OneToValue<vector<reco::RecoEcalCandidate>,float,unsigned int> > >" />
 <class name="edm::Wrapper<edm::OwnVector<reco::RecoCandidate,edm::ClonePolicy<reco::RecoCandidate> > >" />

@@ -3,6 +3,7 @@
 
 #include "DataFormats/Common/interface/Ref.h"
 #include "DataFormats/TrackReco/interface/Track.h"
+#include "DataFormats/MuonReco/interface/Muon.h" 
 #include "DataFormats/TrackReco/interface/TrackFwd.h"
 #include "FWCore/Framework/interface/ConsumesCollector.h"
 #include "FWCore/Framework/interface/Event.h"
@@ -29,11 +30,11 @@ public:
 
   // Originally from TrackAssociatorBase from where this class used to inherit
   // from
-  reco::RecoToSimCollection associateRecoToSim(edm::Handle<edm::View<reco::Track>> &tCH,
+  reco::RecoMuToSimCollection associateRecoToSim(edm::Handle<edm::View<reco::Muon>> &tCH,
                                                edm::Handle<TrackingParticleCollection> &tPCH,
                                                const edm::Event *event,
                                                const edm::EventSetup *setup) const {
-    edm::RefToBaseVector<reco::Track> tc;
+    edm::RefToBaseVector<reco::Muon> tc;
     for (unsigned int j = 0; j < tCH->size(); j++)
       tc.push_back(tCH->refAt(j));
 
@@ -44,11 +45,11 @@ public:
     return associateRecoToSim(tc, tpc, event, setup);
   }
 
-  virtual reco::SimToRecoCollection associateSimToReco(edm::Handle<edm::View<reco::Track>> &tCH,
+  virtual reco::SimToRecoMuCollection associateSimToReco(edm::Handle<edm::View<reco::Muon>> &tCH,
                                                        edm::Handle<TrackingParticleCollection> &tPCH,
                                                        const edm::Event *event,
                                                        const edm::EventSetup *setup) const {
-    edm::RefToBaseVector<reco::Track> tc;
+    edm::RefToBaseVector<reco::Muon> tc;
     for (unsigned int j = 0; j < tCH->size(); j++)
       tc.push_back(tCH->refAt(j));
 
@@ -68,6 +69,19 @@ public:
 
   /// Association Sim To Reco with Collections
   reco::SimToRecoCollection associateSimToReco(const edm::RefToBaseVector<reco::Track> &,
+                                               const edm::RefVector<TrackingParticleCollection> &,
+                                               const edm::Event *event = nullptr,
+                                               const edm::EventSetup *setup = nullptr) const;
+
+  /* Associate SimTracks to RecoTracks By Hits clones with reco::Muon */
+  /// Association Reco To Sim with Collections
+  reco::RecoMuToSimCollection associateRecoToSim(const edm::RefToBaseVector<reco::Muon> &,
+                                               const edm::RefVector<TrackingParticleCollection> &,
+                                               const edm::Event *event = nullptr,
+                                               const edm::EventSetup *setup = nullptr) const;
+
+  /// Association Sim To Reco with Collections
+  reco::SimToRecoMuCollection associateSimToReco(const edm::RefToBaseVector<reco::Muon> &,
                                                const edm::RefVector<TrackingParticleCollection> &,
                                                const edm::Event *event = nullptr,
                                                const edm::EventSetup *setup = nullptr) const;

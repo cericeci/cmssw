@@ -196,6 +196,54 @@ RecoToSimCollection MuonAssociatorByHits::associateRecoToSim(
   return outputCollection;
 }
 
+RecoMuToSimCollection MuonAssociatorByHits::associateRecoToSim(
+    const edm::RefToBaseVector<reco::Muon> &tM,
+    const edm::RefVector<TrackingParticleCollection> &TPCollectionH,
+    const edm::Event *e,
+    const edm::EventSetup *setup) const {
+  RecoMuToSimCollection outputCollection(&e->productGetter());
+
+  MuonAssociatorByHitsHelper::TrackHitsCollection tH;
+  for (auto it = tM.begin(), ed = tM.end(); it != ed; ++it) {
+    tH.push_back(std::make_pair((*it)->bestTrack()->recHitsBegin(), (*it)->bestTrack()->recHitsEnd()));
+  }
+
+  // Retrieve tracker topology from geometry
+  edm::ESHandle<TrackerTopology> tTopoHand;
+  setup->get<TrackerTopologyRcd>().get(tTopoHand);
+  const TrackerTopology *tTopo = tTopoHand.product();
+
+  // Tracker hit association
+  TrackerHitAssociator trackertruth(*e, trackerHitAssociatorConfig_);
+  // CSC hit association
+  CSCHitAssociator csctruth(*e, *setup, conf_);
+  // DT hit association
+  bool printRtS(true);
+  DTHitAssociator dttruth(*e, *setup, conf_, printRtS);
+  // RPC hit association
+  RPCHitAssociator rpctruth(*e, *setup, conf_);
+  // GEM hit association
+  GEMHitAssociator gemtruth(*e, *setup, conf_);
+
+  MuonAssociatorByHitsHelper::Resources resources = {tTopo, &trackertruth, &csctruth, &dttruth, &rpctruth, &gemtruth};
+
+  if (diagnostics_) {
+    resources.diagnostics_ = [this, e](const TrackHitsCollection &hC, const TrackingParticleCollection &pC) {
+      diagnostics_->dump(hC, pC, *e);
+    };
+  }
+
+  auto bareAssoc = helper_.associateRecoToSimIndices(tH, TPCollectionH, resources);
+  for (auto it = bareAssoc.begin(), ed = bareAssoc.end(); it != ed; ++it) {
+    for (auto itma = it->second.begin(), edma = it->second.end(); itma != edma; ++itma) {
+      outputCollection.insert(tM[it->first], std::make_pair(TPCollectionH[itma->idx], itma->quality));
+    }
+  }
+
+  outputCollection.post_insert();  // perhaps not even necessary
+  return outputCollection;
+}
+
 SimToRecoCollection MuonAssociatorByHits::associateSimToReco(
     const edm::RefToBaseVector<reco::Track> &tC,
     const edm::RefVector<TrackingParticleCollection> &TPCollectionH,
@@ -230,6 +278,48 @@ SimToRecoCollection MuonAssociatorByHits::associateSimToReco(
   for (auto it = bareAssoc.begin(), ed = bareAssoc.end(); it != ed; ++it) {
     for (auto itma = it->second.begin(), edma = it->second.end(); itma != edma; ++itma) {
       outputCollection.insert(TPCollectionH[it->first], std::make_pair(tC[itma->idx], itma->quality));
+    }
+  }
+
+  outputCollection.post_insert();  // perhaps not even necessary
+  return outputCollection;
+}
+
+
+SimToRecoMuCollection MuonAssociatorByHits::associateSimToReco(
+    const edm::RefToBaseVector<reco::Muon> &tM,
+    const edm::RefVector<TrackingParticleCollection> &TPCollectionH,
+    const edm::Event *e,
+    const edm::EventSetup *setup) const {
+  SimToRecoMuCollection outputCollection(&e->productGetter());
+  MuonAssociatorByHitsHelper::TrackHitsCollection tH;
+  for (auto it = tM.begin(), ed = tM.end(); it != ed; ++it) {
+    tH.push_back(std::make_pair((*it)->bestTrack()->recHitsBegin(), (*it)->bestTrack()->recHitsEnd()));
+  }
+
+  // Retrieve tracker topology from geometry
+  edm::ESHandle<TrackerTopology> tTopoHand;
+  setup->get<TrackerTopologyRcd>().get(tTopoHand);
+  const TrackerTopology *tTopo = tTopoHand.product();
+
+  // Tracker hit association
+  TrackerHitAssociator trackertruth(*e, trackerHitAssociatorConfig_);
+  // CSC hit association
+  CSCHitAssociator csctruth(*e, *setup, conf_);
+  // DT hit association
+  bool printRtS = false;
+  DTHitAssociator dttruth(*e, *setup, conf_, printRtS);
+  // RPC hit association
+  RPCHitAssociator rpctruth(*e, *setup, conf_);
+  // GEM hit association
+  GEMHitAssociator gemtruth(*e, *setup, conf_);
+
+  MuonAssociatorByHitsHelper::Resources resources = {tTopo, &trackertruth, &csctruth, &dttruth, &rpctruth, &gemtruth};
+
+  auto bareAssoc = helper_.associateSimToRecoIndices(tH, TPCollectionH, resources);
+  for (auto it = bareAssoc.begin(), ed = bareAssoc.end(); it != ed; ++it) {
+    for (auto itma = it->second.begin(), edma = it->second.end(); itma != edma; ++itma) {
+      outputCollection.insert(TPCollectionH[it->first], std::make_pair(tM[itma->idx], itma->quality));
     }
   }
 

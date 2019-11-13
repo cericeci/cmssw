@@ -3,5 +3,6 @@
 #include "SimDataFormats/TrackingAnalysis/interface/TrackingVertex.h"
 #include "SimDataFormats/TrackingAnalysis/interface/TrackingVertexContainer.h"
 #include "DataFormats/TrackReco/interface/Track.h"
+#include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/Common/interface/AssociationMapHelpers.h"
 #include "DataFormats/Common/interface/Wrapper.h"
