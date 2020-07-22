@@ -39,10 +39,11 @@ process.source = cms.Source('PoolSource',
  #fileNames = cms.untracked.vstring('file:/afs/cern.ch/work/g/gflouris/public/SingleMuPt6180_noanti_10k_eta1.root')
  #fileNames = cms.untracked.vstring('file:///afs/cern.ch/work/k/kbunkow/private/omtf_data/SingleMu_15_p_1_1_qtl.root')    
  #fileNames = cms.untracked.vstring('file:///eos/user/k/kbunkow/cms_data/mc/PhaseIIFall17D/SingleMu_PU200_32DF01CC-A342-E811-9FE7-48D539F3863E_dump500Events.root')
- fileNames = cms.untracked.vstring("file:///eos/user/k/kbunkow/cms_data/mc/PhaseIITDRSpring19DR/PhaseIITDRSpring19DR_Mu_FlatPt2to100_noPU_v31_E0D5C6A5-B855-D14F-9124-0B2C9B28D0EA_dump4000Ev.root")                     
+ #fileNames = cms.untracked.vstring("file:///pool/phedex/userstorage/carlosec/omtf/PhaseIITDRSpring19DR_Mu_FlatPt2to100_noPU_v31_E0D5C6A5-B855-D14F-9124-0B2C9B28D0EA_dump4000Ev.root")                     
+ fileNames = cms.untracked.vstring("file:///pool/phedex/userstorage/carlosec/omtf/DisplacedMuonGun_Pt30To100_Dxy_0_1000_34016F34-7F62-E911-AAB8-0025905AA9CC_dumpAllEv.root")
  )
 	                    
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000))
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
 
 # PostLS1 geometry used
 process.load('Configuration.Geometry.GeometryExtended2015Reco_cff')
@@ -89,9 +90,13 @@ process.L1TMuonSeq = cms.Sequence( process.esProd
 process.L1TMuonPath = cms.Path(process.L1TMuonSeq)
 
 process.out = cms.OutputModule("PoolOutputModule", 
-   fileName = cms.untracked.string("l1tomtf_superprimitives1.root")
+   fileName = cms.untracked.string("l1tomtf_superprimitives1.root"),
+   outputCommands = cms.untracked.vstring("drop *",
+       "keep recoGenParticles_*_*_*",
+       "keep *_genParticles_*_*",
+       "keep l1tRegionalMuonCandBXVector_*_OMTF_*",)
 )
 
-#process.output_step = cms.EndPath(process.out)
-#process.schedule = cms.Schedule(process.L1TMuonPath)
-#process.schedule.extend([process.output_step])
+process.output_step = cms.EndPath(process.out)
+process.schedule = cms.Schedule(process.L1TMuonPath)
+process.schedule.extend([process.output_step])
