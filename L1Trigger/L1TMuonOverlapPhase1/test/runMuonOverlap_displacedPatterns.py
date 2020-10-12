@@ -36,9 +36,36 @@ process.options = cms.untracked.PSet(wantSummary=cms.untracked.bool(False),
                                      )
 
 process.source = cms.Source('PoolSource',
- #fileNames = cms.untracked.vstring("file:///pool/phedex/userstorage/carlosec/omtf/PhaseIITDRSpring19DR_Mu_FlatPt2to100_noPU_v31_E0D5C6A5-B855-D14F-9124-0B2C9B28D0EA_dump4000Ev.root")                     
- #fileNames = cms.untracked.vstring("file:///pool/phedex/userstorage/carlosec/omtf/PhaseIITDRSpring19DR_Mu_FlatPt2to100_noPU_v31_E0D5C6A5-B855-D14F-9124-0B2C9B28D0EA_dump4000Ev.root")
- fileNames = cms.untracked.vstring("file:///pool/phedex/userstorage/carlosec/omtf/DisplacedMuonGun_Pt30To100_Dxy_0_1000_34016F34-7F62-E911-AAB8-0025905AA9CC_dumpAllEv.root")
+fileNames = cms.untracked.vstring(
+"file:///nfs/fanae/user/carlosec/OMTF_2020/samples/custom_3.root",
+#"file:///pool/phedex/userstorage/carlosec/omtf/inputs/prompt/025D27E1-8363-B54D-8E59-15E4E4D8D0A4.root",
+#"file:///pool/phedex/userstorage/carlosec/omtf/inputs/prompt/23509529-CA46-0D44-91B3-CA5B0CD03AB5.root",
+#"file:///pool/phedex/userstorage/carlosec/omtf/inputs/prompt/3D6E0381-37F8-CA44-99D2-F0F07A27AB2A.root",
+#"file:///pool/phedex/userstorage/carlosec/omtf/inputs/prompt/41A8FF37-7D2E-7249-B152-FE89164826F2.root",
+#"file:///pool/phedex/userstorage/carlosec/omtf/inputs/prompt/4B69420D-7BBC-BC46-8FF8-4090BB22E52F.root",
+#"file:///pool/phedex/userstorage/carlosec/omtf/inputs/prompt/560F7499-5721-654B-BC83-3AE76477D8F1.root",
+#"file:///pool/phedex/userstorage/carlosec/omtf/inputs/prompt/6EA092BE-94A5-AD49-80DB-6A73ADBD033E.root",
+#"file:///pool/phedex/userstorage/carlosec/omtf/inputs/prompt/77DD67E9-434B-8242-B08C-C99FBC95F477.root",
+#"file:///pool/phedex/userstorage/carlosec/omtf/inputs/prompt/7E51FB46-8F9C-614D-830E-1DC00A69B753.root",
+#"file:///pool/phedex/userstorage/carlosec/omtf/inputs/prompt/7EABBE9A-4C49-BA4C-87C9-8E7E245174B3.root",
+#"file:///pool/phedex/userstorage/carlosec/omtf/inputs/prompt/7F4AF09D-D268-C74E-B06C-259D965857BE.root",
+#"file:///pool/phedex/userstorage/carlosec/omtf/inputs/prompt/871278EB-3E2F-4342-B4CF-B7BDBF38975A.root",
+#"file:///pool/phedex/userstorage/carlosec/omtf/inputs/prompt/918902A9-9C86-A04C-B4F1-EADCD16A7E22.root",
+#"file:///pool/phedex/userstorage/carlosec/omtf/inputs/prompt/97A0EE28-28BF-7249-9A3F-772D6B7A98A3.root",
+#"file:///pool/phedex/userstorage/carlosec/omtf/inputs/prompt/A87AA119-9C11-3A49-B726-D87465854A19.root",
+#"file:///pool/phedex/userstorage/carlosec/omtf/inputs/prompt/AA5992F4-5D03-BF41-8CA6-0C0F5B38EC1E.root",
+#"file:///pool/phedex/userstorage/carlosec/omtf/inputs/prompt/B43C1523-B66F-944D-A2E9-128CB4576CF8.root",
+#"file:///pool/phedex/userstorage/carlosec/omtf/inputs/prompt/BBDD1FC4-DC6F-1F4C-B777-72D247A6FC1F.root",
+#"file:///pool/phedex/userstorage/carlosec/omtf/inputs/prompt/BDCB64F7-4BC6-D342-B4E7-F9451C5656D0.root",
+#"file:///pool/phedex/userstorage/carlosec/omtf/inputs/prompt/D696E7CC-7F02-CA4C-83C9-DD51FBCD3A48.root",
+#"file:///pool/phedex/userstorage/carlosec/omtf/inputs/prompt/DBDE8ECA-27FA-3D49-AE4A-8ACC528A853A.root",
+#"file:///pool/phedex/userstorage/carlosec/omtf/inputs/prompt/DD924933-8A75-8645-84F5-D408236797C1.root",
+#"file:///pool/phedex/userstorage/carlosec/omtf/inputs/prompt/DEE59424-11F1-B34E-A151-77D6642AA834.root",
+#"file:///pool/phedex/userstorage/carlosec/omtf/inputs/prompt/E0D5C6A5-B855-D14F-9124-0B2C9B28D0EA.root",
+#fileNames = cms.untracked.vstring("file:///pool/phedex/userstorage/carlosec/omtf/PhaseIITDRSpring19DR_Mu_FlatPt2to100_noPU_v31_E0D5C6A5-B855-D14F-9124-0B2C9B28D0EA_dump4000Ev.root")                     
+#fileNames = cms.untracked.vstring("file:///pool/phedex/userstorage/carlosec/omtf/PhaseIITDRSpring19DR_Mu_FlatPt2to100_noPU_v31_E0D5C6A5-B855-D14F-9124-0B2C9B28D0EA_dump4000Ev.root")
+##fileNames = cms.untracked.vstring("file:///pool/phedex/userstorage/carlosec/omtf/DisplacedMuonGun.root")
+#fileNames = cms.untracked.vstring("file:///nfs/fanae/user/carlosec/OMTF_2020/samples/L1T-PhaseIITDRSpring19DR-00022_step1.root")
 # fileNames = cms.untracked.vstring("/store/mc/PhaseIITDRSpring19DR/DisplacedMuons_Pt30to100_Dxy0to3000-pythia8-gun/GEN-SIM-DIGI-RAW/NoPU_106X_upgrade2023_realistic_v3-v1/40000/2AE8151D-FB68-9442-825F-7B56F033F675.root",
 #"/store/mc/PhaseIITDRSpring19DR/DisplacedMuons_Pt30to100_Dxy0to3000-pythia8-gun/GEN-SIM-DIGI-RAW/NoPU_106X_upgrade2023_realistic_v3-v1/40000/63A6132F-1E36-5F45-885A-42196974F153.root",
 #"/store/mc/PhaseIITDRSpring19DR/DisplacedMuons_Pt30to100_Dxy0to3000-pythia8-gun/GEN-SIM-DIGI-RAW/NoPU_106X_upgrade2023_realistic_v3-v1/40000/D6C64FD1-A305-3B4D-8E3F-79709311EED1.root",
@@ -64,6 +91,7 @@ process.source = cms.Source('PoolSource',
 #"/store/mc/PhaseIITDRSpring19DR/DisplacedMuons_Pt30to100_Dxy0to3000-pythia8-gun/GEN-SIM-DIGI-RAW/NoPU_106X_upgrade2023_realistic_v3-v1/40000/DB328BF3-42F3-354A-A245-F859CE8C4632.root",
 #"/store/mc/PhaseIITDRSpring19DR/DisplacedMuons_Pt30to100_Dxy0to3000-pythia8-gun/GEN-SIM-DIGI-RAW/NoPU_106X_upgrade2023_realistic_v3-v1/40000/9373B831-4B97-1B4B-8A5F-4E77EC50D2BE.root",
 #"/store/mc/PhaseIITDRSpring19DR/DisplacedMuons_Pt30to100_Dxy0to3000-pythia8-gun/GEN-SIM-DIGI-RAW/NoPU_106X_upgrade2023_realistic_v3-v1/40000/E181816A-E10D-BF49-A906-1DC5A1AECA2F.root"),
+)
 )
 	                    
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
@@ -96,17 +124,37 @@ process.simBayesOmtfDigis.dumpResultToXML = cms.bool(True)
 process.simBayesOmtfDigis.rpcMaxClusterSize = cms.int32(3)
 process.simBayesOmtfDigis.rpcMaxClusterCnt = cms.int32(2)
 process.simBayesOmtfDigis.rpcDropAllClustersIfMoreThanMax = cms.bool(False)
-process.simBayesOmtfDigis.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/PatternsDisplaced_0x0005_1.xml")
 
 process.simBayesOmtfDigis.lctCentralBx = cms.int32(8);#<<<<<<<<<<<<<<<<!!!!!!!!!!!!!!!!!!!!TODO this was changed in CMSSW 10(?) to 8. if the data were generated with the previous CMSSW then you have to use 6
+
+process.simBayesOmtfDigisDisplaced = process.simBayesOmtfDigis.clone()
+process.simBayesOmtfDigisDisplaced.patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/PatternsDisplaced_0x0005_1.xml")
+
+process.simBayesOmtfDigisBoth = process.simBayesOmtfDigis.clone()
+process.simBayesOmtfDigisBoth.patternsXMLFiles = cms.VPSet( cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/PatternsDisplaced_0x0005_1.xml")), cms.PSet(patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0003.xml")))
 
 #process.simBayesOmtfDigis.goldenPatternResultFinalizeFunction = cms.int32(6) #valid values are 0, 1, 2, 3, 5, 6, but for other then 0 the candidates quality assignemnt must be updated
 
 process.dumpED = cms.EDAnalyzer("EventContentAnalyzer")
 process.dumpES = cms.EDAnalyzer("PrintEventSetupContent")
 
+process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorAlong_cfi")
+
+####Event Setup Producer
+process.load("L1Trigger.L1TMuonOverlapPhase1.MuonMatcher_cfg")
+process.load('Configuration.StandardSequences.MagneticField_cff')
+
+process.dispSeq = cms.Sequence( process.dispGenEta
+)
+
+process.dispPath = cms.Path(process.dispSeq)
+
+
 process.L1TMuonSeq = cms.Sequence( process.esProd          
-                                   + process.simBayesOmtfDigis 
+                                   + process.simBayesOmtfDigis
+		                   + process.simBayesOmtfDigisDisplaced 
+                                   + process.simBayesOmtfDigisBoth
+                                   + process.dispGenEta
                                    #+ process.dumpED
                                    #+ process.dumpES
 )
