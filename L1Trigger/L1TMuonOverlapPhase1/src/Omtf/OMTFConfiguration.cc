@@ -377,8 +377,44 @@ unsigned int OMTFConfiguration::getPatternNum(double pt, int charge) const {
     PatternPt patternPt = getPatternPtRange(iPat);
     if(pt >= patternPt.ptFrom &&
        pt  < patternPt.ptTo   &&
-       charge == patternPt.charge )
+       charge == patternPt.charge ){
       return iPat;
+    }
+  }
+  return  0; //FIXME in this way if pt < 4GeV, the pattern = 0 is return , regardless of sign!
+}
+
+
+unsigned int OMTFConfiguration::getPatternNum(double pt, int charge, double dxy) const {
+  //in LUT the charge is in convention 0 is -, 1 is + (so it is not the uGMT convention!!!)
+  //so we change the charge here
+  //if(charge == -1)
+    //charge = 0;  //TODO but in the xml (and in GPs) the charge is +1 and -1, so it is important from where the patternPts is loaded FIXME!!!
+  for(unsigned int iPat = 0; iPat < patternPts.size(); iPat++) {
+    //std::cout<<"iPAt "<<iPat<<" ptFrom "<<getPatternPtRange(iPat).ptFrom<<" "<<getPatternPtRange(iPat).ptTo<<" "<<rawParams.chargeLUT()->data(iPat)<<std::endl;
+    PatternPt patternPt = getPatternPtRange(iPat);
+    if(true){//patternPt.ptFrom >= 10000){ //These are displaced patterns, parametrized in dxy
+      //std::cout << "Pattern Pre #" << iPat << ", dxyFrom:" << patternPt.ptFrom << ", dxyTo:" << patternPt.ptTo << ", dxyCand:" << dxy <<  std::endl;
+      float sign    = patternPt.ptTo <= 10000 ? +1 : -1;
+      float dxyFrom = (patternPt.ptFrom-5000*(1-(sign-1)/2))*2*sign;
+      float dxyTo   = (patternPt.ptTo  -5000*(1-(sign-1)/2))*2*sign;
+      if (dxyTo==10000 && dxyFrom==10200){
+        dxyFrom = -200;
+        dxyTo   = -10000;
+        sign = -1;
+      }
+      if (dxyFrom < -1000) dxyFrom= 0;
+      //std::cout << "Pattern #" << iPat << ", dxyFrom:" << dxyFrom << ", dxyTo:" << dxyTo << ", dxyCand:" << dxy <<  std::endl;
+      if (dxy*sign >= dxyFrom*sign && dxy*sign <= dxyTo*sign && charge == patternPt.charge){
+         //std::cout << iPat << std::endl;
+         return iPat;
+      }
+    }
+    else if(pt >= patternPt.ptFrom &&
+       pt  < patternPt.ptTo   &&
+       charge == patternPt.charge ){
+      return iPat;
+    }
   }
   return  0; //FIXME in this way if pt < 4GeV, the pattern = 0 is return , regardless of sign!
 }

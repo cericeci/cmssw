@@ -16,31 +16,79 @@ PatternGenerator::PatternGenerator(const edm::ParameterSet& edmCfg, const OMTFCo
   edm::LogImportant("l1tMuBayesEventPrint") << "constructing PatternGenerator " << std::endl;
 
 //TODO uncomment when needed
-/*  //adding new patterns!!!!!!!!!!!!
+  //adding new patterns!!!!!!!!!!!!
   edm::LogImportant("PatternGeneratorTT") << "PatternGeneratorTT: adding new patterns and modifying existing!!!!!" << std::endl;
 
-  gps[46]->setKeyPt(45);
-  gps[47]->setKeyPt(49);
-  gps[52]->setKeyPt(53);
+  //gps[46]->setKeyPt(45);
+  //gps[47]->setKeyPt(49);
+  //gps[52]->setKeyPt(53);
 
-  gps[42]->setKeyPt(45);
-  gps[43]->setKeyPt(49);
-  gps[48]->setKeyPt(53);
+  //gps[42]->setKeyPt(45);
+  //gps[43]->setKeyPt(49);
+  //gps[48]->setKeyPt(53);
 
-  todo 0 set also group and indexInGroup, in any case not easy
-  Easier is to add the new patterns in the input xml, just set the iPt3 or iPt4 accordingly
+  //todo 0 set also group and indexInGroup, in any case not easy
+  //Easier is to add the new patterns in the input xml, just set the iPt3 or iPt4 accordingly
 
-  auto pos = gps.begin();
-  gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 0, -1, 0), omtfConfig)); pos = gps.begin();
-  gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 0, -1, 0), omtfConfig)); pos = gps.begin();
-  gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 8, -1, 0), omtfConfig)); pos = gps.begin();
-  gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 7, -1, 0), omtfConfig)); pos = gps.begin();
+  //auto pos = gps.begin();
+  //gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 0, -1, 0), omtfConfig)); pos = gps.begin();
+  //gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 0, -1, 0), omtfConfig)); pos = gps.begin();
+  //gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 8, -1, 0), omtfConfig)); pos = gps.begin();
+  //gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 7, -1, 0), omtfConfig)); pos = gps.begin();
 
-  gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 0, 1, 0), omtfConfig)); pos = gps.begin();
-  gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 0, 1, 0), omtfConfig)); pos = gps.begin();
-  gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 8, 1, 0), omtfConfig)); pos = gps.begin();
-  gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 7, 1, 0), omtfConfig)); pos = gps.begin(); */
+  //gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 0, 1, 0), omtfConfig)); pos = gps.begin();
+  //gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 0, 1, 0), omtfConfig)); pos = gps.begin();
+  //gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 8, 1, 0), omtfConfig)); pos = gps.begin();
+  //gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 7, 1, 0), omtfConfig)); pos = gps.begin(); 
 
+
+  gps.clear();
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 10001,  +1, 0, 0, 1), omtfConfig));  // | dxy | < 0.1, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 10011,  +1, 1, 1, 1), omtfConfig));  // 0.1 < dxy < 0.2, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 10021,  +1, 2, 2, 1), omtfConfig));  // 0.2 < dxy < 0.3, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 10031,  +1, 3, 3, 1), omtfConfig));  // 0.3 < dxy < 0.4, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 10041,  +1, 4, 4, 1), omtfConfig));  // 0.4 < dxy < 0.5, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 10051,  +1, 5, 5, 1), omtfConfig));  // 0.5 < dxy < 0.6, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 10061,  +1, 6, 6, 1), omtfConfig));  // 0.6 < dxy < 0.8, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 10081,  +1, 7, 7, 1), omtfConfig));  // 0.8 < dxy < 1.0, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 10101,  +1, 8, 8, 1), omtfConfig));  // 1.0 < dxy < 1.5, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 10151,  +1, 9, 9, 1), omtfConfig));  // 1.5 < dxy < 2.0, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 10201,  +1, 10, 10, 1), omtfConfig));  // 2.0 < dxy < 3.0, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 20001,  +1, 11, 11, 1), omtfConfig));  // | dxy | < 0.1, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 20011,  +1, 12, 12, 1), omtfConfig));  // 0.1 < dxy < 0.2, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 20021,  +1, 13, 13, 1), omtfConfig));  // 0.2 < dxy < 0.3, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 20031,  +1, 14, 14, 1), omtfConfig));  // 0.3 < dxy < 0.4, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 20041,  +1, 15, 15, 1), omtfConfig));  // 0.4 < dxy < 0.5, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 20051,  +1, 16, 16, 1), omtfConfig));  // 0.5 < dxy < 0.6, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 20061,  +1, 17, 17, 1), omtfConfig));  // 0.6 < dxy < 0.8, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 20081,  +1, 18, 18, 1), omtfConfig));  // 0.8 < dxy < 1.0, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 20101,  +1, 19, 19, 1), omtfConfig));  // 1.0 < dxy < 1.5, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 20151,  +1, 20, 20, 1), omtfConfig));  // 1.5 < dxy < 2.0, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 20201,  +1, 21, 21, 1), omtfConfig));  // 2.0 < dxy < 3.0, chg -1
+  /*
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 10001,  +1, 22, 22, 1), omtfConfig));  // | dxy | < 0.1, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 10011,  +1, 23, 23, 1), omtfConfig));  // 0.1 < dxy < 0.2, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 10021,  +1, 24, 24, 1), omtfConfig));  // 0.2 < dxy < 0.3, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 10031,  +1, 25, 25, 1), omtfConfig));  // 0.3 < dxy < 0.4, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 10041,  +1, 26, 26, 1), omtfConfig));  // 0.4 < dxy < 0.5, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 10051,  +1, 27, 27, 1), omtfConfig));  // 0.5 < dxy < 0.6, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 10061,  +1, 28, 28, 1), omtfConfig));  // 0.6 < dxy < 0.8, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 10081,  +1, 29, 29, 1), omtfConfig));  // 0.8 < dxy < 1.0, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 10101,  +1, 30, 30, 1), omtfConfig));  // 1.0 < dxy < 1.5, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 10151,  +1, 31, 31, 1), omtfConfig));  // 1.5 < dxy < 2.0, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 10201,  +1, 32, 32, 1), omtfConfig));  // 2.0 < dxy < 3.0, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 20001,  +1, 33, 33, 1), omtfConfig));  // | dxy | < 0.1, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 20011,  +1, 34, 34, 1), omtfConfig));  // 0.1 < dxy < 0.2, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 20021,  +1, 35, 35, 1), omtfConfig));  // 0.2 < dxy < 0.3, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 20031,  +1, 36, 36, 1), omtfConfig));  // 0.3 < dxy < 0.4, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 20041,  +1, 37, 37, 1), omtfConfig));  // 0.4 < dxy < 0.5, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 20051,  +1, 38, 38, 1), omtfConfig));  // 0.5 < dxy < 0.6, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 20061,  +1, 39, 39, 1), omtfConfig));  // 0.6 < dxy < 0.8, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 20081,  +1, 40, 40, 1), omtfConfig));  // 0.8 < dxy < 1.0, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 20101,  +1, 41, 41, 1), omtfConfig));  // 1.0 < dxy < 1.5, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 20151,  +1, 42, 42, 1), omtfConfig));  // 1.5 < dxy < 2.0, chg -1
+  gps.push_back(make_shared<GoldenPatternWithStat>(Key(0, 20201,  +1, 43, 43, 1), omtfConfig));  // 2.0 < dxy < 3.0, chg -1
+  */
   goldenPatterns = gps;
 
   //reseting the golden patterns
@@ -117,8 +165,14 @@ void PatternGenerator::updateStat() {
 
   double ptSim = simMuon->momentum().pt();
   int chargeSim = (abs(simMuon->type()) == 13) ? simMuon->type()/-13 : 0;
+  double muDxy = (-1 * simMuon->trackerSurfacePosition().x() * simMuon->momentum().py() + simMuon->trackerSurfacePosition().y() * simMuon->momentum().px()) / simMuon->momentum().pt();
+  //double muDz  = simMuon->trackerSurfacePosition().z() - ( sqrt(simMuon->trackerSurfacePosition().x()*simMuon->trackerSurfacePosition().x()+simMuon->trackerSurfacePosition().y()*simMuon->trackerSurfacePosition().y()) - muDxy  )*simMuon->momentum().pz()/simMuon->momentum().pt();
+  //std::cout << muDz << std::endl;
+  //if (muDz <= 250) return;
 
-  unsigned int exptPatNum = omtfConfig->getPatternNum(ptSim, chargeSim);
+  unsigned int exptPatNum = omtfConfig->getPatternNum(ptSim, chargeSim, muDxy);
+  //std::cout << "Stat updated: " << ptSim  << "," << chargeSim << "," << muDxy <<  "," << exptPatNum << std::endl;
+  //std::cout << simMuon->type() << "," << simMuon->trackerSurfacePosition().x() << "," << simMuon->trackerSurfacePosition().y() << "," <<  simMuon->trackerSurfaceMomentum().x() << "," << simMuon->trackerSurfaceMomentum().y() << std::endl;
   GoldenPatternWithStat* exptCandGp = goldenPatterns.at(exptPatNum).get(); // expected pattern
 
   eventCntPerGp[exptPatNum]++;
@@ -175,6 +229,8 @@ void PatternGenerator::observeEventEnd(const edm::Event& iEvent, std::unique_ptr
 
   PatternOptimizerBase::observeEventEnd(iEvent, finalCandidates);
 
+  updateStat();
+  simMuon = findSimMuon(iEvent,simMuon);
   updateStat();
 }
 
