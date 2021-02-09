@@ -53,11 +53,10 @@ void DtDigiToStubsConverterOmtf::addDTphiDigi(MuonStubPtrs2D& muonStubsInLayers,
 
   stub.bx = digi.bxNum(); //TODO sholdn't  it be BxCnt()?
   //stub.timing = digi.getTiming(); //TODO what about sub-bx timing, is is available?
-
+  //std::cout << "DT stub: " << iLayer << " , " << stub.phiHw << " , " << stub.etaHw << std::endl; 
   //stub.etaType = ?? TODO
   stub.logicLayer = iLayer;
   stub.detId = detid;
-
   OMTFinputMaker::addStub(config, muonStubsInLayers, iLayer, iInput, stub);
 }
 
@@ -86,11 +85,12 @@ void CscDigiToStubsConverterOmtf::addCSCstubs(MuonStubPtrs2D& muonStubsInLayers,
   stub.type = MuonStub::CSC_PHI_ETA;
   stub.phiHw  =  angleConverter->getProcessorPhi(OMTFinputMaker::getProcessorPhiZero(config, iProcessor), procTyp, CSCDetId(rawid), digi);
   stub.etaHw  =  angleConverter->getGlobalEta(rawid, digi);
-  stub.phiBHw = digi.getPattern(); //TODO change to phiB when implemented
+  stub.phiBHw =  digi.getPattern(); //TODO change to phiB when implemented
   stub.qualityHw = digi.getQuality();
 
   stub.bx = digi.getBX() - config->cscLctCentralBx(); //TODO sholdn't  it be getBX0()?
   //stub.timing = digi.getTiming(); //TODO what about sub-bx timing, is is available?
+  //std::cout << "CSC stub: " << iLayer << " , " << stub.phiHw << " , " << stub.etaHw << std::endl;   
 
   //stub.etaType = ?? TODO
   stub.logicLayer = iLayer;
@@ -171,7 +171,7 @@ void RpcDigiToStubsConverterOmtf::addRPCstub(MuonStubPtrs2D& muonStubsInLayers, 
   //stub.etaType = ?? TODO
   stub.logicLayer = iLayer;
   stub.detId = rawid;
-
+  //std::cout << "RPC stub: " << iLayer << " , " << stub.phiHw << " , " << stub.etaHw << std::endl;   
   OMTFinputMaker::addStub(config, muonStubsInLayers, iLayer, iInput, stub);
 
   //      if (cSize>2) flag |= 2;
@@ -391,7 +391,7 @@ void OMTFinputMaker::addStub(const OMTFConfiguration* config, MuonStubPtrs2D& mu
       muonStubsInLayers[iLayer][iInput]->phiHw == stub.phiHw &&
       muonStubsInLayers[iLayer][iInput]->phiBHw == stub.phiBHw &&
       muonStubsInLayers[iLayer][iInput]->etaHw == stub.etaHw) {
-    edm::LogWarning("OMTFReconstruction")<<"addStub: the stub with exactly the same phi, phiB and eta was already added, stub.type: "<<stub.type;
+    //edm::LogWarning("OMTFReconstruction")<<"addStub: the stub with exactly the same phi, phiB and eta was already added, stub.type: "<<stub.type;
     return;
   }
 

@@ -79,7 +79,9 @@ StubResult GoldenPatternBase::process1Layer1RefLayer(unsigned int iRefLayer,
     if(abs(phiDist) < abs(phiDistMin)) {
       phiDistMin = phiDist;
       selectedStub = stub;
+      //std::cout << "Stub selected" << std::endl;
     }
+    //else std::cout << "Stub rejected by phiDistMin" << std::endl;
   }
 
   if(!selectedStub) {
@@ -96,6 +98,8 @@ StubResult GoldenPatternBase::process1Layer1RefLayer(unsigned int iRefLayer,
   ///Check if phiDistMin is within pdf range -63 +63
   ///in firmware here the arithmetic "value and sign" is used, therefore the range is -63 +63, and not -64 +63
   if(abs(phiDistMin) > ( (1<<(myOmtfConfig->nPdfAddrBits()-1)) -1) ) {
+    //std::cout << "Stub rejected by phiDistMin + nPdfAddrBits" << std::endl;
+
     return StubResult(0, false, phiDistMin + pdfMiddle, iLayer, selectedStub);
 
     //return GoldenPatternResult::LayerResult(this->pdfValue(iLayer, iRefLayer, 0), false, phiDistMin + pdfMiddle, selHit);
@@ -108,6 +112,7 @@ StubResult GoldenPatternBase::process1Layer1RefLayer(unsigned int iRefLayer,
   //if (this->getDistPhiBitShift(iLayer, iRefLayer) != 0) std::cout<<__FUNCTION__<<":"<<__LINE__<<" phiDistMin "<<phiDistMin<<std::endl;
   PdfValueType pdfVal = this->pdfValue(iLayer, iRefLayer, phiDistMin);
   if(pdfVal <= 0) {
+    //std::cout << "Stub rejected by negative pdf" << std::endl;
     return StubResult(0, false, phiDistMin, iLayer, selectedStub);
     //return GoldenPatternResult::LayerResult(this->pdfValue(iLayer, iRefLayer, 0), false, phiDistMin, selHit); //the pdf[0] needed in some versions of algorithm with threshold
   }

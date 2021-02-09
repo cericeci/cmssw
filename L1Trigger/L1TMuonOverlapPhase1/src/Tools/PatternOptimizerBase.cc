@@ -20,6 +20,7 @@
 #include "FWCore/Utilities/interface/InputTag.h"
 #include "SimDataFormats/Track/interface/CoreSimTrack.h"
 #include "SimDataFormats/Track/interface/SimTrack.h"
+#include "DataFormats/Common/interface/ValueMap.h"
 
 #include "Math/VectorUtil.h"
 
@@ -36,23 +37,24 @@
 
 PatternOptimizerBase::PatternOptimizerBase(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig):
   edmCfg(edmCfg), omtfConfig(omtfConfig), simMuon(0) {
-  // TODO Auto-generated constructor stub
 
   simMuPt =  new TH1I("simMuPt", "simMuPt", goldenPatterns.size(), -0.5, goldenPatterns.size()-0.5);
   simMuFoundByOmtfPt =  new TH1I("simMuFoundByOmtfPt", "simMuFoundByOmtfPt", goldenPatterns.size(), -0.5, goldenPatterns.size()-0.5);
 
   simMuPtSpectrum = new TH1F("simMuPtSpectrum", "simMuPtSpectrum", 400, 0, 400);
 }
+
 
 PatternOptimizerBase::PatternOptimizerBase(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig, std::vector<std::shared_ptr<GoldenPatternWithStat> >& gps):
   edmCfg(edmCfg), omtfConfig(omtfConfig), goldenPatterns(gps), simMuon(0) {
-  // TODO Auto-generated constructor stub
 
   simMuPt =  new TH1I("simMuPt", "simMuPt", goldenPatterns.size(), -0.5, goldenPatterns.size()-0.5);
   simMuFoundByOmtfPt =  new TH1I("simMuFoundByOmtfPt", "simMuFoundByOmtfPt", goldenPatterns.size(), -0.5, goldenPatterns.size()-0.5);
 
   simMuPtSpectrum = new TH1F("simMuPtSpectrum", "simMuPtSpectrum", 400, 0, 400);
 }
+
+
 
 PatternOptimizerBase::~PatternOptimizerBase() {
   // TODO Auto-generated destructor stub
@@ -171,12 +173,21 @@ const SimTrack* PatternOptimizerBase::findSimMuon(const edm::Event &event, const
   edm::Handle<edm::SimTrackContainer> simTks;
   event.getByLabel(edmCfg.getParameter<edm::InputTag>("g4SimTrackSrc"), simTks);
 
+  //for (auto etaIt = genEtas->begin() ; etaIt < genEtas->end() ; etaIt++){
+  //  std::cout << etaIt.get(0) << std::endl;
+  //}  
   for (std::vector<SimTrack>::const_iterator it=simTks->begin(); it< simTks->end(); it++) {
     const SimTrack& aTrack = *it;
-    if ( !(aTrack.type() == 13 || aTrack.type() == -13) )
+    float dz  = it->trackerSurfacePosition().z() - (it->momentum().px()*it->trackerSurfacePosition().x() + it->momentum().py()*it->trackerSurfacePosition().y()) * it->momentum().pz()/(it->momentum().px()*it->momentum().px()+it->momentum().py()*it->momentum().py()+it->momentum().pz()*it->momentum().pz());
+    //std::cout << "Track disc: " << aTrack.momentum().pz() << "," << aTrack.momentum().eta() << " , " << dz << std::endl;
+    if ( !(aTrack.type() == -13 )) //|| aTrack.type() == -13) )
       continue;
     if(previous && ROOT::Math::VectorUtil::DeltaR(aTrack.momentum(), previous->momentum()) < 0.07)
       continue;
+    if( aTrack.momentum().pz()*dz < 0){
+      std::cout << "Filtered!" << std::endl;
+      continue;
+    }
     if ( !result || aTrack.momentum().pt() > result->momentum().pt())
       result = &aTrack;
   }

@@ -80,7 +80,7 @@ std::vector<l1t::RegionalMuonCand> OMTFProcessor<GoldenPatternType>::getFinalcan
     l1t::RegionalMuonCand candidate;
     candidate.setHwPt(myCand->getPt());
     candidate.setHwEta(myCand->getEtaHw());
-    std::cout << "Candidate pT, eta:" << myCand->getPt() << "," << myCand->getEtaHw() << std::endl;
+    //std::cout << "Candidate pT, eta:" << myCand->getPt() << "," << myCand->getEtaHw() << std::endl;
     int phiValue = myCand->getPhi();
     if(phiValue>= int(this->myOmtfConfig->nPhiBins()) )
       phiValue -= this->myOmtfConfig->nPhiBins();
@@ -256,7 +256,7 @@ const void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcesso
   //////////////////////////////////////
   //////////////////////////////////////
   std::bitset<128> refHitsBits = aInput.getRefHits(iProcessor);
-  std::cout << "RefHitBits: " << refHitsBits << std::endl;
+  //std::cout << "RefHitBits: " << refHitsBits << std::endl;
   if(refHitsBits.none())
     return; // myResults;
 
@@ -270,7 +270,7 @@ const void OMTFProcessor<GoldenPatternType>::processInput(unsigned int iProcesso
     for(unsigned int iRefHit = 0; iRefHit < this->myOmtfConfig->nRefHits(); ++iRefHit) { //loop over all possible refHits, i.e. 128
       if(!refHitsBits[iRefHit]) continue;
       if(nTestedRefHits-- == 0) break;
-      std::cout << "iLayer=" << iLayer << ",iRefHit="<<iRefHit<<std::endl;
+      //std::cout << "iLayer=" << iLayer << ",iRefHit="<<iRefHit<<std::endl;
 
       const RefHitDef& aRefHitDef = this->myOmtfConfig->getRefHitsDefs()[iProcessor][iRefHit];
 
@@ -343,7 +343,7 @@ run(unsigned int iProcessor, l1t::tftype mtfType, int bx, OMTFinputMaker* inputM
 
   std::shared_ptr<OMTFinput> input = std::make_shared<OMTFinput>(this->myOmtfConfig);
   inputMaker->buildInputForProcessor(input->getMuonStubs(),
-                iProcessor, mtfType, bx-1, bx); //TODO:: THIS IS TEMPORARY TO FIX THE TIMING ISSUE
+                iProcessor, mtfType, bx, bx); 
   int flag = inputMaker->getFlag();
 
   //cout<<"buildInputForProce "; t.report();
@@ -351,17 +351,17 @@ run(unsigned int iProcessor, l1t::tftype mtfType, int bx, OMTFinputMaker* inputM
 
   //cout<<"processInput       "; t.report();
   AlgoMuons algoCandidates =  sortResults(iProcessor, mtfType);
-  std::cout << "algoCandidates: " << algoCandidates.size() << std::endl;
+  //std::cout << "algoCandidates: " << algoCandidates.size() << std::endl;
 
   //cout<<"sortResults        "; t.report();
   // perform GB
   AlgoMuons gbCandidates =  ghostBust(algoCandidates);
-  std::cout << "gbCandidates: " << algoCandidates.size() << std::endl;
+  //std::cout << "gbCandidates: " << algoCandidates.size() << std::endl;
 
   //cout<<"ghostBust"; t.report();
   // fill RegionalMuonCand colleciton
   std::vector<l1t::RegionalMuonCand> candMuons = getFinalcandidates(iProcessor, mtfType, gbCandidates);
-  std::cout << "candMuons: " << candMuons.size() << std::endl;
+  //std::cout << "candMuons: " << candMuons.size() << std::endl;
 
 
   //cout<<"getFinalcandidates "; t.report();

@@ -81,6 +81,8 @@ void GoldenPatternResult::init(const OMTFConfiguration* omtfConfig) {
     finalise = [this]() { finalise5(); };
   else if(finalizeFunction == 6)
     finalise = [this]() { finalise6(); };
+  else if(finalizeFunction == 7)
+    finalise = [this]() { finalise7(); };
   else
     finalise = [this]() { finalise0(); };
 
@@ -245,6 +247,38 @@ void GoldenPatternResult::finalise6() {
   valid = true;
   //by default result becomes valid here, but can be overwritten later
 }
+
+
+void GoldenPatternResult::finalise7() {
+  float pdfphib = 0;
+  int nphib = 0;
+  for(unsigned int iLogicLayer=0; iLogicLayer < stubResults.size(); ++iLogicLayer) {
+    unsigned int connectedLayer = omtfConfig->getLogicToLogic().at(iLogicLayer);
+
+    if(omtfConfig->isBendingLayer(iLogicLayer)) { //the DT phiB layer is counted only if three non-phib layers are fired
+      if( (firedLayerBits & (1<<iLogicLayer) ) && (firedLayerBits & (1<<connectedLayer) ) ) {
+        pdfphib += stubResults[iLogicLayer].getPdfVal();
+        nphib++;
+      }
+      else {
+        firedLayerBits &= ~(1<<iLogicLayer);
+        stubResults[iLogicLayer].setValid(false);
+        //in principle the stun should be also removed from the stubResults[iLogicLayer], on the other hand ini this way can be used e.g. for debug
+      }
+    }
+    else if( firedLayerBits & (1<<iLogicLayer) ) {
+      pdfSum += stubResults[iLogicLayer].getPdfVal();
+      firedLayerCnt++;
+    }
+  }
+  if (firedLayerCnt >= 3) { //This way we don't add phib for minimum quality
+    firedLayerCnt += nphib;
+    pdfSum += pdfphib;
+  }
+  valid = true;
+  //by default result becomes valid here, but can be overwritten later
+}
+
 
 /*void GoldenPatternResult::finalise2() {
   pdfSum = 1.;

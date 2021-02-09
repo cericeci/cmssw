@@ -358,7 +358,7 @@ void OMTFConfiguration::initPatternPtRange() {
     }
 
     if(iPat1 == nGoldenPatterns())
-      patternPt.ptTo = 10000; //inf
+      patternPt.ptTo = 100000; //inf
     else
       patternPt.ptTo = hwPtToGev(rawParams.ptLUT()->data(iPat1));
 
@@ -381,6 +381,7 @@ unsigned int OMTFConfiguration::getPatternNum(double pt, int charge) const {
       return iPat;
     }
   }
+  std::cout << "Non dxy version, you shouldn't be calling this now..." << std::endl;
   return  0; //FIXME in this way if pt < 4GeV, the pattern = 0 is return , regardless of sign!
 }
 
@@ -405,7 +406,7 @@ unsigned int OMTFConfiguration::getPatternNum(double pt, int charge, double dxy)
       }
       if (dxyFrom < -1000) dxyFrom= 0;
       //std::cout << "Pattern #" << iPat << ", dxyFrom:" << dxyFrom << ", dxyTo:" << dxyTo << ", dxyCand:" << dxy <<  std::endl;
-      if (dxy*sign >= dxyFrom*sign && dxy*sign <= dxyTo*sign && charge == patternPt.charge){
+      if (dxy*sign >= dxyFrom*sign && dxy*sign < dxyTo*sign && charge == patternPt.charge){
          //std::cout << iPat << std::endl;
          return iPat;
       }

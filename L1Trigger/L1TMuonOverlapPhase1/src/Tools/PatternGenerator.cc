@@ -31,10 +31,10 @@ PatternGenerator::PatternGenerator(const edm::ParameterSet& edmCfg, const OMTFCo
   //Easier is to add the new patterns in the input xml, just set the iPt3 or iPt4 accordingly
 
   //auto pos = gps.begin();
-  //gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 0, -1, 0), omtfConfig)); pos = gps.begin();
-  //gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 0, -1, 0), omtfConfig)); pos = gps.begin();
-  //gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 8, -1, 0), omtfConfig)); pos = gps.begin();
-  //gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 7, -1, 0), omtfConfig)); pos = gps.begin();
+  //gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 0, +1, 0), omtfConfig)); pos = gps.begin();
+  //gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 0, +1, 0), omtfConfig)); pos = gps.begin();
+  //gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 8, +1, 0), omtfConfig)); pos = gps.begin();
+  //gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 7, +1, 0), omtfConfig)); pos = gps.begin();
 
   //gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 0, 1, 0), omtfConfig)); pos = gps.begin();
   //gps.insert(pos, make_shared<GoldenPatternWithStat>(Key(0, 0, 1, 0), omtfConfig)); pos = gps.begin();
@@ -166,11 +166,17 @@ void PatternGenerator::updateStat() {
   double ptSim = simMuon->momentum().pt();
   int chargeSim = (abs(simMuon->type()) == 13) ? simMuon->type()/-13 : 0;
   double muDxy = (-1 * simMuon->trackerSurfacePosition().x() * simMuon->momentum().py() + simMuon->trackerSurfacePosition().y() * simMuon->momentum().px()) / simMuon->momentum().pt();
+  //std::cout << "Charge: " << chargeSim << std::endl;
+
   //double muDz  = simMuon->trackerSurfacePosition().z() - ( sqrt(simMuon->trackerSurfacePosition().x()*simMuon->trackerSurfacePosition().x()+simMuon->trackerSurfacePosition().y()*simMuon->trackerSurfacePosition().y()) - muDxy  )*simMuon->momentum().pz()/simMuon->momentum().pt();
   //std::cout << muDz << std::endl;
   //if (muDz <= 250) return;
-
-  unsigned int exptPatNum = omtfConfig->getPatternNum(ptSim, chargeSim, muDxy);
+  //float cosangle = (simMuon->trackerSurfacePosition().x()*simMuon->momentum().px()+simMuon->trackerSurfacePosition().y()*simMuon->momentum().py())*(simMuon->trackerSurfacePosition().x()*simMuon->momentum().px()+simMuon->trackerSurfacePosition().y()*simMuon->momentum().py())/(simMuon->momentum().pt()*simMuon->momentum().pt()*( simMuon->trackerSurfacePosition().x()*simMuon->trackerSurfacePosition().x() + simMuon->trackerSurfacePosition().y()*simMuon->trackerSurfacePosition().y()));
+  //Restrict angle to 5 degree 
+  unsigned int exptPatNum = 0;
+  //std::cout << cosangle << std::endl;
+  //if (cosangle >= 0.999 )
+  exptPatNum = omtfConfig->getPatternNum(ptSim, chargeSim, muDxy);
   //std::cout << "Stat updated: " << ptSim  << "," << chargeSim << "," << muDxy <<  "," << exptPatNum << std::endl;
   //std::cout << simMuon->type() << "," << simMuon->trackerSurfacePosition().x() << "," << simMuon->trackerSurfacePosition().y() << "," <<  simMuon->trackerSurfaceMomentum().x() << "," << simMuon->trackerSurfaceMomentum().y() << std::endl;
   GoldenPatternWithStat* exptCandGp = goldenPatterns.at(exptPatNum).get(); // expected pattern
@@ -199,6 +205,7 @@ void PatternGenerator::updateStat() {
       for(unsigned int iLayer = 0;  iLayer < gpResult.getStubResults().size(); iLayer++) {
         //updating statistic for the gp which should have fired
         if(gpResult.getStubResults()[iLayer].getMuonStub() ) {//the result is not empty
+          if(omtfConfig->isBendingLayer(iLayer) and gpResult.getStubResults()[iLayer].getMuonStub()->qualityHw <4) continue;
           int phiDist = gpResult.getStubResults()[iLayer].getPdfBin();
           phiDist += exptCandGp->meanDistPhiValue(iLayer, refLayer) - pdfMiddle; //removing the shift applied in the GoldenPatternBase::process1Layer1RefLayer
 
@@ -230,8 +237,8 @@ void PatternGenerator::observeEventEnd(const edm::Event& iEvent, std::unique_ptr
   PatternOptimizerBase::observeEventEnd(iEvent, finalCandidates);
 
   updateStat();
-  simMuon = findSimMuon(iEvent,simMuon);
-  updateStat();
+  //simMuon = findSimMuon(iEvent,simMuon);
+  //updateStat();
 }
 
 void PatternGenerator::endJob() {

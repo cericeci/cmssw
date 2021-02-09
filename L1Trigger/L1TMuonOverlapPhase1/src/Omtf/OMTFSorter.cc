@@ -20,17 +20,22 @@ AlgoMuons::value_type OMTFSorter<GoldenPatternType>::sortRefHitResults(unsigned 
 					  int charge){
   GoldenPatternType* bestGP = 0; //the GoldenPattern with the best result for this iRefHit
   //std::cout <<" ====== sortRefHitResults: " << std::endl;
-
+  //std::cout << "Processing patterns for RefHit " << iRefHit << std::endl;
+  int iP = 0;
   for(auto& itGP: gPatterns) {
+    iP++;
+    //std::cout << "Pattern: " << iP << std::endl;
     if(!itGP->getResults()[procIndx][iRefHit].isValid())
       continue;
-
+    //std::cout << "... is valid" << std::endl;
     if(charge!=0 && itGP->key().theCharge != charge)
       continue; //charge==0 means ignore charge
-
+    //std::cout << "... matches charge" << std::endl;
+    //std::cout << "... has " << itGP->getResults()[procIndx][iRefHit].getFiredLayerCnt() << " layers" << std::endl;
     ///Accept only candidates with >2 hits
     if(itGP->getResults()[procIndx][iRefHit].getFiredLayerCnt() < 3) //TODO - move 3 to the configuration??
       continue;
+    //std::cout << "... passes layers" << std::endl;
 
     if(bestGP == 0) {
       bestGP = itGP.get();
@@ -55,7 +60,9 @@ AlgoMuons::value_type OMTFSorter<GoldenPatternType>::sortRefHitResults(unsigned 
 		  <<std::endl;
 	*/
       }    
-    }    
+    }
+    //std::cout << "... has been updated" << std::endl;
+    
   }
   if(bestGP) {
     AlgoMuons::value_type candidate(new AlgoMuon(bestGP->getResults()[procIndx][iRefHit], bestGP, iRefHit) );

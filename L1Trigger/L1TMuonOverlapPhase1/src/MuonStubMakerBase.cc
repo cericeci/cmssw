@@ -21,16 +21,18 @@ void DtDigiToStubsConverter::loadDigis(const edm::Event& event) {
 }
 
 void DtDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers, unsigned int iProcessor, l1t::tftype procTyp, int bxFrom, int bxTo) {
+  //std::cout << "Now adding DT stubs... " << iProcessor << std::endl;
   if(!dtPhDigis)
     return;
 
+  //std::cout << "Non empty DT stubs..." << std::endl;
   for (const auto& digiIt: *dtPhDigis->getContainer()) {
     DTChamberId detid(digiIt.whNum(),digiIt.stNum(),digiIt.scNum()+1);
-
     ///Check it the data fits into given processor input range
     if(!acceptDigi(detid, iProcessor, procTyp))
       continue;
-
+    //std::cout << "DT Digi is accepted" << std::endl;
+    //std::cout << digiIt.bxNum() << " , " << bxFrom << " , " << bxTo << std::endl;
     if (digiIt.bxNum() >= bxFrom && digiIt.bxNum() <= bxTo )
       addDTphiDigi(muonStubsInLayers, digiIt, dtThDigis.product() , iProcessor, procTyp);
   }
@@ -50,9 +52,10 @@ void DtDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers, unsign
 ///////////////////////////////////////
 
 void CscDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers, unsigned int iProcessor, l1t::tftype procTyp, int bxFrom, int bxTo) {
+  //std::cout << "Now adding CSC stubs... " << iProcessor << std::endl;
   if(!cscDigis)
     return;
-
+  //std::cout << "Non empty CSC stubs..." << std::endl;
   auto chamber = cscDigis->begin();
   auto chend  = cscDigis->end();
   for( ; chamber != chend; ++chamber ) {
@@ -61,13 +64,13 @@ void CscDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers, unsig
     CSCDetId csc(rawid);
     if(!acceptDigi(csc, iProcessor, procTyp))
       continue;
-
+    //std::cout << "CSC Digi is accepted" << std::endl;
     auto digi = (*chamber).second.first;
     auto dend = (*chamber).second.second;
     for( ; digi != dend; ++digi ) {
       ///Check if LCT trigger primitive has the right BX.
       int digiBx = digi->getBX() - config->cscLctCentralBx();
-
+      //std::cout << digiBx << " , " << bxFrom << " , " << bxTo << std::endl;
       if (digiBx >= bxFrom && digiBx <= bxTo )
         addCSCstubs(muonStubsInLayers, rawid, *digi, iProcessor, procTyp);
     }
@@ -76,7 +79,7 @@ void CscDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers, unsig
 
 void RpcDigiToStubsConverter::makeStubs(MuonStubPtrs2D& muonStubsInLayers, unsigned int iProcessor, l1t::tftype procTyp, int bxFrom, int bxTo) {
   if(!rpcDigis) return;
-   //  std::cout <<" RPC HITS, processor : " << iProcessor << std::endl;
+   //std::cout <<" RPC HITS, processor : " << iProcessor << std::endl;
 
    const RPCDigiCollection & rpcDigiCollection = *rpcDigis;
    for (auto rollDigis : rpcDigiCollection) {
@@ -150,4 +153,3 @@ void MuonStubMakerBase::buildInputForProcessor(MuonStubPtrs2D& muonStubsInLayers
   for(auto& digiToStubsConverter: digiToStubsConverters)
     digiToStubsConverter->makeStubs(muonStubsInLayers, iProcessor, procTyp, bxFrom, bxTo);
 }
-

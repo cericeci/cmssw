@@ -39,30 +39,13 @@
 #include "boost/multi_array/multi_array_ref.hpp"
 #include "boost/multi_array/subarray.hpp"
 
+
+
 PatternOptimizer::PatternOptimizer(const edm::ParameterSet& edmCfg, const OMTFConfiguration* omtfConfig, std::vector<std::shared_ptr<GoldenPatternWithStat> >& gps):
   PatternOptimizerBase(edmCfg, omtfConfig, gps),
-  //TODO set desire function here, see https://www.cprogramming.com/c++11/c++11-lambda-closures.html
   updateStatFunc([this] (GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp) { updateStatCollectProb(omtfCandGp, exptCandGp); } ),
-  //updateStatFunc([this] (GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp) { updateStatForAllGps(omtfCandGp, exptCandGp); } ),
-  //updateStatFunc([this] (GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp) { calculateThresholds(omtfCandGp, exptCandGp); } ),
-  //updateStatFunc([this] (GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp) { tuneClassProb(omtfCandGp, exptCandGp); } ),
-  //updateStatFunc([this] (GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp) { updateStatCloseResults(omtfCandGp, exptCandGp); } ),
-
-  //updateStatFunc([this] (GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp) { updateStatVoter_1(omtfCandGp, exptCandGp); } ),
-  //updateStatFunc([this] (GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp) { updateStatPtDiff_1(omtfCandGp, exptCandGp); } ),
-  //updateStatFunc([this] (GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp) { updateStatPtDiff2_1(omtfCandGp, exptCandGp); } ),
-  //updateStatFunc([this] (GoldenPatternWithStat* omtfCandGp, GoldenPatternWithStat* exptCandGp) { updateStatPtLogDiff_2(omtfCandGp, exptCandGp); } ),
-  //updatePdfsFunc([this] (GoldenPatternWithStat* gp, unsigned int& iLayer, unsigned int& iRefLayer, double& learingRate) { updatePdfsMean_1(gp, iLayer, iRefLayer, learingRate); })
-  //updatePdfsFunc([this] (GoldenPatternWithStat* gp, unsigned int& iLayer, unsigned int& iRefLayer, double& learingRate) { updatePdfsMean_2(gp, iLayer, iRefLayer, learingRate); })
-  //updatePdfsFunc([this] (GoldenPatternWithStat* gp, unsigned int& iLayer, unsigned int& iRefLayer, double& learingRate) { updatePdfsVoter_1(gp, iLayer, iRefLayer, learingRate); })
   updatePdfsFunc([this] (GoldenPatternWithStat* gp, unsigned int& iLayer, unsigned int& iRefLayer, double& learingRate) { updatePdfsAnaDeriv(gp, iLayer, iRefLayer, learingRate); })
-  //updatePdfsFunc([this] (GoldenPatternWithStat* gp, unsigned int& iLayer, unsigned int& iRefLayer, double& learingRate) { updatePdfsNumDeriv(gp, iLayer, iRefLayer, learingRate); })
 {
-  //modifyPatterns(); //TODO remove if not needed!!!!!!!!!!!!!!!!
-
-  //ptRangeFrom = edmCfg.getParameter<double>("ptRangeFrom");
-  //ptRangeFrom = edmCfg.getParameter<double>("ptRangeTo");
-
   if(edmCfg.exists("selectedPatNum"))
     selectedPatNum = edmCfg.getParameter<unsigned int>("selectedPatNum"); //TODO
   else
@@ -73,17 +56,9 @@ PatternOptimizer::PatternOptimizer(const edm::ParameterSet& edmCfg, const OMTFCo
   else
     deltaPdf = 0;
 
-  //ptCut = goldenPatterns[selectedPatNum]->key().thePt;
   optPatXmlFile =  edmCfg.getParameter<string>("optimisedPatsXmlFile");
 
-  //currnetPtBatchPatNum = selectedPatNum;
-
-  //printPatterns();
-
   initRateWeights();
-
-  //modifyPatterns(); //TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 
   selRefL = 0;
   selL1 = 1;
@@ -114,6 +89,7 @@ PatternOptimizer::PatternOptimizer(const edm::ParameterSet& edmCfg, const OMTFCo
   }
 
 }
+
 
 //suppressing tails of the distributions
 void PatternOptimizer::modifyPatterns() {
@@ -771,7 +747,7 @@ void PatternOptimizer::calculateThresholds(GoldenPatternWithStat* omtfCandGp, Go
 /*
 void PatternOptimizer::calculateThresholds(double targetEff) {
   cout<<__FUNCTION__<<":"<<__LINE__<<" targetEff "<<targetEff<<std::endl;
-/*  TFile outfile("optimisedPats_2.root", "READ"); //FIXME the file name
+  TFile outfile("optimisedPats_2.root", "READ"); //FIXME the file name
 
   ostringstream ostrName;
   ostringstream ostrTitle;
