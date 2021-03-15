@@ -129,9 +129,9 @@ void FlatRandomPtAndDxyGunProducer::produce(Event &e, const EventSetup& es)
     barcode++;
     Vtx1->add_particle_out(Part);
     fEvt->add_vertex(Vtx1) ;
-
+    float time = sqrt(vx*vx+vy*vy+vz*vz);
     if ( fAddAntiParticle ) {
-      HepMC::GenVertex* Vtx2  = new HepMC::GenVertex(HepMC::FourVector(-vx,-vy,-vz));
+      HepMC::GenVertex* Vtx2  = new HepMC::GenVertex(HepMC::FourVector(-vx,-vy,-vz, time));
       HepMC::FourVector ap(-px,-py,-pz,energy) ;
       int APartID = -PartID ;
       if ( PartID == 22 || PartID == 23 )
