@@ -109,7 +109,7 @@ void FlatRandomPtAndDxyGunProducer::produce(Event& e, const EventSetup& es) {
         break;
     }
 
-    float time = sqrt( vx * vx + vy * vy + vz * vz);
+    float time = sqrt(vx * vx + vy * vy + vz * vz);
 
     HepMC::GenVertex* Vtx1 = new HepMC::GenVertex(HepMC::FourVector(vx, vy, vz, time));
 
