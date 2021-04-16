@@ -1,21 +1,13 @@
-#include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Utilities/interface/EDPutToken.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "DataFormats/EgammaCandidates/interface/GsfElectronFwd.h"
+#include "FWCore/ParameterSet/interface/EmptyGroupDescription.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
-#include "DataFormats/ParticleFlowReco/interface/PFRecHitFwd.h"
 #include "DataFormats/ParticleFlowReco/interface/PFRecHit.h"
-#include "DataFormats/ParticleFlowReco/interface/PFBlockElementSuperClusterFwd.h"
 #include "DataFormats/ParticleFlowReco/interface/PFBlockElementSuperCluster.h"
 #include "DataFormats/Common/interface/ValueMap.h"
-#include "DataFormats/TrackReco/interface/TrackFwd.h"
-#include "DataFormats/VertexReco/interface/VertexFwd.h"
-#include "DataFormats/EgammaCandidates/interface/GsfElectronFwd.h"
-#include "DataFormats/ParticleFlowReco/interface/PFBlockFwd.h"
-#include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
 #include "RecoParticleFlow/PFProducer/interface/PFEGammaFilters.h"
 #include "RecoParticleFlow/PFProducer/interface/PFAlgo.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
@@ -33,7 +25,7 @@
 
 #include "TFile.h"
 
-/**\class PFProducer 
+/**\class PFProducer
 \brief Producer for particle flow reconstructed particles (PFCandidates)
 
 This producer makes use of PFAlgo, the particle flow algorithm.
@@ -63,6 +55,9 @@ private:
   std::vector<edm::EDGetTokenT<reco::PFRecHitCollection>> inputTagCleanedHF_;
   std::string electronExtraOutputCol_;
   std::string photonExtraOutputCol_;
+
+  bool vetoEndcap_;
+  edm::EDGetTokenT<reco::PFCandidateCollection> inputTagVetoes_;
 
   // NEW EGamma Filters
   edm::EDGetTokenT<edm::ValueMap<reco::GsfElectronRef>> inputTagValueMapGedElectrons_;
@@ -120,12 +115,18 @@ PFProducer::PFProducer(const edm::ParameterSet& iConfig)
                              iConfig.getParameter<std::vector<double>>("calibHF_b_EMHAD")),
       pfAlgo_(iConfig.getParameter<double>("pf_nsigma_ECAL"),
               iConfig.getParameter<double>("pf_nsigma_HCAL"),
+              iConfig.getParameter<double>("pf_nsigma_HFEM"),
+              iConfig.getParameter<double>("pf_nsigma_HFHAD"),
+              iConfig.getParameter<std::vector<double>>("resolHF_square"),
               pfEnergyCalibration_,
               pfEnergyCalibrationHF_,
               iConfig) {
   //Post cleaning of the muons
   inputTagMuons_ = consumes<reco::MuonCollection>(iConfig.getParameter<InputTag>("muons"));
   postMuonCleaning_ = iConfig.getParameter<bool>("postMuonCleaning");
+  vetoEndcap_ = iConfig.getParameter<bool>("vetoEndcap");
+  if (vetoEndcap_)
+    inputTagVetoes_ = consumes<reco::PFCandidateCollection>(iConfig.getParameter<edm::InputTag>("vetoes"));
 
   if (iConfig.existsAs<bool>("useEGammaFilters")) {
     use_EGammaFilters_ = iConfig.getParameter<bool>("useEGammaFilters");
@@ -150,6 +151,7 @@ PFProducer::PFProducer(const edm::ParameterSet& iConfig)
 
   // Reading new EGamma selection cuts
   bool useProtectionsForJetMET(false);
+
   // Reading new EGamma ubiased collections and value maps
   if (use_EGammaFilters_) {
     inputTagPFEGammaCandidates_ =
@@ -159,7 +161,14 @@ PFProducer::PFProducer(const edm::ParameterSet& iConfig)
     inputTagValueMapGedPhotons_ =
         consumes<edm::ValueMap<reco::PhotonRef>>(iConfig.getParameter<edm::InputTag>("GedPhotonValueMap"));
     useProtectionsForJetMET = iConfig.getParameter<bool>("useProtectionsForJetMET");
+
+    const edm::ParameterSet pfEGammaFiltersParams =
+        iConfig.getParameter<edm::ParameterSet>("PFEGammaFiltersParameters");
+    pfegamma_ = std::make_unique<PFEGammaFilters>(pfEGammaFiltersParams);
   }
+
+  // EGamma filters
+  pfAlgo_.setEGammaParameters(use_EGammaFilters_, useProtectionsForJetMET);
 
   //Secondary tracks and displaced vertices parameters
 
@@ -179,15 +188,6 @@ PFProducer::PFProducer(const edm::ParameterSet& iConfig)
 
   if (useCalibrationsFromDB_)
     calibrationsLabel_ = iConfig.getParameter<std::string>("calibrationsLabel");
-
-  // EGamma filters
-  pfAlgo_.setEGammaParameters(use_EGammaFilters_, useProtectionsForJetMET);
-
-  if (use_EGammaFilters_) {
-    const edm::ParameterSet pfEGammaFiltersParams =
-        iConfig.getParameter<edm::ParameterSet>("PFEGammaFiltersParameters");
-    pfegamma_ = std::make_unique<PFEGammaFilters>(pfEGammaFiltersParams);
-  }
 
   // Secondary tracks and displaced vertices parameters
   pfAlgo_.setDisplacedVerticesParameters(
@@ -241,9 +241,14 @@ void PFProducer::produce(Event& iEvent, const EventSetup& iSetup) {
   auto blocks = iEvent.getHandle(inputTagBlocks_);
   assert(blocks.isValid());
 
-  // get the collection of muons
-  if (postMuonCleaning_)
+  // get and set the collection of muons (and collection of vetoes if specified)
+  if (postMuonCleaning_) {
     pfAlgo_.setMuonHandle(iEvent.getHandle(inputTagMuons_));
+    if (vetoEndcap_) {
+      auto& muAlgo = *pfAlgo_.getPFMuonAlgo();
+      muAlgo.setVetoes(iEvent.get(inputTagVetoes_));
+    }
+  }
 
   if (use_EGammaFilters_)
     pfAlgo_.setEGammaCollections(iEvent.get(inputTagPFEGammaCandidates_),
@@ -324,6 +329,12 @@ void PFProducer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) 
   desc.add<edm::InputTag>("muons", edm::InputTag("muons1stStep"));
   desc.add<bool>("postMuonCleaning", true);
 
+  // vetoEndcap flag and pf candidates for vetoes
+  edm::ParameterSetDescription emptyDescription;
+  desc.ifValue(edm::ParameterDescription<bool>("vetoEndcap", false, true),
+               true >> edm::ParameterDescription<edm::InputTag>("vetoes", {"pfTICL"}, true) or
+                   false >> edm::EmptyGroupDescription());
+
   // Vertices label
   desc.add<edm::InputTag>("vertexCollection", edm::InputTag("offlinePrimaryVertices"));
   desc.add<bool>("useVerticesForNeutral", true);
@@ -333,7 +344,7 @@ void PFProducer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) 
 
   // EGamma-related
   desc.add<edm::InputTag>("PFEGammaCandidates", edm::InputTag("particleFlowEGamma"));
-  desc.add<edm::InputTag>("GedElectronValueMap", edm::InputTag("gedGsfElectronsTmp"));
+  desc.add<edm::InputTag>("GedElectronValueMap", {"gedGsfElectronValueMapsTmp"});
   desc.add<edm::InputTag>("GedPhotonValueMap", edm::InputTag("gedPhotonsTmp", "valMapPFEgammaCandToPhoton"));
 
   desc.add<bool>("useEGammaElectrons", true);
@@ -355,7 +366,7 @@ void PFProducer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) 
 
   // For PFMuonAlgo
   edm::ParameterSetDescription psd_PFMuonAlgo;
-  PFEGammaFilters::fillPSetDescription(psd_PFMuonAlgo);
+  PFMuonAlgo::fillPSetDescription(psd_PFMuonAlgo);
   desc.add<edm::ParameterSetDescription>("PFMuonAlgoParameters", psd_PFMuonAlgo);
 
   // Input displaced vertices
@@ -407,6 +418,8 @@ void PFProducer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) 
   // number of sigmas for neutral energy detection
   desc.add<double>("pf_nsigma_ECAL", 0.0);
   desc.add<double>("pf_nsigma_HCAL", 1.0);
+  desc.add<double>("pf_nsigma_HFEM", 1.0);
+  desc.add<double>("pf_nsigma_HFHAD", 1.0);
 
   // ECAL/HCAL PF cluster calibration : take it from global tag ?
   desc.add<bool>("useCalibrationsFromDB", true);
@@ -447,6 +460,10 @@ void PFProducer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) 
   desc.add<std::vector<double>>("calibHF_a_EMHAD", {1., 1., 1., 1., 1., 1., 1., 1., 1., 1.});
   desc.add<std::vector<double>>("calibHF_b_HADonly", {1., 1., 1., 1., 1., 1., 1., 1., 1., 1.});
   desc.add<std::vector<double>>("calibHF_b_EMHAD", {1., 1., 1., 1., 1., 1., 1., 1., 1., 1.});
+
+  // resolution parameters for HF: EPJC 53(2008)139, doi:10.1140/epjc/s10052-007-0459-4
+  desc.add<std::vector<double>>("resolHF_square", {2.799 * 2.799, 0.114 * 0.114, 0.0 * 0.0})
+      ->setComment("HF resolution - stochastic, constant, noise term squares");
 
   descriptions.add("particleFlow", desc);
 }

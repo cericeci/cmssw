@@ -14,7 +14,6 @@
 #include "DataFormats/TrackingRecHit/interface/TrackingRecHitFwd.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "FWCore/Utilities/interface/isFinite.h"
-#include "Geometry/CommonDetUnit/interface/TrackingGeometry.h"
 #include "Geometry/TrackerGeometryBuilder/interface/TrackerGeometry.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalTools.h"
@@ -24,13 +23,15 @@
 #include "RecoEgamma/EgammaElectronAlgos/interface/ElectronMomentumCorrector.h"
 #include "RecoEgamma/EgammaElectronAlgos/interface/ElectronUtilities.h"
 #include "RecoEgamma/EgammaElectronAlgos/interface/GsfElectronAlgo.h"
-#include "RecoEgamma/EgammaElectronAlgos/interface/GsfElectronTools.h"
-#include "RecoEgamma/EgammaTools/interface/ConversionFinder.h"
-#include "RecoEgamma/EgammaTools/interface/ConversionTools.h"
+#include "RecoEgamma/EgammaElectronAlgos/interface/ecalClusterEnergyUncertaintyElectronSpecific.h"
+#include "CommonTools/Egamma/interface/ConversionTools.h"
+#include "RecoEgamma/EgammaTools/interface/EgammaLocalCovParamDefaults.h"
 
 #include <Math/Point3D.h>
-#include <sstream>
+#include <memory>
+
 #include <algorithm>
+#include <sstream>
 
 using namespace edm;
 using namespace reco;
@@ -39,11 +40,11 @@ GsfElectronAlgo::HeavyObjectCache::HeavyObjectCache(const edm::ParameterSet& con
   // soft electron MVA
   SoftElectronMVAEstimator::Configuration sconfig;
   sconfig.vweightsfiles = conf.getParameter<std::vector<std::string>>("SoftElecMVAFilesString");
-  sElectronMVAEstimator.reset(new SoftElectronMVAEstimator(sconfig));
+  sElectronMVAEstimator = std::make_unique<SoftElectronMVAEstimator>(sconfig);
   // isolated electron MVA
   ElectronMVAEstimator::Configuration iconfig;
   iconfig.vweightsfiles = conf.getParameter<std::vector<std::string>>("ElecMVAFilesString");
-  iElectronMVAEstimator.reset(new ElectronMVAEstimator(iconfig));
+  iElectronMVAEstimator = std::make_unique<ElectronMVAEstimator>(iconfig);
 }
 
 //===================================================================
@@ -59,14 +60,11 @@ struct GsfElectronAlgo::EventData {
   const reco::BeamSpot* beamspot;
 
   // input collections
-  edm::Handle<reco::GsfElectronCollection> previousElectrons;
-  edm::Handle<reco::GsfElectronCollection> pflowElectrons;
   edm::Handle<reco::GsfElectronCoreCollection> coreElectrons;
   edm::Handle<EcalRecHitCollection> barrelRecHits;
   edm::Handle<EcalRecHitCollection> endcapRecHits;
   edm::Handle<reco::TrackCollection> currentCtfTracks;
   edm::Handle<reco::ElectronSeedCollection> seeds;
-  edm::Handle<reco::GsfPFRecTrackCollection> gsfPfRecTracks;
   edm::Handle<reco::VertexCollection> vertices;
   edm::Handle<reco::ConversionCollection> conversions;
 
@@ -78,10 +76,10 @@ struct GsfElectronAlgo::EventData {
   EgammaRecHitIsolation ecalBarrelIsol03, ecalBarrelIsol04;
   EgammaRecHitIsolation ecalEndcapIsol03, ecalEndcapIsol04;
 
-  //Isolation Value Maps for PF and EcalDriven electrons
-  typedef std::vector<edm::Handle<edm::ValueMap<double>>> IsolationValueMaps;
-  IsolationValueMaps pfIsolationValues;
-  IsolationValueMaps edIsolationValues;
+  EleTkIsolFromCands tkIsol03Calc;
+  EleTkIsolFromCands tkIsol04Calc;
+  EleTkIsolFromCands tkIsolHEEP03Calc;
+  EleTkIsolFromCands tkIsolHEEP04Calc;
 
   edm::Handle<reco::TrackCollection> originalCtfTracks;
   edm::Handle<reco::GsfTrackCollection> originalGsfTracks;
@@ -295,7 +293,8 @@ reco::GsfElectron::ShowerShape GsfElectronAlgo::calculateShowerShape(const reco:
                                                                      ElectronHcalHelper const& hcalHelper,
                                                                      EventData const& eventData,
                                                                      CaloTopology const& topology,
-                                                                     CaloGeometry const& geometry) const {
+                                                                     CaloGeometry const& geometry,
+                                                                     EcalPFRecHitThresholds const& thresholds) const {
   using ClusterTools = EcalClusterToolsT<full5x5>;
   reco::GsfElectron::ShowerShape showerShape;
 
@@ -317,8 +316,19 @@ reco::GsfElectron::ShowerShape GsfElectronAlgo::calculateShowerShape(const reco:
     recHitSeverityToBeExcluded = cfg_.recHits.recHitSeverityToBeExcludedEndcaps;
   }
 
-  std::vector<float> covariances = ClusterTools::covariances(seedCluster, recHits, &topology, &geometry);
-  std::vector<float> localCovariances = ClusterTools::localCovariances(seedCluster, recHits, &topology);
+  const auto& covariances = ClusterTools::covariances(seedCluster, recHits, &topology, &geometry);
+
+  // do noise-cleaning for full5x5, by passing per crystal PF recHit thresholds and mult values
+  // mult values for EB and EE were obtained by dedicated studies
+  const auto& localCovariances = full5x5 ? ClusterTools::localCovariances(seedCluster,
+                                                                          recHits,
+                                                                          &topology,
+                                                                          EgammaLocalCovParamDefaults::kRelEnCut,
+                                                                          &thresholds,
+                                                                          cfg_.cuts.multThresEB,
+                                                                          cfg_.cuts.multThresEE)
+                                         : ClusterTools::localCovariances(seedCluster, recHits, &topology);
+
   showerShape.sigmaEtaEta = sqrt(covariances[0]);
   showerShape.sigmaIetaIeta = sqrt(localCovariances[0]);
   if (!edm::isNotFinite(localCovariances[2]))
@@ -371,12 +381,9 @@ reco::GsfElectron::ShowerShape GsfElectronAlgo::calculateShowerShape(const reco:
 GsfElectronAlgo::GsfElectronAlgo(const Tokens& input,
                                  const StrategyConfiguration& strategy,
                                  const CutsConfiguration& cuts,
-                                 const CutsConfiguration& cutsPflow,
                                  const ElectronHcalHelper::Configuration& hcal,
-                                 const ElectronHcalHelper::Configuration& hcalPflow,
                                  const IsolationConfiguration& iso,
                                  const EcalRecHitsConfiguration& recHits,
-                                 std::unique_ptr<EcalClusterFunctionBaseClass>&& superClusterErrorFunction,
                                  std::unique_ptr<EcalClusterFunctionBaseClass>&& crackCorrectionFunction,
                                  const RegressionHelper::Configuration& reg,
                                  const edm::ParameterSet& tkIsol03,
@@ -384,34 +391,27 @@ GsfElectronAlgo::GsfElectronAlgo(const Tokens& input,
                                  const edm::ParameterSet& tkIsolHEEP03,
                                  const edm::ParameterSet& tkIsolHEEP04,
                                  edm::ConsumesCollector&& cc)
-    : cfg_{input, strategy, cuts, cutsPflow, iso, recHits},
-      tkIsol03Calc_(tkIsol03),
-      tkIsol04Calc_(tkIsol04),
-      tkIsolHEEP03Calc_(tkIsolHEEP03),
-      tkIsolHEEP04Calc_(tkIsolHEEP04),
-      magneticFieldToken_{cc.esConsumes<MagneticField, IdealMagneticFieldRecord>()},
-      caloGeometryToken_{cc.esConsumes<CaloGeometry, CaloGeometryRecord>()},
-      caloTopologyToken_{cc.esConsumes<CaloTopology, CaloTopologyRecord>()},
-      trackerGeometryToken_{cc.esConsumes<TrackerGeometry, TrackerDigiGeometryRecord>()},
-      ecalSeveretyLevelAlgoToken_{cc.esConsumes<EcalSeverityLevelAlgo, EcalSeverityLevelAlgoRcd>()},
-      hcalHelper_{hcal},
-      hcalHelperPflow_{hcalPflow},
-      superClusterErrorFunction_{
-          std::forward<std::unique_ptr<EcalClusterFunctionBaseClass>>(superClusterErrorFunction)},
+    : cfg_{input, strategy, cuts, iso, recHits},
+      tkIsol03CalcCfg_(tkIsol03),
+      tkIsol04CalcCfg_(tkIsol04),
+      tkIsolHEEP03CalcCfg_(tkIsolHEEP03),
+      tkIsolHEEP04CalcCfg_(tkIsolHEEP04),
+      magneticFieldToken_{cc.esConsumes()},
+      caloGeometryToken_{cc.esConsumes()},
+      caloTopologyToken_{cc.esConsumes()},
+      trackerGeometryToken_{cc.esConsumes()},
+      ecalSeveretyLevelAlgoToken_{cc.esConsumes()},
+      ecalPFRechitThresholdsToken_{cc.esConsumes()},
+      hcalHelper_{hcal, std::move(cc)},
       crackCorrectionFunction_{std::forward<std::unique_ptr<EcalClusterFunctionBaseClass>>(crackCorrectionFunction)},
-      regHelper_{reg}
+      regHelper_{reg, cfg_.strategy.useEcalRegression, cfg_.strategy.useCombinationRegression, cc}
 
 {}
 
 void GsfElectronAlgo::checkSetup(const edm::EventSetup& es) {
-  hcalHelper_.checkSetup(es);
-  hcalHelperPflow_.checkSetup(es);
   if (cfg_.strategy.useEcalRegression || cfg_.strategy.useCombinationRegression)
     regHelper_.checkSetup(es);
 
-  if (superClusterErrorFunction_) {
-    superClusterErrorFunction_->init(es);
-  }
   if (crackCorrectionFunction_) {
     crackCorrectionFunction_->init(es);
   }
@@ -420,10 +420,6 @@ void GsfElectronAlgo::checkSetup(const edm::EventSetup& es) {
 GsfElectronAlgo::EventData GsfElectronAlgo::beginEvent(edm::Event const& event,
                                                        CaloGeometry const& caloGeometry,
                                                        EcalSeverityLevelAlgo const& ecalSeveretyLevelAlgo) {
-  // prepare access to hcal data
-  hcalHelper_.readEvent(event);
-  hcalHelperPflow_.readEvent(event);
-
   auto const& towers = event.get(cfg_.tokens.hcalTowersTag);
 
   // Isolation algos
@@ -440,18 +436,16 @@ GsfElectronAlgo::EventData GsfElectronAlgo::beginEvent(edm::Event const& event,
   auto barrelRecHits = event.getHandle(cfg_.tokens.barrelRecHitCollection);
   auto endcapRecHits = event.getHandle(cfg_.tokens.endcapRecHitCollection);
 
+  auto ctfTracks = event.getHandle(cfg_.tokens.ctfTracks);
+
   EventData eventData{
       .event = &event,
       .beamspot = &event.get(cfg_.tokens.beamSpotTag),
-      .previousElectrons = event.getHandle(cfg_.tokens.previousGsfElectrons),
-      .pflowElectrons = event.getHandle(cfg_.tokens.pflowGsfElectronsTag),
       .coreElectrons = event.getHandle(cfg_.tokens.gsfElectronCores),
       .barrelRecHits = barrelRecHits,
       .endcapRecHits = endcapRecHits,
-      .currentCtfTracks = event.getHandle(cfg_.tokens.ctfTracks),
+      .currentCtfTracks = ctfTracks,
       .seeds = event.getHandle(cfg_.tokens.seedsTag),
-      .gsfPfRecTracks = cfg_.strategy.useGsfPfRecTracks ? event.getHandle(cfg_.tokens.gsfPfRecTracksTag)
-                                                        : edm::Handle<reco::GsfPFRecTrackCollection>{},
       .vertices = event.getHandle(cfg_.tokens.vtxCollectionTag),
       .conversions = cfg_.strategy.fillConvVtxFitProb ? event.getHandle(cfg_.tokens.conversions)
                                                       : edm::Handle<reco::ConversionCollection>(),
@@ -507,8 +501,10 @@ GsfElectronAlgo::EventData GsfElectronAlgo::beginEvent(edm::Event const& event,
                                                 *endcapRecHits,
                                                 &ecalSeveretyLevelAlgo,
                                                 DetId::Ecal),
-      .pfIsolationValues = {},
-      .edIsolationValues = {},
+      .tkIsol03Calc = EleTkIsolFromCands(tkIsol03CalcCfg_, *ctfTracks),
+      .tkIsol04Calc = EleTkIsolFromCands(tkIsol04CalcCfg_, *ctfTracks),
+      .tkIsolHEEP03Calc = EleTkIsolFromCands(tkIsolHEEP03CalcCfg_, *ctfTracks),
+      .tkIsolHEEP04Calc = EleTkIsolFromCands(tkIsolHEEP04CalcCfg_, *ctfTracks),
       .originalCtfTracks = {},
       .originalGsfTracks = {}};
 
@@ -536,15 +532,20 @@ GsfElectronAlgo::EventData GsfElectronAlgo::beginEvent(edm::Event const& event,
   return eventData;
 }
 
-void GsfElectronAlgo::completeElectrons(reco::GsfElectronCollection& electrons,
-                                        edm::Event const& event,
-                                        edm::EventSetup const& eventSetup,
-                                        const GsfElectronAlgo::HeavyObjectCache* hoc) {
+reco::GsfElectronCollection GsfElectronAlgo::completeElectrons(edm::Event const& event,
+                                                               edm::EventSetup const& eventSetup,
+                                                               const GsfElectronAlgo::HeavyObjectCache* hoc) {
+  reco::GsfElectronCollection electrons;
+
   auto const& magneticField = eventSetup.getData(magneticFieldToken_);
   auto const& caloGeometry = eventSetup.getData(caloGeometryToken_);
   auto const& caloTopology = eventSetup.getData(caloTopologyToken_);
   auto const& trackerGeometry = eventSetup.getData(trackerGeometryToken_);
   auto const& ecalSeveretyLevelAlgo = eventSetup.getData(ecalSeveretyLevelAlgoToken_);
+  auto const& thresholds = eventSetup.getData(ecalPFRechitThresholdsToken_);
+
+  // prepare access to hcal data
+  hcalHelper_.beginEvent(event, eventSetup);
 
   checkSetup(eventSetup);
   auto eventData = beginEvent(event, caloGeometry, ecalSeveretyLevelAlgo);
@@ -553,19 +554,13 @@ void GsfElectronAlgo::completeElectrons(reco::GsfElectronCollection& electrons,
   MultiTrajectoryStateTransform mtsTransform(&trackerGeometry, &magneticField);
   GsfConstraintAtVertex constraintAtVtx(eventSetup);
 
+  std::optional<egamma::conv::TrackTable> ctfTrackTable = std::nullopt;
+  std::optional<egamma::conv::TrackTable> gsfTrackTable = std::nullopt;
+
   const GsfElectronCoreCollection* coreCollection = eventData.coreElectrons.product();
   for (unsigned int i = 0; i < coreCollection->size(); ++i) {
     // check there is no existing electron with this core
     const GsfElectronCoreRef coreRef = edm::Ref<GsfElectronCoreCollection>(eventData.coreElectrons, i);
-    bool coreFound = false;
-    for (auto const& ele : electrons) {
-      if (ele.core() == coreRef) {
-        coreFound = true;
-        break;
-      }
-    }
-    if (coreFound)
-      continue;
 
     // check there is a super-cluster
     if (coreRef->superCluster().isNull())
@@ -578,10 +573,33 @@ void GsfElectronAlgo::completeElectrons(reco::GsfElectronCollection& electrons,
     if (!electronData.calculateTSOS(mtsTransform, constraintAtVtx))
       continue;
 
-    createElectron(
-        electrons, electronData, eventData, caloTopology, caloGeometry, mtsTransform, magneticFieldInTesla, hoc);
+    eventData.retreiveOriginalTrackCollections(electronData.ctfTrackRef, electronData.coreRef->gsfTrack());
+
+    if (!eventData.originalCtfTracks.isValid()) {
+      eventData.originalCtfTracks = eventData.currentCtfTracks;
+    }
+
+    if (ctfTrackTable == std::nullopt) {
+      ctfTrackTable = egamma::conv::TrackTable(*eventData.originalCtfTracks);
+    }
+    if (gsfTrackTable == std::nullopt) {
+      gsfTrackTable = egamma::conv::TrackTable(*eventData.originalGsfTracks);
+    }
+
+    createElectron(electrons,
+                   electronData,
+                   eventData,
+                   caloTopology,
+                   caloGeometry,
+                   mtsTransform,
+                   magneticFieldInTesla,
+                   hoc,
+                   ctfTrackTable.value(),
+                   gsfTrackTable.value(),
+                   thresholds);
 
   }  // loop over tracks
+  return electrons;
 }
 
 void GsfElectronAlgo::setCutBasedPreselectionFlag(GsfElectron& ele, const reco::BeamSpot& bs) const {
@@ -591,7 +609,6 @@ void GsfElectronAlgo::setCutBasedPreselectionFlag(GsfElectron& ele, const reco::
   // kind of seeding
   bool eg = ele.core()->ecalDrivenSeed();
   bool pf = ele.core()->trackerDrivenSeed() && !ele.core()->ecalDrivenSeed();
-  bool gedMode = cfg_.strategy.gedElectronMode;
   if (eg && pf) {
     throw cms::Exception("GsfElectronAlgo|BothEcalAndPureTrackerDriven")
         << "An electron cannot be both egamma and purely pflow";
@@ -601,28 +618,28 @@ void GsfElectronAlgo::setCutBasedPreselectionFlag(GsfElectron& ele, const reco::
         << "An electron cannot be neither egamma nor purely pflow";
   }
 
-  const CutsConfiguration* cfg = ((eg || gedMode) ? &cfg_.cuts : &cfg_.cutsPflow);
+  CutsConfiguration const& cfg = cfg_.cuts;
 
   // Et cut
   double etaValue = EleRelPoint(ele.superCluster()->position(), bs.position()).eta();
   double etValue = ele.superCluster()->energy() / cosh(etaValue);
   LogTrace("GsfElectronAlgo") << "Et : " << etValue;
-  if (ele.isEB() && (etValue < cfg->minSCEtBarrel))
+  if (ele.isEB() && (etValue < cfg.minSCEtBarrel))
     return;
-  if (ele.isEE() && (etValue < cfg->minSCEtEndcaps))
+  if (ele.isEE() && (etValue < cfg.minSCEtEndcaps))
     return;
   LogTrace("GsfElectronAlgo") << "Et criteria are satisfied";
 
   // E/p cut
   double eopValue = ele.eSuperClusterOverP();
   LogTrace("GsfElectronAlgo") << "E/p : " << eopValue;
-  if (ele.isEB() && (eopValue > cfg->maxEOverPBarrel))
+  if (ele.isEB() && (eopValue > cfg.maxEOverPBarrel))
     return;
-  if (ele.isEE() && (eopValue > cfg->maxEOverPEndcaps))
+  if (ele.isEE() && (eopValue > cfg.maxEOverPEndcaps))
     return;
-  if (ele.isEB() && (eopValue < cfg->minEOverPBarrel))
+  if (ele.isEB() && (eopValue < cfg.minEOverPBarrel))
     return;
-  if (ele.isEE() && (eopValue < cfg->minEOverPEndcaps))
+  if (ele.isEE() && (eopValue < cfg.minEOverPEndcaps))
     return;
   LogTrace("GsfElectronAlgo") << "E/p criteria are satisfied";
 
@@ -636,11 +653,11 @@ void GsfElectronAlgo::setCutBasedPreselectionFlag(GsfElectron& ele, const reco::
   double scle = ele.superCluster()->energy();
 
   if (detector == EcalBarrel)
-    HoEveto = hoeCone * scle < cfg->maxHBarrelCone || hoeTower * scle < cfg->maxHBarrelTower ||
-              hoeCone < cfg->maxHOverEBarrelCone || hoeTower < cfg->maxHOverEBarrelTower;
+    HoEveto = hoeCone * scle < cfg.maxHBarrelCone || hoeTower * scle < cfg.maxHBarrelTower ||
+              hoeCone < cfg.maxHOverEBarrelCone || hoeTower < cfg.maxHOverEBarrelTower;
   else if (detector == EcalEndcap)
-    HoEveto = hoeCone * scle < cfg->maxHEndcapsCone || hoeTower * scle < cfg->maxHEndcapsTower ||
-              hoeCone < cfg->maxHOverEEndcapsCone || hoeTower < cfg->maxHOverEEndcapsTower;
+    HoEveto = hoeCone * scle < cfg.maxHEndcapsCone || hoeTower * scle < cfg.maxHEndcapsTower ||
+              hoeCone < cfg.maxHOverEEndcapsCone || hoeTower < cfg.maxHOverEEndcapsTower;
 
   if (!HoEveto)
     return;
@@ -649,35 +666,35 @@ void GsfElectronAlgo::setCutBasedPreselectionFlag(GsfElectron& ele, const reco::
   // delta eta criteria
   double deta = ele.deltaEtaSuperClusterTrackAtVtx();
   LogTrace("GsfElectronAlgo") << "delta eta : " << deta;
-  if (ele.isEB() && (std::abs(deta) > cfg->maxDeltaEtaBarrel))
+  if (ele.isEB() && (std::abs(deta) > cfg.maxDeltaEtaBarrel))
     return;
-  if (ele.isEE() && (std::abs(deta) > cfg->maxDeltaEtaEndcaps))
+  if (ele.isEE() && (std::abs(deta) > cfg.maxDeltaEtaEndcaps))
     return;
   LogTrace("GsfElectronAlgo") << "Delta eta criteria are satisfied";
 
   // delta phi criteria
   double dphi = ele.deltaPhiSuperClusterTrackAtVtx();
   LogTrace("GsfElectronAlgo") << "delta phi : " << dphi;
-  if (ele.isEB() && (std::abs(dphi) > cfg->maxDeltaPhiBarrel))
+  if (ele.isEB() && (std::abs(dphi) > cfg.maxDeltaPhiBarrel))
     return;
-  if (ele.isEE() && (std::abs(dphi) > cfg->maxDeltaPhiEndcaps))
+  if (ele.isEE() && (std::abs(dphi) > cfg.maxDeltaPhiEndcaps))
     return;
   LogTrace("GsfElectronAlgo") << "Delta phi criteria are satisfied";
 
   // sigma ieta ieta
   LogTrace("GsfElectronAlgo") << "sigma ieta ieta : " << ele.sigmaIetaIeta();
-  if (ele.isEB() && (ele.sigmaIetaIeta() > cfg->maxSigmaIetaIetaBarrel))
+  if (ele.isEB() && (ele.sigmaIetaIeta() > cfg.maxSigmaIetaIetaBarrel))
     return;
-  if (ele.isEE() && (ele.sigmaIetaIeta() > cfg->maxSigmaIetaIetaEndcaps))
+  if (ele.isEE() && (ele.sigmaIetaIeta() > cfg.maxSigmaIetaIetaEndcaps))
     return;
   LogTrace("GsfElectronAlgo") << "Sigma ieta ieta criteria are satisfied";
 
   // fiducial
-  if (!ele.isEB() && cfg->isBarrel)
+  if (!ele.isEB() && cfg.isBarrel)
     return;
-  if (!ele.isEE() && cfg->isEndcaps)
+  if (!ele.isEE() && cfg.isEndcaps)
     return;
-  if (cfg->isFiducial &&
+  if (cfg.isFiducial &&
       (ele.isEBEEGap() || ele.isEBEtaGap() || ele.isEBPhiGap() || ele.isEERingGap() || ele.isEEDeeGap()))
     return;
   LogTrace("GsfElectronAlgo") << "Fiducial flags criteria are satisfied";
@@ -695,7 +712,7 @@ void GsfElectronAlgo::setCutBasedPreselectionFlag(GsfElectron& ele, const reco::
   }
 
   // transverse impact parameter
-  if (std::abs(ele.gsfTrack()->dxy(bs.position())) > cfg->maxTIP)
+  if (std::abs(ele.gsfTrack()->dxy(bs.position())) > cfg.maxTIP)
     return;
   LogTrace("GsfElectronAlgo") << "TIP criterion is satisfied";
 
@@ -710,12 +727,10 @@ void GsfElectronAlgo::createElectron(reco::GsfElectronCollection& electrons,
                                      CaloGeometry const& geometry,
                                      MultiTrajectoryStateTransform const& mtsTransform,
                                      double magneticFieldInTesla,
-                                     const GsfElectronAlgo::HeavyObjectCache* hoc) {
-  // eventually check ctf track
-  if (cfg_.strategy.ctfTracksCheck && electronData.ctfTrackRef.isNull()) {
-    electronData.ctfTrackRef = egamma::getClosestCtfToGsf(electronData.gsfTrackRef, eventData.currentCtfTracks).first;
-  }
-
+                                     const GsfElectronAlgo::HeavyObjectCache* hoc,
+                                     egamma::conv::TrackTableView ctfTable,
+                                     egamma::conv::TrackTableView gsfTable,
+                                     EcalPFRecHitThresholds const& thresholds) {
   // charge ID
   int eleCharge;
   GsfElectron::ChargeInfo eleChargeInfo;
@@ -844,22 +859,34 @@ void GsfElectronAlgo::createElectron(reco::GsfElectronCollection& electrons,
   reco::GsfElectron::ShowerShape showerShape;
   reco::GsfElectron::ShowerShape full5x5_showerShape;
   if (!EcalTools::isHGCalDet((DetId::Detector)region)) {
-    const bool pflow = !(electronData.coreRef->ecalDrivenSeed());
-    auto const& hcalHelper = pflow ? hcalHelperPflow_ : hcalHelper_;
-    showerShape = calculateShowerShape<false>(electronData.superClusterRef, hcalHelper, eventData, topology, geometry);
-    full5x5_showerShape =
-        calculateShowerShape<true>(electronData.superClusterRef, hcalHelper, eventData, topology, geometry);
+    showerShape = calculateShowerShape<false>(
+        electronData.superClusterRef, hcalHelper_, eventData, topology, geometry, thresholds);
+    full5x5_showerShape = calculateShowerShape<true>(
+        electronData.superClusterRef, hcalHelper_, eventData, topology, geometry, thresholds);
   }
 
   //====================================================
   // ConversionRejection
   //====================================================
 
-  eventData.retreiveOriginalTrackCollections(electronData.ctfTrackRef, electronData.coreRef->gsfTrack());
-
   edm::Handle<reco::TrackCollection> ctfTracks = eventData.originalCtfTracks;
   if (!ctfTracks.isValid()) {
     ctfTracks = eventData.currentCtfTracks;
+  }
+
+  {
+    //get the references to the gsf and ctf tracks that are made
+    //by the electron
+    const reco::TrackRef el_ctftrack = electronData.coreRef->ctfTrack();
+    const reco::GsfTrackRef& el_gsftrack = electronData.coreRef->gsfTrack();
+
+    //protect against the wrong collection being passed to the function
+    if (el_ctftrack.isNonnull() && el_ctftrack.id() != ctfTracks.id())
+      throw cms::Exception("ConversionFinderError")
+          << "ProductID of ctf track collection does not match ProductID of electron's CTF track! \n";
+    if (el_gsftrack.isNonnull() && el_gsftrack.id() != eventData.originalGsfTracks.id())
+      throw cms::Exception("ConversionFinderError")
+          << "ProductID of gsf track collection does not match ProductID of electron's GSF track! \n";
   }
 
   // values of conversionInfo.flag
@@ -868,8 +895,7 @@ void GsfElectronAlgo::createElectron(reco::GsfElectronCollection& electrons,
   // 1     : Partner track found in the CTF collection using
   // 2     : Partner track found in the GSF collection using
   // 3     : Partner track found in the GSF collection using the electron's GSF track
-  ConversionInfo conversionInfo = egammaTools::getConversionInfo(
-      *electronData.coreRef, ctfTracks, eventData.originalGsfTracks, magneticFieldInTesla);
+  auto conversionInfo = egamma::conv::findConversion(*electronData.coreRef, ctfTable, gsfTable, magneticFieldInTesla);
 
   reco::GsfElectron::ConversionRejection conversionVars;
   conversionVars.flags = conversionInfo.flag;
@@ -886,10 +912,12 @@ void GsfElectronAlgo::createElectron(reco::GsfElectronCollection& electrons,
         electronData.coreRef->ctfTrack(), *eventData.conversions, eventData.beamspot->position(), 2.0, 1e-6, 0);
     conversionVars.vtxFitProb = ConversionTools::getVtxFitProb(matchedConv);
   }
-  if ((conversionVars.flags == 0) or (conversionVars.flags == 1))
-    conversionVars.partner = TrackBaseRef(conversionInfo.conversionPartnerCtfTk);
-  else if ((conversionVars.flags == 2) or (conversionVars.flags == 3))
-    conversionVars.partner = TrackBaseRef(conversionInfo.conversionPartnerGsfTk);
+  if (conversionInfo.conversionPartnerCtfTkIdx) {
+    conversionVars.partner = TrackBaseRef(reco::TrackRef(ctfTracks, conversionInfo.conversionPartnerCtfTkIdx.value()));
+  } else if (conversionInfo.conversionPartnerGsfTkIdx) {
+    conversionVars.partner =
+        TrackBaseRef(reco::GsfTrackRef(eventData.originalGsfTracks, conversionInfo.conversionPartnerGsfTkIdx.value()));
+  }
 
   //====================================================
   // Go !
@@ -908,7 +936,7 @@ void GsfElectronAlgo::createElectron(reco::GsfElectronCollection& electrons,
                          saturationInfo);
   auto& ele = electrons.back();
   // Will be overwritten later in the case of the regression
-  ele.setCorrectedEcalEnergyError(superClusterErrorFunction_->getValue(*(ele.superCluster()), 0));
+  ele.setCorrectedEcalEnergyError(egamma::ecalClusterEnergyUncertaintyElectronSpecific(*(ele.superCluster())));
   ele.setP4(GsfElectron::P4_FROM_SUPER_CLUSTER, momentum, 0, true);
 
   //====================================================
@@ -947,7 +975,7 @@ void GsfElectronAlgo::createElectron(reco::GsfElectronCollection& electrons,
   // ecal energy
   if (cfg_.strategy.useEcalRegression)  // new
   {
-    regHelper_.applyEcalRegression(ele, eventData.vertices, eventData.barrelRecHits, eventData.endcapRecHits);
+    regHelper_.applyEcalRegression(ele, *eventData.vertices, *eventData.barrelRecHits, *eventData.endcapRecHits);
   } else  // original implementation
   {
     if (!EcalTools::isHGCalDet((DetId::Detector)region)) {
@@ -973,7 +1001,7 @@ void GsfElectronAlgo::createElectron(reco::GsfElectronCollection& electrons,
 
   // momentum
   // Keep the default correction running first. The track momentum error is computed in there
-  if (ele.core()->ecalDrivenSeed() && !unexpectedClassification) {
+  if (cfg_.strategy.useDefaultEnergyCorrection && ele.core()->ecalDrivenSeed() && !unexpectedClassification) {
     if (ele.p4Error(reco::GsfElectron::P4_COMBINATION) != 999.) {
       edm::LogWarning("ElectronMomentumCorrector::correct") << "already done";
     } else {
@@ -989,12 +1017,11 @@ void GsfElectronAlgo::createElectron(reco::GsfElectronCollection& electrons,
   //====================================================
   // now isolation variables
   //====================================================
-
   reco::GsfElectron::IsolationVariables dr03, dr04;
-  dr03.tkSumPt = tkIsol03Calc_.calIsolPt(*ele.gsfTrack(), *eventData.currentCtfTracks);
-  dr04.tkSumPt = tkIsol04Calc_.calIsolPt(*ele.gsfTrack(), *eventData.currentCtfTracks);
-  dr03.tkSumPtHEEP = tkIsolHEEP03Calc_.calIsolPt(*ele.gsfTrack(), *eventData.currentCtfTracks);
-  dr04.tkSumPtHEEP = tkIsolHEEP04Calc_.calIsolPt(*ele.gsfTrack(), *eventData.currentCtfTracks);
+  dr03.tkSumPt = eventData.tkIsol03Calc(*ele.gsfTrack()).ptSum;
+  dr04.tkSumPt = eventData.tkIsol04Calc(*ele.gsfTrack()).ptSum;
+  dr03.tkSumPtHEEP = eventData.tkIsolHEEP03Calc(*ele.gsfTrack()).ptSum;
+  dr04.tkSumPtHEEP = eventData.tkIsolHEEP04Calc(*ele.gsfTrack()).ptSum;
 
   if (!EcalTools::isHGCalDet((DetId::Detector)region)) {
     dr03.hcalDepth1TowerSumEt = eventData.hadDepth1Isolation03.getTowerEtSum(&ele);

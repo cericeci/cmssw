@@ -23,7 +23,7 @@
 
 // user include files
 #include "FWCore/Framework/interface/EDAnalyzer.h"
-#include "FWCore/Framework/interface/ESHandle.h"
+#include "FWCore/Framework/interface/ESWatcher.h"
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Utilities/interface/EDGetToken.h"
 
@@ -35,7 +35,7 @@
 #include "DataFormats/Common/interface/DetSetVector.h"
 #include "DataFormats/SiStripDigi/interface/SiStripRawDigi.h"
 
-#include <DQMServices/Core/interface/DQMEDAnalyzer.h>
+#include <DQMServices/Core/interface/DQMOneEDAnalyzer.h>
 
 #include "DQMServices/Core/interface/DQMStore.h"
 #include <iostream>
@@ -45,7 +45,7 @@
 
 class SiStripDetCabling;
 
-class SiStripMonitorRawData : public DQMEDAnalyzer {
+class SiStripMonitorRawData : public DQMOneEDAnalyzer<> {
 public:
   explicit SiStripMonitorRawData(const edm::ParameterSet &);
   ~SiStripMonitorRawData() override;
@@ -62,10 +62,10 @@ private:
 
   DQMStore *dqmStore_;
   edm::ParameterSet conf_;
-  edm::ESHandle<SiStripDetCabling> detcabling;
   std::vector<uint32_t> SelectedDetIds;
 
-  unsigned long long m_cacheID_;
+  edm::ESGetToken<SiStripDetCabling, SiStripDetCablingRcd> detCablingToken_;
+  edm::ESWatcher<SiStripDetCablingRcd> detCablingWatcher_;
 };
 
 #endif

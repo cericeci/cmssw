@@ -21,10 +21,9 @@
 #define SimG4CMS_ZDCDigiStudy_H
 
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "DQMServices/Core/interface/DQMEDAnalyzer.h"
+#include "DQMServices/Core/interface/DQMOneEDAnalyzer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventSetup.h"
-#include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
@@ -42,7 +41,7 @@
 #include <string>
 #include <memory>
 
-class ZDCDigiStudy : public DQMEDAnalyzer {
+class ZDCDigiStudy : public DQMOneEDAnalyzer<> {
 public:
   ZDCDigiStudy(const edm::ParameterSet& ps);
   ~ZDCDigiStudy() override;

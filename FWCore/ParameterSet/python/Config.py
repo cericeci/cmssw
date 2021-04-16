@@ -227,6 +227,7 @@ class Process(object):
                               forceEventSetupCacheClearOnNewRun = untracked.bool(False),
                               throwIfIllegalParameter = untracked.bool(True),
                               printDependencies = untracked.bool(False),
+                              deleteNonConsumedUnscheduledModules = untracked.bool(True),
                               sizeOfStackForThreadsInKB = optional.untracked.uint32,
                               Rethrow = untracked.vstring(),
                               SkipEvent = untracked.vstring(),
@@ -1034,7 +1035,10 @@ class Process(object):
                 sub = options.targetDirectory + '/' + sub
             files[sub + '/__init__.py'] = ''
 
-        for (name, (subfolder, code)) in six.iteritems(parts):
+        # case insensitive sort by subfolder and module name
+        parts = sorted(parts.items(), key = lambda nsc: (nsc[1][0].lower() if nsc[1][0] else '', nsc[0].lower()))
+
+        for (name, (subfolder, code)) in parts:
             filename = name + '_cfi'
             if options.useSubdirectories and subfolder:
                 filename = subfolder + '/' + filename
@@ -1045,7 +1049,7 @@ class Process(object):
 
         if self.schedule_() is not None:
             options.isCfg = True
-            result += 'process.schedule = ' + self.schedule.dumpPython(options)
+            result += '\nprocess.schedule = ' + self.schedule.dumpPython(options)
 
         imports = specialImportRegistry.getSpecialImports()
         if len(imports) > 0:
@@ -1990,7 +1994,9 @@ if __name__=="__main__":
 
         def testProcessDumpPython(self):
             self.assertEqual(Process("test").dumpPython(),
-"""import FWCore.ParameterSet.Config as cms\n\nprocess = cms.Process("test")
+"""import FWCore.ParameterSet.Config as cms
+
+process = cms.Process("test")
 
 process.maxEvents = cms.untracked.PSet(
     input = cms.optional.untracked.int32,
@@ -2008,10 +2014,11 @@ process.options = cms.untracked.PSet(
     SkipEvent = cms.untracked.vstring(),
     allowUnscheduled = cms.obsolete.untracked.bool,
     canDeleteEarly = cms.untracked.vstring(),
+    deleteNonConsumedUnscheduledModules = cms.untracked.bool(True),
     emptyRunLumiMode = cms.obsolete.untracked.string,
     eventSetup = cms.untracked.PSet(
         forceNumberOfConcurrentIOVs = cms.untracked.PSet(
-
+            allowAnyLabel_=cms.required.untracked.uint32
         ),
         numberOfConcurrentIOVs = cms.untracked.uint32(1)
     ),
@@ -2874,7 +2881,9 @@ process.addSubProcess(cms.SubProcess(process = childProcess, SelectEvents = cms.
             self.assertEqual((True,"EDProducer"), p.values["sp"][1].values["@module_edm_type"])
             self.assertEqual((True, "SwitchProducer"), p.values["sp"][1].values["@module_type"])
             self.assertEqual((True, "sp"), p.values["sp"][1].values["@module_label"])
-            self.assertEqual((True, ["sp@test1", "sp@test2"]), p.values["sp"][1].values["@all_cases"])
+            all_cases = copy.deepcopy(p.values["sp"][1].values["@all_cases"])
+            all_cases[1].sort() # names of all cases come via dict, i.e. their order is undefined
+            self.assertEqual((True, ["sp@test1", "sp@test2"]), all_cases)
             self.assertEqual((False, "sp@test2"), p.values["sp"][1].values["@chosen_case"])
             self.assertEqual(["a", "sp", "sp@test1", "sp@test2"], p.values["@all_modules"][1])
             self.assertEqual((True,"EDProducer"), p.values["sp@test1"][1].values["@module_edm_type"])
@@ -2902,7 +2911,9 @@ process.addSubProcess(cms.SubProcess(process = childProcess, SelectEvents = cms.
             self.assertEqual((True,"EDProducer"), p.values["sp"][1].values["@module_edm_type"])
             self.assertEqual((True, "SwitchProducer"), p.values["sp"][1].values["@module_type"])
             self.assertEqual((True, "sp"), p.values["sp"][1].values["@module_label"])
-            self.assertEqual((True, ["sp@test1", "sp@test2"]), p.values["sp"][1].values["@all_cases"])
+            all_cases = copy.deepcopy(p.values["sp"][1].values["@all_cases"])
+            all_cases[1].sort()
+            self.assertEqual((True, ["sp@test1", "sp@test2"]), all_cases)
             self.assertEqual((False, "sp@test2"), p.values["sp"][1].values["@chosen_case"])
             self.assertEqual(["a", "sp", "sp@test2"], p.values["@all_modules"][1])
             self.assertEqual(["sp@test1"], p.values["@all_aliases"][1])

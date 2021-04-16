@@ -1,18 +1,63 @@
+// -*- C++ -*-
+//
+// Package:    MCSmartSingleParticleFilter
+// Class:      MCSmartSingleParticleFilter
+//
+/*
 
-#include "GeneratorInterface/GenFilters/plugins/MCSmartSingleParticleFilter.h"
+ Description: filter events based on the Pythia particleID, the Pt and the production vertex
+
+ Implementation: inherits from generic EDFilter
+
+*/
+//         Created:  J. Alcaraz, 04/07/2008
+//
+
+#include "DataFormats/Common/interface/Handle.h"
+#include "FWCore/Framework/interface/Event.h"
+#include "FWCore/Framework/interface/Frameworkfwd.h"
+#include "FWCore/Framework/interface/global/EDFilter.h"
+#include "FWCore/Framework/interface/MakerMacros.h"
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
+#include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "FWCore/Utilities/interface/EDGetToken.h"
+#include "FWCore/Utilities/interface/InputTag.h"
 #include "GeneratorInterface/GenFilters/plugins/MCFilterZboostHelper.h"
-
 #include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
-#include <iostream>
 
-using namespace edm;
+#include <cmath>
+#include <cstdlib>
+#include <iostream>
+#include <string>
+#include <vector>
+
+class MCSmartSingleParticleFilter : public edm::global::EDFilter<> {
+public:
+  explicit MCSmartSingleParticleFilter(const edm::ParameterSet&);
+
+  bool filter(edm::StreamID, edm::Event&, const edm::EventSetup&) const override;
+
+private:
+  const edm::EDGetTokenT<edm::HepMCProduct> token_;
+  std::vector<int> particleID;
+  std::vector<double> pMin;
+  std::vector<double> ptMin;
+  std::vector<double> etaMin;
+  std::vector<double> etaMax;
+  std::vector<int> status;
+  std::vector<double> decayRadiusMin;
+  std::vector<double> decayRadiusMax;
+  std::vector<double> decayZMin;
+  std::vector<double> decayZMax;
+  const double betaBoost;
+};
+
 using namespace std;
 
 MCSmartSingleParticleFilter::MCSmartSingleParticleFilter(const edm::ParameterSet& iConfig)
     : token_(consumes<edm::HepMCProduct>(
-          edm::InputTag(iConfig.getUntrackedParameter("moduleLabel", std::string("generator")), "unsmeared"))),
+          iConfig.getUntrackedParameter<edm::InputTag>("moduleLabel", edm::InputTag("generator", "unsmeared")))),
       betaBoost(iConfig.getUntrackedParameter("BetaBoost", 0.)) {
-  //here do whatever other initialization is needed
   vector<int> defpid;
   defpid.push_back(0);
   particleID = iConfig.getUntrackedParameter<vector<int> >("ParticleID", defpid);
@@ -60,82 +105,65 @@ MCSmartSingleParticleFilter::MCSmartSingleParticleFilter(const edm::ParameterSet
       (decayRadiusMax.size() > 1 && particleID.size() != decayRadiusMax.size()) ||
       (decayZMin.size() > 1 && particleID.size() != decayZMin.size()) ||
       (decayZMax.size() > 1 && particleID.size() != decayZMax.size())) {
-    cout << "WARNING: MCPROCESSFILTER : size of MinPthat and/or MaxPthat not matching with ProcessID size!!" << endl;
+    edm::LogError("Configuration")
+        << "WARNING: MCPROCESSFILTER : size of MinPthat and/or MaxPthat not matching with ProcessID size!!";
   }
 
   // if pMin size smaller than particleID , fill up further with defaults
   if (particleID.size() > pMin.size()) {
-    vector<double> defpmin2;
-    for (unsigned int i = 0; i < particleID.size(); i++) {
-      defpmin2.push_back(0.);
+    for (unsigned int i = pMin.size(); i < particleID.size(); i++) {
+      pMin.push_back(0.);
     }
-    pMin = defpmin2;
   }
   // if ptMin size smaller than particleID , fill up further with defaults
   if (particleID.size() > ptMin.size()) {
-    vector<double> defptmin2;
-    for (unsigned int i = 0; i < particleID.size(); i++) {
-      defptmin2.push_back(0.);
+    for (unsigned int i = ptMin.size(); i < particleID.size(); i++) {
+      ptMin.push_back(0.);
     }
-    ptMin = defptmin2;
   }
   // if etaMin size smaller than particleID , fill up further with defaults
   if (particleID.size() > etaMin.size()) {
-    vector<double> defetamin2;
-    for (unsigned int i = 0; i < particleID.size(); i++) {
-      defetamin2.push_back(-10.);
+    for (unsigned int i = etaMin.size(); i < particleID.size(); i++) {
+      etaMin.push_back(-10.);
     }
-    etaMin = defetamin2;
   }
   // if etaMax size smaller than particleID , fill up further with defaults
   if (particleID.size() > etaMax.size()) {
-    vector<double> defetamax2;
-    for (unsigned int i = 0; i < particleID.size(); i++) {
-      defetamax2.push_back(10.);
+    for (unsigned int i = etaMax.size(); i < particleID.size(); i++) {
+      etaMax.push_back(10.);
     }
-    etaMax = defetamax2;
   }
   // if status size smaller than particleID , fill up further with defaults
   if (particleID.size() > status.size()) {
-    vector<int> defstat2;
-    for (unsigned int i = 0; i < particleID.size(); i++) {
-      defstat2.push_back(0);
+    for (unsigned int i = status.size(); i < particleID.size(); i++) {
+      status.push_back(0);
     }
-    status = defstat2;
   }
 
   // if decayRadiusMin size smaller than particleID , fill up further with defaults
   if (particleID.size() > decayRadiusMin.size()) {
-    vector<double> decayRadiusmin2;
-    for (unsigned int i = 0; i < particleID.size(); i++) {
-      decayRadiusmin2.push_back(-10.);
+    for (unsigned int i = decayRadiusMin.size(); i < particleID.size(); i++) {
+      decayRadiusMin.push_back(-10.);
     }
-    decayRadiusMin = decayRadiusmin2;
   }
   // if decayRadiusMax size smaller than particleID , fill up further with defaults
   if (particleID.size() > decayRadiusMax.size()) {
-    vector<double> decayRadiusmax2;
-    for (unsigned int i = 0; i < particleID.size(); i++) {
-      decayRadiusmax2.push_back(1.e5);
+    for (unsigned int i = decayRadiusMax.size(); i < particleID.size(); i++) {
+      decayRadiusMax.push_back(1.e5);
     }
-    decayRadiusMax = decayRadiusmax2;
   }
 
   // if decayZMin size smaller than particleID , fill up further with defaults
   if (particleID.size() > decayZMin.size()) {
-    vector<double> decayZmin2;
-    for (unsigned int i = 0; i < particleID.size(); i++) {
-      decayZmin2.push_back(-1.e5);
+    for (unsigned int i = decayZMin.size(); i < particleID.size(); i++) {
+      decayZMin.push_back(-1.e5);
     }
-    decayZMin = decayZmin2;
   }
   // if decayZMax size smaller than particleID , fill up further with defaults
   if (particleID.size() > decayZMax.size()) {
-    vector<double> decayZmax2;
-    for (unsigned int i = 0; i < particleID.size(); i++) {
-      decayZmax2.push_back(1.e5);
+    for (unsigned int i = decayZMax.size(); i < particleID.size(); i++) {
+      decayZMax.push_back(1.e5);
     }
-    decayZMax = decayZmax2;
   }
 
   // check if beta is smaller than 1
@@ -144,16 +172,9 @@ MCSmartSingleParticleFilter::MCSmartSingleParticleFilter(const edm::ParameterSet
   }
 }
 
-MCSmartSingleParticleFilter::~MCSmartSingleParticleFilter() {
-  // do anything here that needs to be done at desctruction time
-  // (e.g. close files, deallocate resources etc.)
-}
-
-// ------------ method called to skim the data  ------------
-bool MCSmartSingleParticleFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup) {
-  using namespace edm;
+bool MCSmartSingleParticleFilter::filter(edm::StreamID, edm::Event& iEvent, const edm::EventSetup&) const {
   bool accepted = false;
-  Handle<HepMCProduct> evt;
+  edm::Handle<edm::HepMCProduct> evt;
   iEvent.getByToken(token_, evt);
 
   const HepMC::GenEvent* myGenEvent = evt->GetEvent();
@@ -188,10 +209,7 @@ bool MCSmartSingleParticleFilter::filter(edm::Event& iEvent, const edm::EventSet
       }
     }
   }
-
-  if (accepted) {
-    return true;
-  } else {
-    return false;
-  }
+  return accepted;
 }
+
+DEFINE_FWK_MODULE(MCSmartSingleParticleFilter);

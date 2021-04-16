@@ -9,9 +9,10 @@ hfnoseParametersInitialize = hgcalEEParametersInitialize.clone(
     nameW = cms.string("HFNoseWafer"),
     nameC = cms.string("HFNoseCell"),
     nameT = cms.string("HFNose"),
+    nameX = cms.string("HGCalHFNoseSensitive"),
 )
 
-from Configuration.Eras.Modifier_dd4hep_cff import dd4hep
+from Configuration.ProcessModifiers.dd4hep_cff import dd4hep
 
 dd4hep.toModify(hfnoseParametersInitialize,
                 fromDD4Hep = cms.bool(True)

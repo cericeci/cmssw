@@ -43,7 +43,7 @@ public:
         name_(config.getParameter<std::string>("digitizerName")) {
     iC.consumes<std::vector<PSimHit> >(inputSimHits_);
 
-    if (name_ == "BTLTileDigitizer" || name_ == "BTLBarDigitizer") {
+    if (name_ == "BTLDigitizer") {
       if (premixStage1_) {
         producesCollector.produces<PMTDSimAccumulator>(digiCollection_);
       } else {
@@ -77,12 +77,6 @@ public:
   */
   virtual void initializeEvent(edm::Event const& e, edm::EventSetup const& c) = 0;
   virtual void finalizeEvent(edm::Event& e, edm::EventSetup const& c, CLHEP::HepRandomEngine* hre) = 0;
-
-  /**
-     @short actions at the start/end of run
-  */
-  virtual void beginRun(const edm::EventSetup& es) = 0;
-  virtual void endRun() = 0;
 
   const std::string& name() const { return name_; }
 
