@@ -30,8 +30,10 @@ void MuonMatcher::produce(edm::Event& iEv, const edm::EventSetup& eventSetup){
   valuesPhi.reserve(genParticles->size());
 
   for(std::vector<reco::GenParticle>::const_iterator genPart = genParticles->begin() ; genPart != genParticles->end() ; ++genPart){
-    float theEta = propagateGenPart(genPart);
-    float thePhi = propagateGenPartPhi(genPart);
+    float theEta = 0;
+    if (abs(genPart->pdgId()) == 13) theEta = propagateGenPart(genPart);
+    float thePhi = 0;
+    if (abs(genPart->pdgId()) == 13) thePhi = propagateGenPartPhi(genPart);
     valuesEta.push_back(theEta);
     valuesPhi.push_back(thePhi);
   }
