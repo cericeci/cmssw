@@ -36,27 +36,32 @@ AlgoMuons::value_type OMTFSorter<GoldenPatternType>::sortRefHitResults(
 
     if (bestGP == nullptr) {
       bestGP = itGP.get();
-    } else if (myType == 0 && itGP->getResults()[procIndx][iRefHit].getFiredLayerCnt() >
+    } else if ( (itGP->key().thePt > 1000 && bestGP->key().thePt > 1000) || (itGP->key().thePt < 1000 && bestGP->key().thePt < 1000) ){ // If both displaced or both prompt, then fire the usual sorting
+ 
+        if (myType == 0 && itGP->getResults()[procIndx][iRefHit].getFiredLayerCnt() >
                                   bestGP->getResults()[procIndx][iRefHit].getFiredLayerCnt()) {
-      bestGP = itGP.get();
-      /*
-      std::cout <<" sorter, byQual, now best is: "
-		<<bestGP->key() << " "
-		<<itGP->getResults()[procIndx][iRefHit]
-		<<std::endl;
-      */
-    } else if (myType == 1 || (itGP->getResults()[procIndx][iRefHit].getFiredLayerCnt() ==
-                               bestGP->getResults()[procIndx][iRefHit].getFiredLayerCnt())) {
-      if (itGP->getResults()[procIndx][iRefHit].getPdfSum() > bestGP->getResults()[procIndx][iRefHit].getPdfSum()) {
-        //if the PdfWeigtSum is equal, we take the GP with the lower number, i.e. lower pt = check if this is ok for physics FIXME (KB)
         bestGP = itGP.get();
         /*
-        std::cout <<" sorter, byDisc, now best is: "
-		  <<bestGP->key() << " "
+        std::cout <<" sorter, byQual, now best is: "
+		<<bestGP->get().getConfig().key() << " "
+		<<itGP->getResults()[procIndx][iRefHit]
+		<<std::endl;
+        */
+       } else if (myType == 1 || (itGP->getResults()[procIndx][iRefHit].getFiredLayerCnt() ==
+                               bestGP->getResults()[procIndx][iRefHit].getFiredLayerCnt())) {
+           if (itGP->getResults()[procIndx][iRefHit].getPdfSum() > bestGP->getResults()[procIndx][iRefHit].getPdfSum()) {
+           //if the PdfWeigtSum is equal, we take the GP with the lower number, i.e. lower pt = check if this is ok for physics FIXME (KB)
+           bestGP = itGP.get();
+           /*
+            std::cout <<" sorter, byDisc, now best is: "
+		  <<bestGP->get().getConfig().key() << " "
 		  <<itGP->getResults()[procIndx][iRefHit]
 		  <<std::endl;
-	*/
+	    */
+        } 
       }
+    } else if (itGP->key().thePt < 1000){ // This means current best is displaced, new best is prompt, select prompt
+        bestGP = itGP.get();
     }
   }
   if (bestGP) {
