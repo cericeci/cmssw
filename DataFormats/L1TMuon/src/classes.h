@@ -17,4 +17,6 @@
 #include "DataFormats/L1TMuon/interface/L1MuKBMTCombinedStub.h"
 #include "DataFormats/L1TMuon/interface/L1MuKBMTrack.h"
 
+#include "DataFormats/L1TMuon/interface/TkMuonBayesTrack.h"
+
 #include <vector>

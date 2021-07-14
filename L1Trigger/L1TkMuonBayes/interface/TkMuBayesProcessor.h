@@ -1,0 +1,119 @@
+/*
+ * TkMuBayesProcessor.h
+ *
+ *  Created on: Jan 18, 2019
+ *      Author: kbunkow
+ */
+
+#ifndef L1TkMuonBayes_TkMuBayesProcessor_H_
+#define L1TkMuonBayes_TkMuBayesProcessor_H_
+
+#include <DataFormats/L1TMuon/interface/TkMuonBayesTrack.h>
+#include "L1Trigger/L1TkMuonBayes/interface/AlgoTTMuon.h"
+#include "L1Trigger/L1TkMuonBayes/interface/TkMuBayesProcConfig.h"
+#include "L1Trigger/L1TkMuonBayes/interface/PdfModule.h"
+#include "L1Trigger/L1TkMuonBayes/interface/TrackingTriggerTrack.h"
+
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStubsInput.h"
+
+#include "DataFormats/L1TMuon/interface/RegionalMuonCand.h"
+#include "L1Trigger/L1TMuonOverlapPhase1/interface/MuonStub.h"
+#include "boost/multi_array.hpp"
+#include "L1Trigger/L1TkMuonBayes/interface/MuTimingModule.h"
+
+class StandaloneCandWithStubs {
+public:
+  l1t::RegionalMuonCand regionalCand;
+  MuonStubsInput stubs;
+
+  unsigned int index;
+};
+
+typedef std::vector<StandaloneCandWithStubs> StandaloneCandWithStubsVec;
+
+/*class CorrelatorMuCandidate {
+  //TODO
+};
+
+typedef std::vector<CorrelatorMuCandidate> CorrelatorMuCandidates;*/
+
+class TkMuBayesProcessor {
+public:
+  //default pdfModuleType is PdfModule
+  TkMuBayesProcessor(TkMuBayesProcConfigPtr& config, std::string pdfModuleType = "");
+
+  //takes the ownership of the pdfModule
+  TkMuBayesProcessor(TkMuBayesProcConfigPtr& config, unique_ptr<IPdfModule> pdfModule);
+
+  virtual ~TkMuBayesProcessor();
+
+  /*  virtual CorrelatorMuCandidates run(int bx) {
+    //TODO implement;
+    CorrelatorMuCandidates muCandidates;
+    return muCandidates;
+  }*/
+
+  virtual AlgoTTMuons processTracks(const MuonStubsInput& muonStubs, const TrackingTriggerTracks& ttTracks);
+
+  virtual AlgoTTMuonPtr processTrack(const MuonStubsInput& muonStubs, const TrackingTriggerTrackPtr& ttTrack);
+  virtual AlgoTTMuonPtr processTrackUsingRefStubs(const MuonStubsInput& muonStubs,
+                                                  const TrackingTriggerTrackPtr& ttTrack);
+
+  virtual MuonStubsInput selectStubs(const MuonStubsInput& muonStubs, const TrackingTriggerTrackPtr& ttTrack);
+
+  virtual MuonStubPtrs1D selectRefStubs(const MuonStubsInput& muonStubs, const TrackingTriggerTrackPtr& ttTrack);
+
+  //adds the StubResult to the algoTTMuon
+  virtual void processStubs(const MuonStubsInput& muonStubs,
+                            unsigned int layer,
+                            const TrackingTriggerTrackPtr& ttTrack,
+                            const MuonStubPtr refStub,
+                            AlgoTTMuonPtr algoTTMuon);
+
+  virtual AlgoTTMuons ghostBust(AlgoTTMuons& algoTTMuons);
+
+  int ghostBust3(std::shared_ptr<AlgoTTMuon> first, std::shared_ptr<AlgoTTMuon> second);
+  int ghostBust4(std::shared_ptr<AlgoTTMuon> first, std::shared_ptr<AlgoTTMuon> second);
+
+  virtual AlgoTTMuons processTracks(const StandaloneCandWithStubsVec& candsWithStubs,
+                                    const TrackingTriggerTracks& ttTracks);
+
+  AlgoTTMuonPtr processTrack(const StandaloneCandWithStubsVec& candsWithStubs, const TrackingTriggerTrackPtr& ttTrack);
+
+  ///initial selection of the standalone candidates compatibile with a given ttTrack
+  ///return vector to allow for an option when ex. two close stand alone candidates are selected for a given ttTrack, then final one is selected based on stubs
+  virtual StandaloneCandWithStubsVec selectCandsWithStubs(const StandaloneCandWithStubsVec& candsWithStubs,
+                                                          const TrackingTriggerTrackPtr& ttTrack);
+
+  IPdfModule* getPdfModule() { return pdfModule.get(); }
+
+  //virtual std::vector<l1t::RegionalMuonCand> getFinalCandidates(unsigned int iProcessor, l1t::tftype mtfType, AlgoTTMuons& algoTTMuons);
+
+  virtual l1t::TkMuonBayesTrackCollection getMuCorrTrackCollection(unsigned int iProcessor, AlgoTTMuons& algoTTMuons);
+
+  virtual bool assignQuality(AlgoTTMuons& algoTTMuons);
+
+  //takes the ownership
+  void setMuTimingModule(unique_ptr<MuTimingModule>& muTimingModule) {
+    this->muTimingModule = std::move(muTimingModule);
+  }
+
+  MuTimingModule* getMuTimingModule() { return muTimingModule.get(); }
+
+private:
+  TkMuBayesProcConfigPtr config;
+
+  /**should return:
+   * 0 if first kills second
+   * 1 if second kills first
+   * 2 otherwise (none is killed)
+   */
+  std::function<int(AlgoTTMuonPtr first, AlgoTTMuonPtr second)> ghostBustFunc;
+
+  unique_ptr<IPdfModule> pdfModule;
+  unique_ptr<MuTimingModule> muTimingModule;
+
+  std::vector<std::pair<int, boost::dynamic_bitset<> > > lowQualityHitPatterns;
+};
+
+#endif /* L1TkMuonBayes_TkMuBayesProcessor_H_ */
