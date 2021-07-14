@@ -203,6 +203,7 @@ public:
 
   ///charge: -1 - negative, +1 - positive
   unsigned int getPatternNum(double pt, int charge) const;
+  unsigned int getPatternNum(double pt, int charge, double dxy) const;
 
   ///[index1][index2] = patternNum
   ///contains each row (index1) contain the vector of up to 4 patterns (i.e. its numbers) that are merged in the firmware

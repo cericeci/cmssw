@@ -80,6 +80,7 @@ protected:
   TH1I* simMuFoundByOmtfPt;
 
   TH1F* simMuPtSpectrum;
+  int selectedByPDG;
 
   bool writeLayerStat = false;
 };

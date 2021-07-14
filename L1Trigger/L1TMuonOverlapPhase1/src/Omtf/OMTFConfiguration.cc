@@ -407,6 +407,34 @@ unsigned int OMTFConfiguration::getPatternNum(double pt, int charge) const {
   return 0;  //FIXME in this way if pt < 4GeV, the pattern = 0 is return , regardless of sign!
 }
 
+unsigned int OMTFConfiguration::getPatternNum(double pt, int charge, double dxy) const {
+  //in LUT the charge is in convention 0 is -, 1 is + (so it is not the uGMT convention!!!)
+  //so we change the charge here
+  //if(charge == -1)
+  //charge = 0;  //TODO but in the xml (and in GPs) the charge is +1 and -1, so it is important from where the patternPts is loaded FIXME!!!
+  for (unsigned int iPat = 0; iPat < patternPts.size(); iPat++) {
+    //std::cout<<"iPAt "<<iPat<<" ptFrom "<<getPatternPtRange(iPat).ptFrom<<" "<<getPatternPtRange(iPat).ptTo<<" "<<rawParams.chargeLUT()->data(iPat)<<std::endl;
+    PatternPt patternPt = getPatternPtRange(iPat);
+    if (patternPt.ptFrom < -4000 || patternPt.ptTo > 4000){ // Displacement is enconded in the pT
+      float sign    = patternPt.ptTo <= 10000 ? +1 : -1;
+      float dxyFrom = (patternPt.ptFrom-5000*(1-(sign-1)/2))*2*sign;
+      float dxyTo   = (patternPt.ptTo  -5000*(1-(sign-1)/2))*2*sign;
+      if (dxyTo==10000 && dxyFrom==10250){
+        dxyFrom = -250;
+        dxyTo   = -10000;
+        sign = -1;
+      }
+      if (dxyFrom < -1000) dxyFrom= 0;
+      if (dxy*sign >= dxyFrom*sign && dxy*sign < dxyTo*sign && charge == patternPt.charge){
+         return iPat;
+      }
+    }
+    else if (pt >= patternPt.ptFrom && pt < patternPt.ptTo && charge == patternPt.charge)
+      return iPat;
+  }
+  return 0;  //FIXME in this way if pt < 4GeV, the pattern = 0 is return , regardless of sign!
+}
+
 //FIXME does not work if patterns not loaded from LUTs, but only directly from file
 OMTFConfiguration::vector2D OMTFConfiguration::getPatternGroups() const {
   unsigned int mergedCnt = 4;

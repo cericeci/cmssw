@@ -20,7 +20,8 @@ simOmtfPhase1Digis = cms.EDProducer("L1TMuonOverlapPhase1TrackProducer",
   dropCSCPrimitives = cms.bool(False),
   processorType = cms.string("OMTFProcessor"),
   ghostBusterType = cms.string("GhostBusterPreferRefDt"),
-  
+  trainForDisplaced = cms.bool(False), # Do the training using the displaced pattern logic (i.e. take pt as displacement)
+  selectByPDG       = cms.int32(0), # Select Tracking Particles with this pdgId for filling patterns 
   #patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x00020007.xml")
   #patternsXMLFile = cms.FileInPath("L1Trigger/L1TMuon/data/omtf_config/Patterns_0x0003.xml")                               
 

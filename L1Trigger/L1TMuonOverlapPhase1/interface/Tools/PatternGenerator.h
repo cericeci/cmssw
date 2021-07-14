@@ -38,6 +38,10 @@ protected:
 
   void groupPatterns();
 
+  bool isTrainDisplaced;
+
+  int isSelectedByPDG;
+
   //[charge][iLayer]
   std::vector<std::vector<TH2I*> > ptDeltaPhiHists;
 

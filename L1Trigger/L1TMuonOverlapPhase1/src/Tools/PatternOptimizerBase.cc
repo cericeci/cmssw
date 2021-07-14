@@ -72,6 +72,7 @@ PatternOptimizerBase::PatternOptimizerBase(const edm::ParameterSet& edmCfg, cons
       new TH1I("simMuFoundByOmtfPt", "simMuFoundByOmtfPt", goldenPatterns.size(), -0.5, goldenPatterns.size() - 0.5);
 
   simMuPtSpectrum = new TH1F("simMuPtSpectrum", "simMuPtSpectrum", 800, 0, 400);
+  selectedByPDG  = edmCfg.getParameter<int>("selectByPDG");
 }
 
 PatternOptimizerBase::PatternOptimizerBase(const edm::ParameterSet& edmCfg,
@@ -214,7 +215,9 @@ const SimTrack* PatternOptimizerBase::findSimMuon(const edm::Event& event, const
   //LogTrace("l1tOmtfEventPrint")<<__FUNCTION__<<" simTks->size() "<<simTks->size()<<std::endl;
   for (std::vector<SimTrack>::const_iterator it = simTks->begin(); it < simTks->end(); it++) {
     const SimTrack& aTrack = *it;
-    if (!(aTrack.type() == 13 || aTrack.type() == -13))
+    if (selectedByPDG == 0 && !(aTrack.type() == 13 || aTrack.type() == -13))
+      continue;
+    else if (aTrack.type() != selectedByPDG) // Useful if more than one muon appears in the event
       continue;
     if (previous && ROOT::Math::VectorUtil::DeltaR(aTrack.momentum(), previous->momentum()) < 0.07)
       continue;
