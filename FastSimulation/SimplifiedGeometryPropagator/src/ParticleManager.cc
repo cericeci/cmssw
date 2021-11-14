@@ -259,28 +259,34 @@ std::unique_ptr<fastsim::Particle> fastsim::ParticleManager::nextGenParticle()
             continue;
           }
         }	
-        
-        // particle must not decay before it reaches the beam pipe
-        if(endVertex && endVertex->position().perp2()*lengthUnitConversionFactor2_ < beamPipeRadius2_)
-        {
-            continue;
+
+        // FastSim will not make hits out of particles that decay before reaching the beam pipe
+        if (endVertex && endVertex->position().perp2() * lengthUnitConversionFactor2_ < beamPipeRadius2_) {
+          continue;
         }
+
+        // SM particles that descend from exotics and cross the beam pipe radius should make hits but not be decayed 
+        if (productionVertex->position().perp2() * lengthUnitConversionFactor2_ < beamPipeRadius2_ &&
+	  endVertex && endVertex->position().perp2() * lengthUnitConversionFactor2_ > beamPipeRadius2_) {
+          exoticRelativesChecker(productionVertex, exoticRelativeId, 0);
+        }    
 
         // make the particle
         std::unique_ptr<Particle> newParticle(
             new Particle(particle.pdg_id(),
-                 math::XYZTLorentzVector(productionVertex->position().x()*lengthUnitConversionFactor_,
-                             productionVertex->position().y()*lengthUnitConversionFactor_,
-                             productionVertex->position().z()*lengthUnitConversionFactor_,
-                             productionVertex->position().t()*timeUnitConversionFactor_),
-                 math::XYZTLorentzVector(particle.momentum().x()*momentumUnitConversionFactor_,
-                             particle.momentum().y()*momentumUnitConversionFactor_,
-                             particle.momentum().z()*momentumUnitConversionFactor_,
-                             particle.momentum().e()*momentumUnitConversionFactor_)));
+                     math::XYZTLorentzVector(productionVertex->position().x() * lengthUnitConversionFactor_,
+                                             productionVertex->position().y() * lengthUnitConversionFactor_,
+                                             productionVertex->position().z() * lengthUnitConversionFactor_,
+                                             productionVertex->position().t() * timeUnitConversionFactor_),
+                     math::XYZTLorentzVector(particle.momentum().x() * momentumUnitConversionFactor_,
+                                             particle.momentum().y() * momentumUnitConversionFactor_,
+                                             particle.momentum().z() * momentumUnitConversionFactor_,
+                                             particle.momentum().e() * momentumUnitConversionFactor_)));
         newParticle->setGenParticleIndex(genParticleIndex_);
         if (isExotic(exoticRelativeId)) {
-            newParticle->setMotherPdgId(exoticRelativeId);
+          newParticle->setMotherPdgId(exoticRelativeId);
         }
+
         // try to get the life time of the particle from the genEvent
         if(endVertex)
         {
