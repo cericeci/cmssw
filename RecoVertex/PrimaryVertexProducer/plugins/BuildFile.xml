@@ -1,6 +1,16 @@
 <use name="FWCore/Framework"/>
 <use name="clhep"/>
 <use name="RecoVertex/PrimaryVertexProducer"/>
-<library file="*.cc" name="RecoVertexPrimaryVertexProducerPlugins">
+<use name="cuda"/>
+<use name="FWCore/ParameterSet"/>
+<use name="FWCore/PluginManager"/>
+<use name="HeterogeneousCore/CUDAUtilities"/>
+<use name="HeterogeneousCore/CUDACore"/>
+<library file="trackFilterCUDA.cc,trackFilterCUDA.cu" name="RecoVertexPrimaryVertexProducertrackFilterCUDA">
+</library>
+<library file="PrimaryVertexProducer.cc" name="RecoVertexPrimaryVertexProducerPlugins">
+  <flags EDM_PLUGIN="1"/>
+</library>
+<library file="PrimaryVertexProducerCUDA.cc" name="RecoVertexPrimaryVertexProducerCUDAPlugins">
   <flags EDM_PLUGIN="1"/>
 </library>
