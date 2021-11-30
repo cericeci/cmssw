@@ -30,7 +30,7 @@ private:
   double mediator_energy_;
 
   // For the numerical algorithm precision
-  boost::math::tools::eps_tolerance<double> tolerance_ ;
+  boost::math::tools::eps_tolerance<double> tolerance_;
 
   // Several auxiliar variables for generating the 4-momentum of showered particles. Following the naming of Appendix 1 of https://arxiv.org/pdf/1305.5226.pdf
   // Median momentum in the M-B distribution

@@ -39,7 +39,7 @@ bool SuepDecay::doVetoProcessLevel(Pythia8::Event& event) {
       for (auto& pDark : suep_shower_fourmomenta) {
         // Boost to the lab frame, i.e. apply the mediator boost
         pDark.bst(pMediator);
-        // Append particle to the event w/ hidden meson pdg code
+        // Append particle to the event w/ hidden meson pdg code. Magic number 91 means it is produced as a normal decay product
         event.append(idDark_, 91, i, 0, 0, 0, 0, 0, pDark.px(), pDark.py(), pDark.pz(), pDark.e(), mDark_);
       }
 
