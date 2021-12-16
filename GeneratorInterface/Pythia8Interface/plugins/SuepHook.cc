@@ -16,7 +16,7 @@ bool SuepHook::initAfterBeams() {
   }
 
   //construct the shower helper
-  suep_shower_ = std::make_unique<Suep_shower>(mDark_, temperature_, mMediator_, rndmPtr);
+  suep_shower_ = std::make_unique<Suep_shower>(mDark_, temperature_, rndmPtr);
 
   return true;
 }
@@ -25,8 +25,6 @@ bool SuepHook::initAfterBeams() {
 bool SuepHook::doVetoProcessLevel(Pythia8::Event& event) {
     Pythia8::Vec4 pMediator, pDark;
 
-    // Generate the shower, output are 4 vectors in the rest frame of the shower
-    const auto& suep_shower4momenta = suep_shower_->generate_shower();
 
     // Find the mediator in the event
     for (int i = 0; i < event.size(); ++i){
@@ -37,6 +35,7 @@ bool SuepHook::doVetoProcessLevel(Pythia8::Event& event) {
 
           // undo mediator decay
           event[i].undoDecay();
+          const auto& suep_shower4momenta = suep_shower_->generate_shower(pMediator.mCalc());
 
           // Loop over hidden sector mesons and append to the event
           int firstDaughter = event.size();

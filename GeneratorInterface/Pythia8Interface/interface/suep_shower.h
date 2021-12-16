@@ -29,14 +29,14 @@ class Suep_shower
     double Etot; 
     
     // Constructor
-    Suep_shower(double mass, double temperature, double energy, Pythia8::Rndm* rndmPtr);
+    Suep_shower(double mass, double temperature, Pythia8::Rndm* rndmPtr);
     
     // methods
     double f(double p);
     double fp(double p);
     double test_fun(double p);
     std::vector<double> generate_fourvector(); 
-    std::vector< std::vector <double> > generate_shower();
+    std::vector< std::vector <double> > generate_shower(double energy);
     double reballance_func(double a, const std::vector< std::vector <double> >& event);
         
     private:

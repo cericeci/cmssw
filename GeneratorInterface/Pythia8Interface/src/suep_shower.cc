@@ -18,10 +18,9 @@ using namespace std;                          // Help ADL of std functions.
 using namespace boost::math::tools;           // For bracket_and_solve_root.
 
  // constructor
- Suep_shower::Suep_shower(double mass, double temperature, double energy, Pythia8::Rndm* rndmPtr) {
+ Suep_shower::Suep_shower(double mass, double temperature, Pythia8::Rndm* rndmPtr) {
         m = mass;
         Temp=temperature;
-        Etot=energy;
         fRndmPtr=rndmPtr;
      
         A=m/Temp;
@@ -124,8 +123,9 @@ double Suep_shower::reballance_func(double a, const vector< vector <double> >& e
 
 
 // generate a shower event, in the rest frame of the shower
-vector< vector <double> > Suep_shower::generate_shower(){
-    
+vector< vector <double> > Suep_shower::generate_shower(double energy){
+    Etot=energy;
+ 
     vector<vector<double> > event;
     double sum_E = 0.0;
     
