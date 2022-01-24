@@ -1,4 +1,4 @@
-#include "RecoVertex/PrimaryVertexProducer/interface/PrimaryVertexProducer.h"
+#include "RecoVertex/PrimaryVertexProducer/interface/PrimaryVertexProducerCUDA.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "DataFormats/TrackReco/interface/TrackFwd.h"
 #include "DataFormats/Common/interface/Handle.h"
@@ -15,24 +15,19 @@
 
 #include "RecoVertex/VertexTools/interface/GeometricAnnealing.h"
 
-PrimaryVertexProducer::PrimaryVertexProducer(const edm::ParameterSet& conf)
+#include "HeterogeneousCore/CUDAUtilities/interface/host_unique_ptr.h"
+#include "HeterogeneousCore/CUDAUtilities/interface/device_unique_ptr.h"
+#include "HeterogeneousCore/CUDAUtilities/interface/host_noncached_unique_ptr.h"
+
+#include "HeterogeneousCore/CUDAUtilities/interface/cudaCheck.h"
+
+PrimaryVertexProducerCUDA::PrimaryVertexProducerCUDA(const edm::ParameterSet& conf)
     : theTTBToken(esConsumes(edm::ESInputTag("", "TransientTrackBuilder"))), theConfig(conf) {
   fVerbose = conf.getUntrackedParameter<bool>("verbose", false);
 
   trkToken = consumes<reco::TrackCollection>(conf.getParameter<edm::InputTag>("TrackLabel"));
   bsToken = consumes<reco::BeamSpot>(conf.getParameter<edm::InputTag>("beamSpotLabel"));
   f4D = false;
-
-  // select and configure the track selection
-  std::string trackSelectionAlgorithm =
-      conf.getParameter<edm::ParameterSet>("TkFilterParameters").getParameter<std::string>("algorithm");
-  if (trackSelectionAlgorithm == "filter") {
-    theTrackFilter = new TrackFilterForPVFinding(conf.getParameter<edm::ParameterSet>("TkFilterParameters"));
-  } else if (trackSelectionAlgorithm == "filterWithThreshold") {
-    theTrackFilter = new HITrackFilterForPVFinding(conf.getParameter<edm::ParameterSet>("TkFilterParameters"));
-  } else {
-    throw VertexException("PrimaryVertexProducer: unknown track selection algorithm: " + trackSelectionAlgorithm);
-  }
 
   // select and configure the track clusterizer
   std::string clusteringAlgorithm =
@@ -55,7 +50,7 @@ PrimaryVertexProducer::PrimaryVertexProducer(const edm::ParameterSet& conf)
   }
 
   else {
-    throw VertexException("PrimaryVertexProducer: unknown clustering algorithm: " + clusteringAlgorithm);
+    throw VertexException("PrimaryVertexProducerCUDA: unknown clustering algorithm: " + clusteringAlgorithm);
   }
 
   if (f4D) {
@@ -78,7 +73,7 @@ PrimaryVertexProducer::PrimaryVertexProducer(const edm::ParameterSet& conf)
       } else if (fitterAlgorithm == "AdaptiveVertexFitter") {
         algorithm.fitter = new AdaptiveVertexFitter(GeometricAnnealing(algoconf->getParameter<double>("chi2cutoff")));
       } else {
-        throw VertexException("PrimaryVertexProducer: unknown algorithm: " + fitterAlgorithm);
+        throw VertexException("PrimaryVertexProducerCUDA: unknown algorithm: " + fitterAlgorithm);
       }
       algorithm.label = algoconf->getParameter<std::string>("label");
       algorithm.minNdof = algoconf->getParameter<double>("minNdof");
@@ -100,7 +95,7 @@ PrimaryVertexProducer::PrimaryVertexProducer(const edm::ParameterSet& conf)
     } else if (fitterAlgorithm == "AdaptiveVertexFitter") {
       algorithm.fitter = new AdaptiveVertexFitter();
     } else {
-      throw VertexException("PrimaryVertexProducerAlgorithm: unknown algorithm: " + fitterAlgorithm);
+      throw VertexException("PrimaryVertexProducerCUDAAlgorithm: unknown algorithm: " + fitterAlgorithm);
     }
     algorithm.label = "";
     algorithm.minNdof = conf.getParameter<double>("minNdof");
@@ -118,19 +113,30 @@ PrimaryVertexProducer::PrimaryVertexProducer(const edm::ParameterSet& conf)
   fRecoveryIteration = conf.getParameter<bool>("isRecoveryIteration");
   if (fRecoveryIteration) {
     if (algorithms.empty()) {
-      throw VertexException("PrimaryVertexProducer: No algorithm specified. ");
+      throw VertexException("PrimaryVertexProducerCUDA: No algorithm specified. ");
     } else if (algorithms.size() > 1) {
       throw VertexException(
-          "PrimaryVertexProducer: Running in Recovery mode and more than one algorithm specified.  Please "
+          "PrimaryVertexProducerCUDA: Running in Recovery mode and more than one algorithm specified.  Please "
           "only one algorithm.");
     }
     recoveryVtxToken = consumes<reco::VertexCollection>(conf.getParameter<edm::InputTag>("recoveryVtxCollection"));
   }
+  onGPU_ = conf.getParameter<bool>("onGPU");
+  if (onGPU_){
+    fParams = {
+     .maxSignificance=conf.getParameter<edm::ParameterSet>("TkFilterParameters").getParameter<double>("maxD0Significance"),
+     .maxdxyError=conf.getParameter<edm::ParameterSet>("TkFilterParameters").getParameter<double>("maxD0Error"),
+     .maxdzError=conf.getParameter<edm::ParameterSet>("TkFilterParameters").getParameter<double>("maxDzError"),
+     .minpAtIP=conf.getParameter<edm::ParameterSet>("TkFilterParameters").getParameter<double>("minPt"),
+     .maxetaAtIP=conf.getParameter<edm::ParameterSet>("TkFilterParameters").getParameter<double>("maxEta"),
+     .maxchi2=conf.getParameter<edm::ParameterSet>("TkFilterParameters").getParameter<double>("maxNormalizedChi2"),
+     .minpixelHits=conf.getParameter<edm::ParameterSet>("TkFilterParameters").getParameter<int>("minPixelLayersWithHits"),
+     .mintrackerHits=conf.getParameter<edm::ParameterSet>("TkFilterParameters").getParameter<int>("minSiliconLayersWithHits")
+    };
+  }
 }
 
-PrimaryVertexProducer::~PrimaryVertexProducer() {
-  if (theTrackFilter)
-    delete theTrackFilter;
+PrimaryVertexProducerCUDA::~PrimaryVertexProducerCUDA() {
   if (theTrackClusterizer)
     delete theTrackClusterizer;
   for (std::vector<algo>::const_iterator algorithm = algorithms.begin(); algorithm != algorithms.end(); algorithm++) {
@@ -141,9 +147,9 @@ PrimaryVertexProducer::~PrimaryVertexProducer() {
   }
 }
 
-void PrimaryVertexProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
+void PrimaryVertexProducerCUDA::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   // get the BeamSpot, it will always be needed, even when not used as a constraint
-  std::cout << "I'm producing this in CPU!!"<< std::endl;
+  if (onGPU_) std::cout << "I'm producing this on CUDA!!" << std::endl;
   reco::BeamSpot beamSpot;
   edm::Handle<reco::BeamSpot> recoBeamSpotHandle;
   iEvent.getByToken(bsToken, recoBeamSpotHandle);
@@ -196,13 +202,65 @@ void PrimaryVertexProducer::produce(edm::Event& iEvent, const edm::EventSetup& i
     t_tks = (*theB).build(tks, beamSpot);
   }
   if (fVerbose) {
-    std::cout << "RecoVertex/PrimaryVertexProducer"
+    std::cout << "RecoVertex/PrimaryVertexProducerCUDA"
               << "Found: " << t_tks.size() << " reconstructed tracks"
               << "\n";
   }
+  // We need a copy living in the host, in between steps, at least if we want to do the things "as in CPU"
+  TrackForPVHeterogeneous GPUtracks(cms::cuda::make_host_unique<TrackForPV::TrackForPVSoA>(cudaStreamDefault));
+  auto* GPUtracksObject = GPUtracks.get();
+  if (onGPU_){
+    // Hackery, to get the input in a SoA format from the start -which would happen if the tracking is done in GPU, but would need to be adapted accordingly-
+    // TODO::Cleanup of this loading
+    for (unsigned int idx=0; idx < t_tks.size() ; idx++){
+      GPUtracksObject->significance(idx) = t_tks.at(idx).stateAtBeamLine().transverseImpactParameter().significance();
+      GPUtracksObject->dxyError(idx)     = t_tks.at(idx).stateAtBeamLine().transverseImpactParameter().error();
+      GPUtracksObject->dzError(idx)      = t_tks.at(idx).track().dzError();
+      GPUtracksObject->pAtIP(idx)        = t_tks.at(idx).impactPointState().globalMomentum().transverse();
+      GPUtracksObject->etaAtIP(idx)      = std::fabs(t_tks.at(idx).impactPointState().globalMomentum().eta());
+      GPUtracksObject->chi2(idx)         = t_tks.at(idx).normalizedChi2();
+      GPUtracksObject->nPixelHits(idx)   = t_tks.at(idx).hitPattern().pixelLayersWithMeasurement();
+      GPUtracksObject->nTrackerHits(idx) = t_tks.at(idx).hitPattern().trackerLayersWithMeasurement();
+    }
+  } 
+  // selected tracks, independent of input dataformat
+  std::vector<reco::TransientTrack> seltks;
+  if (onGPU_){
+ /* Old way of doing it, but we already have the SoA in the stream
+    // Memory allocation on the device
+    //This breaks because cuda doesn't like reco::TransientTrack, might work with some basic C++ types
+    //auto gpu_inputTracks  = cms::cuda::make_device_unique<reco::TransientTrack[]>(t_tks.size(), cudaStreamDefault);
+    TrackForPVHeterogeneous* gpu_inputTracks;
+    cudaCheck(cudaMalloc(&gpu_inputTracks, sizeof(TrackForPVHeterogeneous)*GPUtracksObject.size()));
 
-  // select tracks
-  std::vector<reco::TransientTrack>&& seltks = theTrackFilter->select(t_tks);
+    auto gpu_outputBools = cms::cuda::make_device_unique<bool[]>(GPUtracksObject.size(), cudaStreamDefault);
+
+    // Memory allocation on the host
+    // This breaks because cuda doesn't like reco::TransientTrack
+    // auto cpu_inputTracks = cms::cuda::make_host_noncached_unique<reco::TransientTrack[]>(t_tks.size(), cudaHostAllocWriteCombined);
+    // std::memcpy(cpu_inputTracks.get(), &t_tks, sizeof(reco::TransientTrack)*t_tks.size());
+    auto cpu_outputBools = cms::cuda::make_host_unique<bool[]>(GPUtracksObject.size(), cudaStreamDefault);
+
+    // Put input on place, execute filter, get output back
+    cudaCheck(cudaMemcpy(gpu_inputTracks, &GPUtracksObject, sizeof(TrackForPVHeterogeneous)*GPUtracksObject.size(), cudaMemcpyHostToDevice));
+    trackFilterCUDA::filterWrapper(gpu_inputTracks, gpu_outputBools.get(), GPUtracksObject.size());
+    cudaCheck(cudaMemcpy(cpu_outputBools.get(), gpu_outputBools.get(), sizeof(bool)*GPUtracksObject.size(), cudaMemcpyDeviceToHost));
+*/
+
+    auto gpu_outputBools = cms::cuda::make_device_unique<bool[]>(t_tks.size(), cudaStreamDefault);
+    auto cpu_outputBools = cms::cuda::make_host_unique<bool[]>(t_tks.size(), cudaStreamDefault);
+    trackFilterCUDA::filterWrapper(GPUtracksObject, gpu_outputBools.get(), t_tks.size(), fParams, cudaStreamDefault);
+    cudaCheck(cudaMemcpy(cpu_outputBools.get(), gpu_outputBools.get(), sizeof(bool)*t_tks.size(), cudaMemcpyDeviceToHost));
+    // And now refill the selected tracks vector
+    for (unsigned int i=0 ; i < t_tks.size() ; i++){
+      if (cpu_outputBools.get()[i]){
+        seltks.push_back(t_tks.at(i));
+      }
+    }
+  }
+  else {
+    seltks = theTrackFilter->select(t_tks);
+  }
 
   // clusterize tracks in Z
   std::vector<std::vector<reco::TransientTrack> >&& clusters = theTrackClusterizer->clusterize(seltks);
@@ -278,15 +336,15 @@ void PrimaryVertexProducer::produce(edm::Event& iEvent, const edm::EventSetup& i
     }  // end of cluster loop
 
     if (fVerbose) {
-      std::cout << "PrimaryVertexProducerAlgorithm::vertices  candidates =" << pvs.size() << std::endl;
+      std::cout << "PrimaryVertexProducerCUDAAlgorithm::vertices  candidates =" << pvs.size() << std::endl;
     }
 
     if (clusters.size() > 2 && clusters.size() > 2 * pvs.size())
-      edm::LogWarning("PrimaryVertexProducer")
+      edm::LogWarning("PrimaryVertexProducerCUDA")
           << "more than half of candidate vertices lost " << pvs.size() << ' ' << clusters.size();
 
     if (pvs.empty() && seltks.size() > 5)
-      edm::LogWarning("PrimaryVertexProducer")
+      edm::LogWarning("PrimaryVertexProducerCUDA")
           << "no vertex found with " << seltks.size() << " tracks and " << clusters.size() << " vertex-candidates";
 
     // sort vertices by pt**2  vertex (aka signal vertex tagging)
@@ -309,14 +367,14 @@ void PrimaryVertexProducer::produce(edm::Event& iEvent, const edm::EventSetup& i
         we(2, 2) = 10000;
         vColl.push_back(reco::Vertex(beamSpot.position(), we, 0., 0., 0));
         if (fVerbose) {
-          std::cout << "RecoVertex/PrimaryVertexProducer: "
+          std::cout << "RecoVertex/PrimaryVertexProducerCUDA: "
                     << "Beamspot with invalid errors " << bse.matrix() << std::endl;
           std::cout << "Will put Vertex derived from dummy-fake BeamSpot into Event.\n";
         }
       } else {
         vColl.push_back(reco::Vertex(beamSpot.position(), beamSpot.rotatedCovariance3D(), 0., 0., 0));
         if (fVerbose) {
-          std::cout << "RecoVertex/PrimaryVertexProducer: "
+          std::cout << "RecoVertex/PrimaryVertexProducerCUDA: "
                     << " will put Vertex derived from BeamSpot into Event.\n";
         }
       }
@@ -341,7 +399,7 @@ void PrimaryVertexProducer::produce(edm::Event& iEvent, const edm::EventSetup& i
   }
 }
 
-void PrimaryVertexProducer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
+void PrimaryVertexProducerCUDA::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   // offlinePrimaryVertices
   edm::ParameterSetDescription desc;
   {
@@ -405,9 +463,9 @@ void PrimaryVertexProducer::fillDescriptions(edm::ConfigurationDescriptions& des
 
   desc.add<bool>("isRecoveryIteration", false);
   desc.add<edm::InputTag>("recoveryVtxCollection", {""});
-
-  descriptions.add("primaryVertexProducer", desc);
+  desc.add<bool>("onGPU", true);
+  descriptions.add("primaryVertexProducerCUDA", desc);
 }
 
 //define this as a plug-in
-DEFINE_FWK_MODULE(PrimaryVertexProducer);
+DEFINE_FWK_MODULE(PrimaryVertexProducerCUDA);
