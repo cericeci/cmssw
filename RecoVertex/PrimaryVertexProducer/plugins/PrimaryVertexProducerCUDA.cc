@@ -48,7 +48,10 @@ PrimaryVertexProducerCUDA::PrimaryVertexProducerCUDA(const edm::ParameterSet& co
         conf.getParameter<edm::ParameterSet>("TkClusParameters").getParameter<edm::ParameterSet>("TkDAClusParameters"));
     f4D = true;
   }
-
+  else if (clusteringAlgorithm == "DA_vectCUDA") {
+    theTrackClusterizer = new DAClusterizerInZ_vectCUDA(
+        conf.getParameter<edm::ParameterSet>("TkClusParameters").getParameter<edm::ParameterSet>("TkDAClusParameters"));
+  }
   else {
     throw VertexException("PrimaryVertexProducerCUDA: unknown clustering algorithm: " + clusteringAlgorithm);
   }
