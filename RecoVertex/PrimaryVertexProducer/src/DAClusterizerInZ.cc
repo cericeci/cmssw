@@ -34,6 +34,7 @@ vector<DAClusterizerInZ::track_t> DAClusterizerInZ::fill(const vector<reco::Tran
     }
     t.tt = &(*it);
     t.Z = 1.;
+    // std::cout << setw(10) << t.z << setw(10) << t.dz2 << std::endl;
     tks.push_back(t);
   }
   return tks;
@@ -539,6 +540,9 @@ void DAClusterizerInZ::dump(const double beta,
 
 vector<TransientVertex> DAClusterizerInZ::vertices(const vector<reco::TransientTrack>& tracks,
                                                    const int verbosity) const {
+  //std::cout << "---------New event---------" << std::endl;
+  //std::cout << setw(10) << "z" << setw(10) << "dz2" << std::endl;
+
   vector<track_t> tks = fill(tracks);
   unsigned int nt = tracks.size();
   double rho0 = 0.0;  // start with no outlier rejection

@@ -193,12 +193,13 @@ DAClusterizerInZ_vect::track_t DAClusterizerInZ_vect::fill(const vector<reco::Tr
       t_tkwt = 1. / (1. + local_exp(std::pow(atIP.value() / atIP.error(), 2) -
                                     std::pow(d0CutOff_, 2)));  // reduce weight for high ip tracks
       if (edm::isNotFinite(t_tkwt) || t_tkwt < std::numeric_limits<double>::epsilon()) {
-        edm::LogWarning("DAClusterizerinZ_vect") << "rejected track t_tkwt " << t_tkwt;
+        //edm::LogWarning("DAClusterizerinZ_vect") << "rejected track t_tkwt " << t_tkwt;
         continue;  // usually is > 0.99
       }
     }
     tks.addItemSorted(t_z, t_dz2, &(*it), t_tkwt);
     sumtkwt += t_tkwt;
+    //std::cout << setw(20) << t_z << setw(20) << t_dz2 << setw(20) << t_tkwt << std::endl;
   }
 
   tks.extractRaw();
@@ -761,6 +762,8 @@ bool DAClusterizerInZ_vect::split(const double beta, track_t& tks, vertex_t& y, 
 }
 
 vector<TransientVertex> DAClusterizerInZ_vect::vertices(const vector<reco::TransientTrack>& tracks) const {
+  //std::cout << "---------New event---------" << std::endl;
+  //std::cout << setw(20) << "z" << setw(20) << "dz2" << setw(20) << "w" << std::endl;
   track_t&& tks = fill(tracks);
   tks.extractRaw();
 
