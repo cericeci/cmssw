@@ -203,6 +203,7 @@ void PrimaryVertexProducer::produce(edm::Event& iEvent, const edm::EventSetup& i
 
   // select tracks
   std::vector<reco::TransientTrack>&& seltks = theTrackFilter->select(t_tks);
+  std::cout << "N_seltks:" << seltks.size() << std::endl;
 
   // clusterize tracks in Z
   std::vector<std::vector<reco::TransientTrack> >&& clusters = theTrackClusterizer->clusterize(seltks);

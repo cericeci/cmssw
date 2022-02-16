@@ -153,9 +153,9 @@ struct vertex_t {
 };
 
 namespace clusterizerCUDA {
-  void kernel_calc_exp_arg_range_wrapper(float beta, double track_z, double botrack_dz2, vertex_t* vertices, const unsigned int kmin, const unsigned int kmax, cudaStream_t stream);
-  void kernel_calc_normalization_wrapper(float o_trk_sum_Z, float o_trk_dz2, float tmp_trk_z, vertex_t* gpuvertices, const unsigned int kmin, const unsigned int kmax, bool updateTc, cudaStream_t cudaStreamDefault);
-  void kernel_calc_z_wrapper(float osumtkwt, int nv, vertex_t* gpuvertices, double * delta_gpu, cudaStream_t cudaStreamDefault);
+  void kernel_calc_exp_arg_range_wrapper(double beta, double track_z, double botrack_dz2, double* zvtx , double* expvtx, const unsigned int kmin, const unsigned int kmax, cudaStream_t stream);
+  void kernel_calc_normalization_wrapper(double o_trk_sum_Z, double o_trk_dz2, double tmp_trk_z, double* expvtx_gpu, double* expargvtx_gpu, double* rhovtx_gpu, double* sevtx_gpu, double* swvtx_gpu, double* swzvtx_gpu, double* swEvtx_gpu, const unsigned int kmin, const unsigned int kmax, bool updateTc, cudaStream_t stream);
+  void kernel_calc_z_wrapper(double osumtkwt, int nv, vertex_t* gpuvertices, double * delta_gpu, cudaStream_t stream);
 }
 
 #endif

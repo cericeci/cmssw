@@ -14,7 +14,7 @@ using namespace std;
 
 //#define DEBUG
 #ifdef DEBUG
-#define DEBUGLEVEL 0
+#define DEBUGLEVEL 5
 #endif
 
 DAClusterizerInZ_vect::DAClusterizerInZ_vect(const edm::ParameterSet& conf) {
@@ -368,6 +368,7 @@ double DAClusterizerInZ_vect::update(
     const unsigned int kmax = gtracks.kmax[itrack];
 
     kernel_calc_exp_arg_range(itrack, gtracks, gvertices, kmin, kmax);
+    //std::cout << "First kernel:" << gvertices.exp_arg[nv-1] << " ; " << kmin << " ; " << kmax << std::endl;
     local_exp_list_range(gvertices.exp_arg, gvertices.exp, kmin, kmax);
     gtracks.sum_Z[itrack] = kernel_add_Z_range(gvertices, kmin, kmax);
 
@@ -375,7 +376,11 @@ double DAClusterizerInZ_vect::update(
       gtracks.sum_Z[itrack] = 0.0;
 
     if (gtracks.sum_Z[itrack] > 1.e-100) {
+      //std::cout << "Second kernel PRE:" << gvertices.exp[nv-1] << " ; " << gvertices.exp_arg[nv-1] << " ; " << gvertices.rho[nv-1] << " ; " << gtracks.sum_Z[itrack] << " ; " << gtracks.tkwt[itrack] << " ; " << gtracks.dz2[itrack] << " ; " << gtracks.zpca[itrack]  << std::endl;
+
       kernel_calc_normalization_range(itrack, gtracks, gvertices, kmin, kmax);
+      //std::cout << "Second kernel:" << gvertices.se[nv-1] << " ; " << gvertices.sw[nv-1] << " ; " << gvertices.swz[nv-1] << " ; " << gvertices.swE[nv-1] << " ; " << std::endl;
+      //std::cout << "UpdateTc:" << updateTc << std::endl;
     }
   }
 
@@ -406,8 +411,13 @@ double DAClusterizerInZ_vect::update(
     return delta;
   };
 
-  double delta = kernel_calc_z(gvertices);
+  /*std::cout << "Will compute delta with: " << std::endl;
+  for (unsigned int ivertex = 0; ivertex < nv; ++ivertex) {
+    std::cout << "---------" << gvertices.sw[ivertex] << " ; " << gvertices.swz[ivertex] << " ; " << gvertices.zvtx[ivertex] << " ; " << gvertices.rho[ivertex] << std::endl;
+  }*/
 
+  double delta = kernel_calc_z(gvertices);
+  // std::cout << "Delta: "<< delta << std::endl;
   // return how much the prototypes moved
   return delta;
 }

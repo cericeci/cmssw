@@ -264,7 +264,7 @@ void PrimaryVertexProducerCUDA::produce(edm::Event& iEvent, const edm::EventSetu
   else {
     seltks = theTrackFilter->select(t_tks);
   }
-
+  std::cout << "N_seltks:" << seltks.size() << std::endl;
   // clusterize tracks in Z
   std::vector<std::vector<reco::TransientTrack> >&& clusters = theTrackClusterizer->clusterize(seltks);
 
