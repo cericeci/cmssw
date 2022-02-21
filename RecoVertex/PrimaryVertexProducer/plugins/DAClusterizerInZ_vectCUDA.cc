@@ -329,11 +329,11 @@ double DAClusterizerInZ_vectCUDA::update(
   cudaCheck(cudaMemcpy(gvertices.zvtx, vz_gpu.get(), sizeof(double)*gvertices.getSize() ,cudaMemcpyDeviceToHost));
   cudaCheck(cudaMemcpy(gvertices.rho, vrho_gpu.get(), sizeof(double)*gvertices.getSize() ,cudaMemcpyDeviceToHost));
   cudaCheck(cudaMemcpy(gvertices.sw, vsw_gpu.get(), sizeof(double)*gvertices.getSize() ,cudaMemcpyDeviceToHost));
-  cudaCheck(cudaMemcpy(gvertices.swE, vswe_gpu.get(), sizeof(double)*gvertices.getSize() ,cudaMemcpyDeviceToHost));
+  if (updateTc) cudaCheck(cudaMemcpy(gvertices.swE, vswe_gpu.get(), sizeof(double)*gvertices.getSize() ,cudaMemcpyDeviceToHost));
   cudaCheck(cudaMemcpy(gtracks.sum_Z, tsumz_gpu.get(), sizeof(double)*gtracks.getSize() ,cudaMemcpyDeviceToHost));
 
   cudaCheck(cudaMemcpy(delta_cpu.get(), delta_gpu.get(), sizeof(double)*gvertices.getSize() ,cudaMemcpyDeviceToHost));
-
+  //std::cout << "Print sw, swE: " << gvertices.sw[0] << " ; " << gvertices.swE[0] << std::endl; 
   double delta = 0;
   for (unsigned int i=0 ; i < nv ; i++){
     if (delta_cpu.get()[i] > delta) delta = delta_cpu.get()[i];
