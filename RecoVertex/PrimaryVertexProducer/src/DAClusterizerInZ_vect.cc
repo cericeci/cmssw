@@ -417,6 +417,8 @@ double DAClusterizerInZ_vect::update(
   }*/
 
   double delta = kernel_calc_z(gvertices);
+  //std::cout << "Print sw, swE: " << gvertices.sw[0] << " ; " << gvertices.swE[0] << std::endl;
+
   // std::cout << "Delta: "<< delta << std::endl;
   // return how much the prototypes moved
   return delta;
