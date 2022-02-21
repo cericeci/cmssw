@@ -46,6 +46,8 @@ struct track_t {
       dz2 = &dz2_vec.front();
       tkwt = &tkwt_vec.front();
       sum_Z = &sum_Z_vec.front();
+      kmin_in = &kmin.front();
+      kmax_in = &kmax.front();
     }
 
     // pointers to the first element of vectors, needed for vectorized code
@@ -53,6 +55,8 @@ struct track_t {
     double *__restrict__ dz2;
     double *__restrict__ tkwt;
     double *__restrict__ sum_Z;
+    unsigned int *__restrict__ kmin_in;
+    unsigned int *__restrict__ kmax_in;
 };
 
 struct vertex_t {
@@ -153,9 +157,7 @@ struct vertex_t {
 };
 
 namespace clusterizerCUDA {
-  void kernel_calc_exp_arg_range_wrapper(double beta, double track_z, double botrack_dz2, double* zvtx , double* expvtx, const unsigned int kmin, const unsigned int kmax, cudaStream_t stream);
-  void kernel_calc_normalization_wrapper(double o_trk_sum_Z, double o_trk_dz2, double tmp_trk_z, double* expvtx_gpu, double* expargvtx_gpu, double* rhovtx_gpu, double* sevtx_gpu, double* swvtx_gpu, double* swzvtx_gpu, double* swEvtx_gpu, const unsigned int kmin, const unsigned int kmax, bool updateTc, cudaStream_t stream);
-  void kernel_calc_z_wrapper(double osumtkwt, int nv, vertex_t* gpuvertices, double * delta_gpu, cudaStream_t stream);
+  void kernel_update_wrapper(unsigned int nt, unsigned int nv, double beta, bool updateTc, double rho0, double osumtkwt, double Z_init, const unsigned int * tkmin, const unsigned int * tkmax, double * tz, double * tdz2, double * twgt, double * vrho, double * vz, double * tsumz, double * vsw, double * vswe, double * delta, cudaStream_t stream);
 }
 
 #endif

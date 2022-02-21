@@ -291,164 +291,53 @@ double DAClusterizerInZ_vectCUDA::update(
   if (rho0 > 0) {
     Z_init = rho0 * local_exp(-beta * dzCutOff_ * dzCutOff_);  // cut-off
   }
+  
+  //// Inputs only ////
+  auto tkmin_gpu = cms::cuda::make_device_unique<unsigned int[]>(gtracks.getSize(), cudaStreamDefault);
+  auto tkmax_gpu = cms::cuda::make_device_unique<unsigned int[]>(gtracks.getSize(), cudaStreamDefault);
+  auto tz_gpu    = cms::cuda::make_device_unique<double[]>(gtracks.getSize(), cudaStreamDefault);
+  auto tdz2_gpu  = cms::cuda::make_device_unique<double[]>(gtracks.getSize(), cudaStreamDefault);
+  auto twgt_gpu  = cms::cuda::make_device_unique<double[]>(gtracks.getSize(), cudaStreamDefault);
 
-  auto kernel_add_Z_range = [Z_init](
-                                vertex_t const& vertices, const unsigned int kmin, const unsigned int kmax) -> double {
-    double ZTemp = Z_init;
-    for (unsigned int ivertex = kmin; ivertex < kmax; ++ivertex) {
-      ZTemp += vertices.rho[ivertex] * vertices.exp[ivertex];
-    }
-    return ZTemp;
-  };
+  //// Inputs + Outputs ////
+  auto vrho_gpu = cms::cuda::make_device_unique<double[]>(gvertices.getSize(), cudaStreamDefault);
+  auto vz_gpu   = cms::cuda::make_device_unique<double[]>(gvertices.getSize(), cudaStreamDefault);
+  auto vrho_cpu = cms::cuda::make_host_unique<double[]>(gvertices.getSize(), cudaStreamDefault);
+  auto vz_cpu   = cms::cuda::make_host_unique<double[]>(gvertices.getSize(), cudaStreamDefault);
 
 
-  if (updateTc) {
-    for (auto ivertex = 0U; ivertex < nv; ++ivertex) {
-      gvertices.se[ivertex] = 0.0;
-      gvertices.sw[ivertex] = 0.0;
-      gvertices.swz[ivertex] = 0.0;
-      gvertices.swE[ivertex] = 0.0;
-    }
-  } else {
-    for (auto ivertex = 0U; ivertex < nv; ++ivertex) {
-      gvertices.se[ivertex] = 0.0;
-      gvertices.sw[ivertex] = 0.0;
-      gvertices.swz[ivertex] = 0.0;
-    }
+  //// Outputs only ////
+  auto tsumz_gpu = cms::cuda::make_device_unique<double[]>(gtracks.getSize(), cudaStreamDefault);
+  auto vsw_gpu   = cms::cuda::make_device_unique<double[]>(gvertices.getSize(), cudaStreamDefault);
+  auto vswe_gpu  = cms::cuda::make_device_unique<double[]>(gvertices.getSize(), cudaStreamDefault);
+  auto delta_gpu = cms::cuda::make_device_unique<double[]>(gvertices.getSize(), cudaStreamDefault);
+
+  auto delta_cpu = cms::cuda::make_host_unique<double[]>(gvertices.getSize(), cudaStreamDefault);
+
+
+  //// Copy Input Stuff 
+  cudaCheck(cudaMemcpy(tkmin_gpu.get(), gtracks.kmin_in, sizeof(const unsigned int)*gtracks.getSize() ,cudaMemcpyHostToDevice));
+  cudaCheck(cudaMemcpy(tkmax_gpu.get(), gtracks.kmax_in, sizeof(const unsigned int)*gtracks.getSize() ,cudaMemcpyHostToDevice));
+  cudaCheck(cudaMemcpy(tz_gpu.get(), gtracks.zpca, sizeof(double)*gtracks.getSize() ,cudaMemcpyHostToDevice));
+  cudaCheck(cudaMemcpy(tdz2_gpu.get(), gtracks.dz2, sizeof(double)*gtracks.getSize() ,cudaMemcpyHostToDevice));
+  cudaCheck(cudaMemcpy(twgt_gpu.get(), gtracks.tkwt, sizeof(double)*gtracks.getSize() ,cudaMemcpyHostToDevice));
+  cudaCheck(cudaMemcpy(vrho_gpu.get(), gvertices.rho, sizeof(double)*gvertices.getSize() ,cudaMemcpyHostToDevice));
+  cudaCheck(cudaMemcpy(vz_gpu.get(), gvertices.zvtx, sizeof(double)*gvertices.getSize() ,cudaMemcpyHostToDevice));
+
+  clusterizerCUDA::kernel_update_wrapper(nt, nv, beta, updateTc, rho0, osumtkwt, Z_init, tkmin_gpu.get(), tkmax_gpu.get(), tz_gpu.get(), tdz2_gpu.get(), twgt_gpu.get(), vrho_gpu.get(), vz_gpu.get(), tsumz_gpu.get(), vsw_gpu.get(), vswe_gpu.get(), delta_gpu.get(), cudaStreamDefault);
+
+  cudaCheck(cudaMemcpy(gvertices.zvtx, vz_gpu.get(), sizeof(double)*gvertices.getSize() ,cudaMemcpyDeviceToHost));
+  cudaCheck(cudaMemcpy(gvertices.rho, vrho_gpu.get(), sizeof(double)*gvertices.getSize() ,cudaMemcpyDeviceToHost));
+  cudaCheck(cudaMemcpy(gvertices.sw, vsw_gpu.get(), sizeof(double)*gvertices.getSize() ,cudaMemcpyDeviceToHost));
+  cudaCheck(cudaMemcpy(gvertices.swE, vswe_gpu.get(), sizeof(double)*gvertices.getSize() ,cudaMemcpyDeviceToHost));
+  cudaCheck(cudaMemcpy(gtracks.sum_Z, tsumz_gpu.get(), sizeof(double)*gtracks.getSize() ,cudaMemcpyDeviceToHost));
+
+  cudaCheck(cudaMemcpy(delta_cpu.get(), delta_gpu.get(), sizeof(double)*gvertices.getSize() ,cudaMemcpyDeviceToHost));
+
+  double delta = 0;
+  for (unsigned int i=0 ; i < nv ; i++){
+    if (delta_cpu.get()[i] > delta) delta = delta_cpu.get()[i];
   }
-
-  // loop over tracks
-  for (auto itrack = 0U; itrack < nt; ++itrack) {// Can't vectorize, as several tracks might modify the same vertex...
-    const unsigned int kmin = gtracks.kmin[itrack];
-    const unsigned int kmax = gtracks.kmax[itrack];
-
-    //kernel_calc_exp_arg_range(itrack, gtracks, gvertices, kmin, kmax);
-    // --> Now GPUize it!   
-    double track_z = gtracks.zpca[itrack];
-    double botrack_dz2 = -beta * gtracks.dz2[itrack]; 
-    auto zvtx_gpu   = cms::cuda::make_device_unique<double[]>(gvertices.getSize(), cudaStreamDefault);
-    auto expvtx_gpu = cms::cuda::make_device_unique<double[]>(gvertices.getSize(), cudaStreamDefault);
-    auto expvtx_cpu = cms::cuda::make_host_unique<double[]>(gvertices.getSize(), cudaStreamDefault);
-
-    cudaCheck(cudaMemcpy(zvtx_gpu.get(), gvertices.zvtx, sizeof(double)*gvertices.getSize() ,cudaMemcpyHostToDevice));
-    clusterizerCUDA::kernel_calc_exp_arg_range_wrapper(beta, track_z, botrack_dz2, zvtx_gpu.get(), expvtx_gpu.get(), kmin, kmax, cudaStreamDefault);
-    cudaCheck(cudaMemcpy(expvtx_cpu.get(),expvtx_gpu.get(),sizeof(double)*gvertices.getSize(),cudaMemcpyDeviceToHost));
-    //std::cout << "First kernel:" << expvtx_cpu[nv-1] << " ; " << kmin << " ; " << kmax << std::endl;
-
-    for (auto ivertex = kmin; ivertex < kmax; ++ivertex){
-      gvertices.exp_arg[ivertex] = expvtx_cpu[ivertex];
-    }
-
-    // GPUization ended 
-    local_exp_list_range(gvertices.exp_arg, gvertices.exp, kmin, kmax);
-    gtracks.sum_Z[itrack] = kernel_add_Z_range(gvertices, kmin, kmax);
-    
-    if (edm::isNotFinite(gtracks.sum_Z[itrack]))
-      gtracks.sum_Z[itrack] = 0.0;
-
-    if (gtracks.sum_Z[itrack] > 1.e-100) {
-      //kernel_calc_normalization_range(itrack, gtracks, gvertices, kmin, kmax);
-      // --> Now GPUize it!   
-      auto o_trk_sum_Z = gtracks.tkwt[itrack] / gtracks.sum_Z[itrack];
-      auto o_trk_dz2 = gtracks.dz2[itrack];
-      auto tmp_trk_z = gtracks.zpca[itrack];
-      auto expvtx_gpu = cms::cuda::make_device_unique<double[]>(gvertices.getSize(), cudaStreamDefault);
-      auto expargvtx_gpu = cms::cuda::make_device_unique<double[]>(gvertices.getSize(), cudaStreamDefault);
-
-      auto rhovtx_gpu = cms::cuda::make_device_unique<double[]>(gvertices.getSize(), cudaStreamDefault);
-      auto sevtx_gpu = cms::cuda::make_device_unique<double[]>(gvertices.getSize(), cudaStreamDefault);
-      auto swvtx_gpu = cms::cuda::make_device_unique<double[]>(gvertices.getSize(), cudaStreamDefault);
-      auto swzvtx_gpu = cms::cuda::make_device_unique<double[]>(gvertices.getSize(), cudaStreamDefault);
-      auto swEvtx_gpu = cms::cuda::make_device_unique<double[]>(gvertices.getSize(), cudaStreamDefault);
-
-      auto sevtx_cpu = cms::cuda::make_host_unique<double[]>(gvertices.getSize(), cudaStreamDefault);
-      auto swvtx_cpu = cms::cuda::make_host_unique<double[]>(gvertices.getSize(), cudaStreamDefault);
-      auto swzvtx_cpu = cms::cuda::make_host_unique<double[]>(gvertices.getSize(), cudaStreamDefault);
-      auto swEvtx_cpu = cms::cuda::make_host_unique<double[]>(gvertices.getSize(), cudaStreamDefault);
-
-      cudaCheck(cudaMemcpy(expvtx_gpu.get(), gvertices.exp, sizeof(double)*gvertices.getSize() ,cudaMemcpyHostToDevice));
-      cudaCheck(cudaMemcpy(expargvtx_gpu.get(), gvertices.exp_arg, sizeof(double)*gvertices.getSize() ,cudaMemcpyHostToDevice));
-      cudaCheck(cudaMemcpy(sevtx_gpu.get(), gvertices.se, sizeof(double)*gvertices.getSize() ,cudaMemcpyHostToDevice));
-      cudaCheck(cudaMemcpy(swvtx_gpu.get(), gvertices.sw, sizeof(double)*gvertices.getSize() ,cudaMemcpyHostToDevice));
-      cudaCheck(cudaMemcpy(swzvtx_gpu.get(), gvertices.swz, sizeof(double)*gvertices.getSize() ,cudaMemcpyHostToDevice));
-      cudaCheck(cudaMemcpy(swEvtx_gpu.get(), gvertices.swE, sizeof(double)*gvertices.getSize() ,cudaMemcpyHostToDevice));
-
-      cudaCheck(cudaMemcpy(rhovtx_gpu.get(), gvertices.rho, sizeof(double)*gvertices.getSize() ,cudaMemcpyHostToDevice));
-      //std::cout << "Second kernel PRE:" << gvertices.exp[nv-1] << " ; " << gvertices.exp_arg[nv-1] << " ; " << gvertices.rho[nv-1] << " ; " << gtracks.sum_Z[itrack] << " ; " << gtracks.tkwt[itrack] << " ; " << gtracks.dz2[itrack] << " ; " << gtracks.zpca[itrack]  << std::endl;
-
-      clusterizerCUDA::kernel_calc_normalization_wrapper(o_trk_sum_Z, o_trk_dz2, tmp_trk_z, expvtx_gpu.get(), expargvtx_gpu.get(), rhovtx_gpu.get(), sevtx_gpu.get(), swvtx_gpu.get(), swzvtx_gpu.get(), swEvtx_gpu.get(), kmin, kmax, updateTc, cudaStreamDefault);
-
-      cudaCheck(cudaMemcpy(sevtx_cpu.get(),sevtx_gpu.get(),sizeof(double)*gvertices.getSize(),cudaMemcpyDeviceToHost));
-      cudaCheck(cudaMemcpy(swvtx_cpu.get(),swvtx_gpu.get(),sizeof(double)*gvertices.getSize(),cudaMemcpyDeviceToHost));
-      cudaCheck(cudaMemcpy(swzvtx_cpu.get(),swzvtx_gpu.get(),sizeof(double)*gvertices.getSize(),cudaMemcpyDeviceToHost));
-      cudaCheck(cudaMemcpy(swEvtx_cpu.get(),swEvtx_gpu.get(),sizeof(double)*gvertices.getSize(),cudaMemcpyDeviceToHost));
-      //std::cout << "Second kernel:" << sevtx_cpu[nv-1] << " ; " << swvtx_cpu[nv-1] << " ; " << swzvtx_cpu[nv-1] << " ; " << swEvtx_cpu[nv-1] << " ; " << std::endl;
-      //std::cout << "UpdateTc:" << updateTc << std::endl;
-      for (auto ivertex = kmin; ivertex < kmax; ++ivertex){
-        gvertices.se[ivertex] = sevtx_cpu[ivertex];
-        gvertices.sw[ivertex] = swvtx_cpu[ivertex];
-        gvertices.swz[ivertex] = swzvtx_cpu[ivertex];
-        gvertices.swE[ivertex] = swEvtx_cpu[ivertex];
-      }
-
-      // GPUization ended 
-    }
-  }
-
-  // (un-)apply the factor -beta which is needed in exp_arg, but not in swE
-  if (updateTc) {
-    auto obeta = -1. / beta;
-    for (auto ivertex = 0U; ivertex < nv; ++ivertex) {
-      gvertices.swE[ivertex] *= obeta;
-    }
-  }
-
-  // now update z and rho
-  auto kernel_calc_z = [osumtkwt, nv](vertex_t& vertices) -> double {
-    double delta = 0;
-    // does not vectorize
-    for (unsigned int ivertex = 0; ivertex < nv; ++ivertex) {
-      if (vertices.sw[ivertex] > 0) {
-        auto znew = vertices.swz[ivertex] / vertices.sw[ivertex];
-        // prevents from vectorizing if
-        delta = max(std::abs(vertices.zvtx[ivertex] - znew), delta);
-        vertices.zvtx[ivertex] = znew;
-      }
-    }
-
-    for (unsigned int ivertex = 0; ivertex < nv; ++ivertex)
-      vertices.rho[ivertex] = vertices.rho[ivertex] * vertices.se[ivertex] * osumtkwt;
-
-    return delta;
-  };
-
-  /*std::cout << "Will compute delta with: " << std::endl;
-  for (unsigned int ivertex = 0; ivertex < nv; ++ivertex) {
-    std::cout << "---------" << gvertices.sw[ivertex] << " ; " << gvertices.swz[ivertex] << " ; " << gvertices.zvtx[ivertex] <<  " ; " << gvertices.rho[ivertex] << std::endl; 
-  }*/
-
-  double delta = kernel_calc_z(gvertices);
-  // std::cout << "Delta: " << delta << std::endl;
-  // --> Now GPUize it
-  // vertex_t* gpuvertices; // = cms::cuda::make_device_unique<vertex_t>(cudaStreamDefault);
-  // How much vertex move, gpu and cpu versions
-  // double_t* delta_gpu;
-  // double_t* delta_cpu;
-  // cudaMalloc(&delta_gpu, sizeof(double)*gvertices.getSize());
-  // cudaMalloc(&delta_cpu, sizeof(double)*gvertices.getSize());
-
-  // cudaCheck(cudaMalloc(gpuvertices, sizeof(gvertices)));
-  // cudaCheck(cudaMemcpy(gpuvertices,gvertices,sizeof(gvertices),cudaMemcpyHostToDevice));
-  // clusterizerCUDA::kernel_calc_z_wrapper(osumtkwt, nv, gpuvertices, delta_gpu, cudaStreamDefault);
-  // cudaCheck(cudaMemcpy(gvertices,gpuvertices,sizeof(gvertices),cudaMemcpyDeviceToHost));
-  // cudaCheck(cudaMemcpy(delta_cpu,delta_gpu,sizeof(double),cudaMemcpyDeviceToHost));
-
-  // GPUization ended 
-  // return how much the prototypes moved
-  // double delta = 0;
-  // for (unsigned int i = 0; i < gvertices.getSize(); i++){
-  //  if (delta_cpu[i] > delta) delta = delta_cpu[i];
-  // } 
   return delta;
 }
 
