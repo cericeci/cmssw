@@ -56,7 +56,7 @@ namespace clusterizerCUDA {
             double w                   = vrho[ivertex] * tvexp[ivertex*nt + itrack] * sumw * tdz2[itrack];
             tvsw[ivertex*nt + itrack]  = w;
             tvswz[ivertex*nt + itrack] = w * tz[itrack];
-            tvswE[ivertex*nt + itrack] = w * tvexparg[ivertex*nt + itrack]/ beta;
+            tvswE[ivertex*nt + itrack] = - w * tvexparg[ivertex*nt + itrack]/ beta;
           }
         }
         else{
