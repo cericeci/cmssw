@@ -28,10 +28,16 @@ public:
   eigenSoA::ScalarSoA<double, S> sum_Z;
   eigenSoA::ScalarSoA<unsigned int, S> kmin;
   eigenSoA::ScalarSoA<unsigned int, S> kmax;
+  eigenSoA::ScalarSoA<bool, S> isGood;
 
   // For now, we can consider saving the full 4-momentum?
   eigenSoA::ScalarSoA<double, S> pAtIP;
   eigenSoA::ScalarSoA<double, S> etaAtIP;
+  eigenSoA::ScalarSoA<double, S> pxAtPCA;
+  eigenSoA::ScalarSoA<double, S> pyAtPCA;
+  eigenSoA::ScalarSoA<double, S> pzAtPCA;
+  eigenSoA::ScalarSoA<double, S> bx;
+  eigenSoA::ScalarSoA<double, S> by;
 
   eigenSoA::ScalarSoA<double, S> chi2;
 
@@ -47,6 +53,7 @@ public:
 
 };
 
+template <int32_t S>
 class VertexForPVSoAHeterogeneousT {
 public:
   static constexpr int32_t stride() { return S; }
