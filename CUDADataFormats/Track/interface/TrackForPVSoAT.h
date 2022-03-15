@@ -44,6 +44,7 @@ public:
   eigenSoA::ScalarSoA<int8_t, S> nPixelHits;
   eigenSoA::ScalarSoA<int8_t, S> nTrackerHits;
 
+  // The track-vertex association matrices
   eigenSoA::MatrixSoA<Vector512d, S> vert_sw;
   eigenSoA::MatrixSoA<Vector512d, S> vert_se;
   eigenSoA::MatrixSoA<Vector512d, S> vert_swz;
@@ -51,6 +52,9 @@ public:
   eigenSoA::MatrixSoA<Vector512d, S> vert_exp;
   eigenSoA::MatrixSoA<Vector512d, S> vert_exparg;
 
+  // Auxiliar vectors
+  eigenSoA::ScalarSoA<double, S> aux1;
+  eigenSoA::ScalarSoA<double, S> aux2;
 };
 
 template <int32_t S>
@@ -60,17 +64,20 @@ public:
 
 public:
   // Track properties needed for the PV selection + fitting
-
+  unsigned int nTrueVertex;
+  eigenSoA::ScalarSoA<bool, S> isGood;  
   eigenSoA::ScalarSoA<double, S> sw;
   eigenSoA::ScalarSoA<double, S> se;
   eigenSoA::ScalarSoA<double, S> swz;
   eigenSoA::ScalarSoA<double, S> swE;
-  eigenSoA::ScalarSoA<double, S> exp;
-  eigenSoA::ScalarSoA<double, S> exparg;
+  eigenSoA::ScalarSoA<double, S> exp;    // We probably don't need this
+  eigenSoA::ScalarSoA<double, S> exparg; // Or this
   eigenSoA::ScalarSoA<int, S> order;
   eigenSoA::ScalarSoA<double, S> z;
   eigenSoA::ScalarSoA<double, S> rho;
-
+  // Auxiliar vectors
+  eigenSoA::ScalarSoA<double, S> aux1;
+  eigenSoA::ScalarSoA<double, S> aux2;
 };
 
 

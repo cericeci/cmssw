@@ -131,8 +131,25 @@ PrimaryVertexProducerCUDA::PrimaryVertexProducerCUDA(const edm::ParameterSet& co
      .maxchi2=conf.getParameter<edm::ParameterSet>("TkFilterParameters").getParameter<double>("maxNormalizedChi2"),
      .minpixelHits=conf.getParameter<edm::ParameterSet>("TkFilterParameters").getParameter<int>("minPixelLayersWithHits"),
      .mintrackerHits=conf.getParameter<edm::ParameterSet>("TkFilterParameters").getParameter<int>("minSiliconLayersWithHits"),
+     // TODO:: Move this to the proper TkFilterParameters, as we do it in the filtering now
      .vertexSize=conf.getParameter<edm::ParameterSet>("TkClusParameters").getParameter<edm::ParameterSet>("TkDAClusParameters").getParameter<double>("vertexSize"),
      .d0CutOff  =conf.getParameter<edm::ParameterSet>("TkClusParameters").getParameter<edm::ParameterSet>("TkDAClusParameters").getParameter<double>("d0CutOff")
+    };
+    cParams = {
+      .Tmin   = conf.getParameter<edm::ParameterSet>("TkClusParameters").getParameter<edm::ParameterSet>("TkDAClusParameters").getParameter<double>("Tmin"),
+      .Tpurge = conf.getParameter<edm::ParameterSet>("TkClusParameters").getParameter<edm::ParameterSet>("TkDAClusParameters").getParameter<double>("Tpurge"),
+      .Tstop  = conf.getParameter<edm::ParameterSet>("TkClusParameters").getParameter<edm::ParameterSet>("TkDAClusParameters").getParameter<double>("Tstop"),
+      .vertexSize = conf.getParameter<edm::ParameterSet>("TkClusParameters").getParameter<edm::ParameterSet>("TkDAClusParameters").getParameter<double>("vertexSize"),
+      .coolingFactor = conf.getParameter<edm::ParameterSet>("TkClusParameters").getParameter<edm::ParameterSet>("TkDAClusParameters").getParameter<double>("coolingFactor"),
+      .d0CutOff = conf.getParameter<edm::ParameterSet>("TkClusParameters").getParameter<edm::ParameterSet>("TkDAClusParameters").getParameter<double>("d0CutOff"),
+      .dzCutOff = conf.getParameter<edm::ParameterSet>("TkClusParameters").getParameter<edm::ParameterSet>("TkDAClusParameters").getParameter<double>("dzCutOff"),
+      .uniquetrkweight = conf.getParameter<edm::ParameterSet>("TkClusParameters").getParameter<edm::ParameterSet>("TkDAClusParameters").getParameter<double>("uniquetrkweight"),
+      .uniquetrkminp = conf.getParameter<edm::ParameterSet>("TkClusParameters").getParameter<edm::ParameterSet>("TkDAClusParameters").getParameter<double>("uniquetrkminp"),
+      .zmerge = conf.getParameter<edm::ParameterSet>("TkClusParameters").getParameter<edm::ParameterSet>("TkDAClusParameters").getParameter<double>("zmerge"),
+      .sel_zrange = conf.getParameter<edm::ParameterSet>("TkClusParameters").getParameter<edm::ParameterSet>("TkDAClusParameters").getParameter<double>("zrange"),
+      .convergence_mode = conf.getParameter<edm::ParameterSet>("TkClusParameters").getParameter<edm::ParameterSet>("TkDAClusParameters").getParameter<int>("convergence_mode"),
+      .delta_lowT = conf.getParameter<edm::ParameterSet>("TkClusParameters").getParameter<edm::ParameterSet>("TkDAClusParameters").getParameter<double>("delta_lowT"),
+      .delta_highT = conf.getParameter<edm::ParameterSet>("TkClusParameters").getParameter<edm::ParameterSet>("TkDAClusParameters").getParameter<double>("delta_highT")
     };
   }
 }
@@ -212,6 +229,7 @@ void PrimaryVertexProducerCUDA::produce(edm::Event& iEvent, const edm::EventSetu
   ////////////////////////////////////////////////////////////////////
   // We need a copy living in the host, in between steps, at least if we want to do the things "as in CPU"
   unsigned int ntracks = t_tks.size();
+  printf("nTracks in CPU: %u \n", ntracks); //DEBUG
   TrackForPVHeterogeneous CPUtracks(cms::cuda::make_host_unique<TrackForPV::TrackForPVSoA>(cudaStreamDefault));  // By construction we iterate over 8096 tracks, 512 vertices
   TrackForPVHeterogeneous GPUtracks(cms::cuda::make_device_unique<TrackForPV::TrackForPVSoA>(cudaStreamDefault));// By construction we iterate over 8096 tracks, 512 vertices
 
@@ -242,20 +260,44 @@ void PrimaryVertexProducerCUDA::produce(edm::Event& iEvent, const edm::EventSetu
   ////////////////////////////////////////////////////////////////////
   ////////////////////// Track filtering on GPU //////////////////////
   ////////////////////////////////////////////////////////////////////
-  
-  cudaCheck(cudaMemcpy(GPUtracksObject, CPUtracksObject, sizeof(TrackForPVHeterogeneous), cudaMemcpyHostToDevice));
+  cudaCheck(cudaMemcpy(GPUtracksObject, CPUtracksObject, sizeof(TrackForPV::TrackForPVSoA), cudaMemcpyHostToDevice));
   auto osumtkwt      = cms::cuda::make_device_unique<double[]>(1, cudaStreamDefault); //Sum of all track weights, for the clusterizer later
 
   trackFilterCUDA::filterWrapper(ntracks, GPUtracksObject, fParams, osumtkwt.get(), cudaStreamDefault); //TODO:: We can also consider a minidataformat for the beamspot in GPU
-
+  
 
 
   ////////////////////////////////////////////////////////////////////
-  ////////////////////// TODO:: Clustering on GPU ////////////////////
+  ////////////////////// Clustering on GPU ///////////////////////////
+  ////////////////////////////////////////////////////////////////////
+  
+  // First, object creation
+  VertexForPVHeterogeneous GPUvertices(cms::cuda::make_device_unique<TrackForPV::VertexForPVSoA>(cudaStreamDefault));// By construction we iterate over 512 vertices
+  auto* GPUverticesObject = GPUvertices.get();
+  auto beta = cms::cuda::make_device_unique<double[]>(1, cudaStreamDefault);                                         // 1/T, to be kept across iterations
+  // Add first vertex, init all collections
+  clusterizerCUDA::initializeWrapper(ntracks, GPUtracksObject, GPUverticesObject, beta.get(), osumtkwt.get(), cParams, cudaStreamDefault);
+  // Estimate first critical temperature
+  clusterizerCUDA::getBeta0Wrapper(ntracks, GPUtracksObject, GPUverticesObject, beta.get(), osumtkwt.get(), cParams, cudaStreamDefault);
+  // First thermalization
+  clusterizerCUDA::thermalizeWrapper(ntracks, GPUtracksObject, GPUverticesObject, beta.get(), osumtkwt.get(), cParams, cudaStreamDefault);
+  // First T loop, includes splitting and merging
+  clusterizerCUDA::coolingWhileSplittingWrapper(ntracks, GPUtracksObject, GPUverticesObject, beta.get(), osumtkwt.get(), cParams, cudaStreamDefault);
+  // Without varying T, reassign tracks to vertices and possibly merge more
+  clusterizerCUDA::remergeTracksWrapper(ntracks, GPUtracksObject, GPUverticesObject, beta.get(), osumtkwt.get(), cParams, cudaStreamDefault);
+  // Without varying T, redo splitting with increasingly relaxed criteria
+  clusterizerCUDA::resplitTracksWrapper(ntracks, GPUtracksObject, GPUverticesObject, beta.get(), osumtkwt.get(), cParams, cudaStreamDefault);
+  // Outlier rejection at fixed T, low quality vertex purging and final cooling down to the stopping criteria
+  clusterizerCUDA::outlierRejectionWrapper(ntracks, GPUtracksObject, GPUverticesObject, beta.get(), osumtkwt.get(), cParams, cudaStreamDefault);
+  
+  ///// TODO:: update this when we put the fitter into GPU as well ////
+
+  ////////////////////////////////////////////////////////////////////
+  ////////////////////// Fitting on GPU //////////////////////////////
   ////////////////////////////////////////////////////////////////////
   std::vector<reco::TransientTrack> seltks;
-  std::vector<std::vector<reco::TransientTrack> >&& clusters = theTrackClusterizer->clusterize(seltks);
-  
+  std::vector<std::vector<reco::TransientTrack> > clusters;
+ 
   if (fVerbose) {
     std::cout << " clustering returned  " << clusters.size() << " clusters  from " << seltks.size()
               << " selected tracks" << std::endl;

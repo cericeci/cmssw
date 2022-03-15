@@ -53,7 +53,7 @@
 #include "HeterogeneousCore/CUDAUtilities/interface/host_noncached_unique_ptr.h"
 #include "CUDADataFormats/Track/interface/TrackForPVHeterogeneous.h"
 #include "RecoVertex/PrimaryVertexProducer/interface/trackFilterCUDA.h"
-
+#include "RecoVertex/PrimaryVertexProducer/interface/clusterizerCUDA.h"
 //
 // class declaration
 //
@@ -102,6 +102,7 @@ private:
   bool f4D;
   // GPU only stuff
   trackFilterCUDA::filterParameters fParams;
-  TrackForPVHeterogeneous SoAtracks;
+  clusterizerCUDA::clusterParameters cParams;
+
   bool onGPU_;
 };
