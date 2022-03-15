@@ -315,7 +315,6 @@ namespace clusterizerCUDA {
     // Very annoyingly, we need to sort here per thread. TODO:: Can we do this with something like thrust but better? Seems we would need to atomize the kernel significantly
     // Yes, you can't create an array of non-fixed size in cuda...
 
-    if (threadIdx.x == 0 && blockIdx.x == 0){
       double critical_temp[512];
       unsigned int critical_index[512];
 
@@ -333,6 +332,7 @@ namespace clusterizerCUDA {
       }
       if (ncritical == 0) return;
       // Yep, this is a very bogus sorting algorithm, not even quicksort, but the size of critical shouldn't be > 10
+    if (threadIdx.x == 0 && blockIdx.x == 0){
 
       for (unsigned int sortO = 0; sortO < ncritical ; ++sortO){//This we might be able to parallelize more. TODO
         unsigned int ikO = 0;
