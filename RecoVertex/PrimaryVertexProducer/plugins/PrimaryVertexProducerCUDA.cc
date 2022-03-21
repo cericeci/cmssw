@@ -291,6 +291,13 @@ void PrimaryVertexProducerCUDA::produce(edm::Event& iEvent, const edm::EventSetu
   clusterizerCUDA::outlierRejectionWrapper(ntracks, GPUtracksObject, GPUverticesObject, beta.get(), osumtkwt.get(), cParams, cudaStreamDefault);
   
   ///// TODO:: update this when we put the fitter into GPU as well ////
+  
+  //cudaCheck(cudaFree(GPUverticesObject));
+  //cudaCheck(cudaFree(CPUtracksObject));
+  //cudaCheck(cudaFree(GPUtracksObject));
+  //cudaCheck(cudaFree(beta.get()));
+  //cudaCheck(cudaFree(osumtkwt.get()));
+
 
   ////////////////////////////////////////////////////////////////////
   ////////////////////// Fitting on GPU //////////////////////////////

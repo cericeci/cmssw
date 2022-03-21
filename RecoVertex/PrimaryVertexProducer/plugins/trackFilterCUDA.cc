@@ -84,8 +84,8 @@ __global__ void trackFilterKernel(unsigned int ntracks, TrackForPV::TrackForPVSo
         }
       }
       (*osumtkwt) = (*osumtkwt) > 0 ? 1./(*osumtkwt) : 0.; // This really is the only thing you need in a single thread, as multiple operations at once will break it
-      printf("Nsel_tracks after GPU filter: %i\n",nSelectedTracks); //DEBUG
-      printf("osumtkwt after GPU: %1.10f\n", *osumtkwt);
+      ////////// printf("Nsel_tracks after GPU filter: %i\n",nSelectedTracks); //DEBUG
+      ////////// printf("osumtkwt after GPU: %1.10f\n", *osumtkwt);
     }
     __syncthreads(); // Synchronize after loop
 }

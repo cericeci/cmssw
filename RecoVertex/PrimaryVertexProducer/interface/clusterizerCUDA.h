@@ -30,27 +30,38 @@ namespace clusterizerCUDA {
 
 
   __device__ __forceinline__ void update(unsigned int ntracks, TrackForPV::TrackForPVSoA* tracks, TrackForPV::VertexForPVSoA* vertices, clusterParameters params, double* osumtkwt, double* beta, double rho0, bool updateTc){
+    // printf("Update start:\n");
     size_t firstElement = threadIdx.x + blockIdx.x * blockDim.x; // This is going to be the track index
     size_t gridSize = blockDim.x * gridDim.x;
     double Z_init = rho0 * exp(-(*beta) * params.dzCutOff * params.dzCutOff); // TODO::99% of the time rho0 is going to be 0, so maybe an if here can save some time. Exponentials are not cheap
+    // printf("Temps set\n");
 
     //D if (0==threadIdx.x && 0 == blockIdx.x) printf("Update running, nt=%i, nv=%i, Zinit=%1.6f, rho0=%1.6f, updateTc=%i\n", ntracks, vertices->nTrueVertex, Z_init, rho0, updateTc);
 
     // Initiliaze stuff to 0
     for (unsigned int itrack = firstElement; itrack < ntracks ; itrack += gridSize){
+      // printf("iTrack: %i:\n", itrack);
+
       if (not(tracks->isGood(itrack))) continue;
       for (unsigned int ivertexO = 0 ; ivertexO < vertices->nTrueVertex ; ++ivertexO){ //Only init over really existing ones
         unsigned int ivertex = vertices->order(ivertexO); // ivertex translates from ordered vertex to real vertex positions
+        // printf("ivertex %i, ivertexo %i \n", ivertex, ivertexO);
         tracks->vert_sw(itrack)(ivertex) = 0.;
+        // printf("--sw \n");
         tracks->vert_se(itrack)(ivertex) = 0.;
+        // printf("--se \n");
         tracks->vert_swz(itrack)(ivertex) = 0.;
+        // printf("--swz \n");
         if (updateTc) tracks->vert_swE(itrack)(ivertex) = 0.;
+        // printf("--swE \n");
         tracks->vert_exp(itrack)(ivertex) = 0.;
+        // printf("--exp \n");
         tracks->vert_exparg(itrack)(ivertex) = 0.;
+        // printf("--exparg \n");
       }
     }
     //D if (0==threadIdx.x && 0==blockIdx.x) printf("Params for first vertex, before update, se=%1.10f, sw=%1.10f, swz=%1.10f, swE=%1.10f, z=%1.10f, rho=%1.10f\n", vertices->se(0), vertices->sw(0), vertices->swz(0), vertices->swE(0), vertices->z(0), vertices->rho(0));
-
+    // printf("Everything at 0\n");
     __syncthreads();
     
     // Now the monster thing about updating
@@ -60,11 +71,11 @@ namespace clusterizerCUDA {
       double botrack_dz2 = -(*beta) * tracks->dz2(itrack);
       tracks->sum_Z(itrack) = Z_init;
       // First, let's get the partition function per track
-      //printf("Track %i, kmin %i, kmax %i\n", itrack, tracks->kmin(itrack), tracks->kmax(itrack));
+      // printf("Track %i, kmin %i, kmax %i\n", itrack, tracks->kmin(itrack), tracks->kmax(itrack));
       for (unsigned int ivertexO = tracks->kmin(itrack) ; ivertexO < tracks->kmax(itrack) ; ++ivertexO){ // ivertexO loops over ordered vertex
         unsigned int ivertex = vertices->order(ivertexO); // ivertex translates from ordered vertex to real vertex positions
         double mult_res = tracks->z(itrack) - vertices->z(ivertex);
-        //printf("Track %i, vertex %i, track_z %1.10f, track_dz2 %1.10f, track_sum_Z: %1.10f, vertex_z: %1.10f, beta: %1.10f\n", itrack, ivertexO, tracks->z(itrack), tracks->dz2(itrack), tracks->sum_Z(itrack), vertices->z(ivertexO), *beta);
+        // printf("Track %i, vertex %i, track_z %1.10f, track_dz2 %1.10f, track_sum_Z: %1.10f, vertex_z: %1.10f, beta: %1.10f\n", itrack, ivertexO, tracks->z(itrack), tracks->dz2(itrack), tracks->sum_Z(itrack), vertices->z(ivertexO), *beta);
         tracks->vert_exparg(itrack)(ivertex) = botrack_dz2* (mult_res * mult_res);
         tracks->vert_exp(itrack)(ivertex)    = exp(tracks->vert_exparg(itrack)(ivertex)); // exp is defined as device function in cuda
         tracks->sum_Z(itrack) += vertices->rho(ivertex)*tracks->vert_exp(itrack)(ivertex);
@@ -105,8 +116,9 @@ namespace clusterizerCUDA {
         vertices->z(ivertex)    = znew; 
       }
       vertices->rho(ivertex)    = vertices->rho(ivertex) * vertices->se(ivertex) * (*osumtkwt);  // The relative vertex weight is updated
-      //D if (ivertexO==0) printf("Params for first vertex, after update, se=%1.10f, sw=%1.10f, swz=%1.10f, swE=%1.10f, z=%1.10f, rho=%1.10f\n", vertices->se(ivertexO), vertices->sw(ivertexO), vertices->swz(ivertexO), vertices->swE(ivertexO), vertices->z(ivertexO), vertices->rho(ivertexO));
+      // if (ivertexO==0) printf("Params for first vertex, after update, se=%1.10f, sw=%1.10f, swz=%1.10f, swE=%1.10f, z=%1.10f, rho=%1.10f\n", vertices->se(ivertexO), vertices->sw(ivertexO), vertices->swz(ivertexO), vertices->swE(ivertexO), vertices->z(ivertexO), vertices->rho(ivertexO));
     }
+    // printf("Finished updating!\n");
     __syncthreads(); //Just to be extremely careful
   }
 
@@ -116,11 +128,13 @@ namespace clusterizerCUDA {
     double zrange_min_= 0.1; //TODO:: put it as a param, currently hard coded as in CPU
     for (unsigned int itrack = firstElement; itrack < ntracks ; itrack+=gridSize){
       if (not(tracks->isGood(itrack))) continue;
-      if (threadIdx.x == 0 && blockIdx.x == 0) printf("vtx_range 1\n"); 
+      // printf("%i vtx_range 1\n", threadIdx.x); 
       double zrange     = std::max(params.sel_zrange/ sqrt((*beta) * tracks->dz2(itrack)), zrange_min_);
+      // printf("%i vtx_range 1.1, %p\n", threadIdx.x, (void*)&zrange);
       double zmin       = tracks->z(itrack) - zrange;
+      // printf("%i vtx_range 1.2, %p\n", threadIdx.x, (void*)&zmin);
       unsigned int kmin = std::min(vertices->nTrueVertex - 1,  tracks->kmin(itrack)); //We might have deleted a vertex, this might be complicated
-      if (threadIdx.x == 0 && blockIdx.x == 0) printf("vtx_range 2\n");   
+      // printf("%i vtx_range 2, %p\n", threadIdx.x, (void*)&kmin);
 
       if (vertices->z(vertices->order(kmin)) > zmin){ // vertex properties always accessed through vertices->order
         while ((kmin > 0) && (vertices->z(vertices->order(std::max(kmin - 1, 0U))) > zmin)) { // i.e., while we find another vertex within range that is before the previous initial step
@@ -132,7 +146,7 @@ namespace clusterizerCUDA {
           kmin++;
         }
       }
-      if (threadIdx.x == 0 && blockIdx.x == 0) printf("vtx_range 3\n");   
+      // printf("%i vtx_range 3\n", threadIdx.x);
 
       // Now the same for the upper bound
       double zmax       = tracks->z(itrack) + zrange;
@@ -147,7 +161,7 @@ namespace clusterizerCUDA {
           kmax--;
         }
       }
-      if (threadIdx.x == 0 && blockIdx.x == 0) printf("vtx_range 4\n");   
+      // printf("%i vtx_range 4\n", threadIdx.x);
       // Here kmin is the minimal index, kmax is the maximal
       if (kmin <= kmax) {
         tracks->kmin(itrack) = kmin;
@@ -157,8 +171,9 @@ namespace clusterizerCUDA {
         tracks->kmin(itrack) = std::max(0U, std::min(kmin, kmax));
         tracks->kmax(itrack) = std::min(vertices->nTrueVertex, std::max(kmin, kmax) + 1);
       }
-      if (threadIdx.x == 0 && blockIdx.x == 0) printf("vtx_range 5\n");   
+      // printf("%i vtx_range is finished\n", threadIdx.x);
     }
+    // printf("%i device vtx_range is finished\n", threadIdx.x);
   }
 
    __device__ __forceinline__ void thermalize(unsigned int ntracks, TrackForPV::TrackForPVSoA* tracks, TrackForPV::VertexForPVSoA* vertices, clusterParameters params, double * osumtkwt, double* beta, double delta_max0, double rho0){
@@ -166,7 +181,7 @@ namespace clusterizerCUDA {
     int niter    = 0;
     double  zrange_min_ = 0.01; // Hard coded and double defined as in the CPU code, sigh....
     double delta_max = params.delta_lowT;
-    if (threadIdx.x == 0 && blockIdx.x == 0) printf("Start thermalizing\n");
+    ////////// if (threadIdx.x == 0 && blockIdx.x == 0) printf("Start thermalizing\n");
     __syncthreads();
     if (params.convergence_mode == 0) {
       delta_max = delta_max0;
@@ -174,19 +189,19 @@ namespace clusterizerCUDA {
       delta_max = params.delta_lowT / sqrt(std::max((*beta), 1.0));
     }
     int maxIterations_ = 1000; // TODO:: Set as Param, in the CPU version it is hard coded as well, though. Rarely goes beyond 10-20
-    if (threadIdx.x == 0 && blockIdx.x == 0) printf("vtx_range start\n"); 
+    ////////// if (threadIdx.x == 0 && blockIdx.x == 0) printf("vtx_range start\n"); 
     __syncthreads();
     set_vtx_range(ntracks, tracks, vertices, params, osumtkwt, beta); // TODO::Probably want to cleanup the input a bit
     __syncthreads();
-    if (threadIdx.x == 0 && blockIdx.x == 0) printf("vtx_range done\n"); 
+    ////////// if (threadIdx.x == 0 && blockIdx.x == 0) printf("vtx_range done\n"); 
     // Accumulator of variations
     double delta_sum_range = 0;
  
     while (niter++ < maxIterations_){
-      if (threadIdx.x == 0 && blockIdx.x == 0) printf("-----Iter %i start\n", niter);
+      ////////// if (threadIdx.x == 0 && blockIdx.x == 0) printf("-----Iter %i start\n", niter);
       update(ntracks, tracks, vertices, params, osumtkwt, beta, rho0, false); // Thermalizing never updates the critical T
       __syncthreads();
-      if (threadIdx.x == 0 && blockIdx.x == 0) printf("--------Update done\n");
+      ////////// if (threadIdx.x == 0 && blockIdx.x == 0) printf("--------Update done\n");
 
       // At this stage, we have the delta per vertex in vertices->aux1
       double dmax = 0;
@@ -196,12 +211,12 @@ namespace clusterizerCUDA {
       }
       delta_sum_range += dmax;
       __syncthreads();
-      if (threadIdx.x == 0 && blockIdx.x == 0) printf("--------Max delta done\n");
+      ////////// if (threadIdx.x == 0 && blockIdx.x == 0) printf("--------Max delta done\n");
       if (delta_sum_range > zrange_min_) { // Check if any vertex moved a lot
         for (unsigned int ivertexO = 0 ; ivertexO < vertices->nTrueVertex; ivertexO++){ // TODO::Currently we are doing this in all threads in parallel, might be optimized using shared memory?
           unsigned int ivertex = vertices->order(ivertexO);
           if (vertices->aux1(ivertex) > zrange_min_){ // If any moved enough, redo the track-vertex range association
-            if (threadIdx.x == 0 && blockIdx.x == 0) printf("--------Set vtx run for %i\n", ivertexO);
+            ////////// if (threadIdx.x == 0 && blockIdx.x == 0) printf("--------Set vtx run for %i\n", ivertexO);
             set_vtx_range(ntracks, tracks, vertices, params, osumtkwt, beta);
           }
         }
@@ -210,7 +225,7 @@ namespace clusterizerCUDA {
       if (dmax < delta_max){
         break;
       }
-      if (threadIdx.x == 0 && blockIdx.x == 0) printf("--------Iter done\n");
+      ////////// if (threadIdx.x == 0 && blockIdx.x == 0) printf("--------Iter done\n");
     }
     __syncthreads();
   }
@@ -307,31 +322,37 @@ namespace clusterizerCUDA {
       unsigned int ivertex     = vertices->order(ivertexO);
       double Tc = 2 * vertices->swE(ivertex) / vertices->sw(ivertex);
       vertices->aux1(ivertex) = Tc; // Now we save the temperature here
-      printf("For vertex %i, Tc %1.3f\n",ivertexO, Tc); 
+      ////////// printf("For vertex %i, Tc %1.3f\n",ivertexO, Tc); 
     }
     __syncthreads();
     // Now, order them based on Tc, split higher Tc first
     // TODO:: MAJOR OPTIMIZATION POINT //
     // Very annoyingly, we need to sort here per thread. TODO:: Can we do this with something like thrust but better? Seems we would need to atomize the kernel significantly
     // Yes, you can't create an array of non-fixed size in cuda...
+    //printf("%i allocate temps\n", threadIdx.x);
+    double critical_temp[8]; // 512?
+    unsigned int critical_index[8]; // 512?
+    //printf("%i allocated\n", threadIdx.x);
 
-      double critical_temp[512];
-      unsigned int critical_index[512];
-
-
-      unsigned int ncritical = 0;
-      for (unsigned int ivertexO = 0; ivertexO < nvprev  ; ivertexO++){
-        unsigned int ivertex     = vertices->order(ivertexO);
-        if (threadIdx.x == 0 && blockIdx.x == 0) printf("Vertex %i Tc %1.10f beta %1.10f threshold %1.10f \n",ivertexO, vertices->aux1(ivertex), *beta, threshold);
-        if (vertices->aux1(ivertex)*(*beta) > threshold){
-          if (threadIdx.x == 0 && blockIdx.x == 0) printf("I'll split vertex %i\n",ivertexO);
-          critical_temp[ncritical]  = std::fabs(vertices->aux1(ivertex));
-          critical_index[ncritical] = ivertexO;
-          ncritical++;
-        }
+    unsigned int ncritical = 0;
+    for (unsigned int ivertexO = 0; ivertexO < nvprev  ; ivertexO++){
+      unsigned int ivertex     = vertices->order(ivertexO);
+      ////////// if (threadIdx.x == 0 && blockIdx.x == 0) printf("Vertex %i Tc %1.10f beta %1.10f threshold %1.10f \n",ivertexO, vertices->aux1(ivertex), *beta, threshold);
+      if (vertices->aux1(ivertex)*(*beta) > threshold){
+        ////////// if (threadIdx.x == 0 && blockIdx.x == 0) printf("I'll split vertex %i\n",ivertexO);
+        //printf("%i sees %i needs to split\n", threadIdx.x, ivertexO);
+        critical_temp[ncritical]  = std::fabs(vertices->aux1(ivertex));
+        critical_index[ncritical] = ivertexO;
+        ncritical++;
+        //printf("%i sees %i splitted\n", threadIdx.x, ivertexO);
       }
-      if (ncritical == 0) return;
-      // Yep, this is a very bogus sorting algorithm, not even quicksort, but the size of critical shouldn't be > 10
+    }
+    __syncthreads();
+    //printf("%i Verifies splitting\n", threadIdx.x);
+    if (ncritical == 0) return;
+    //printf("%i Splitting verified\n", threadIdx.x);
+    __syncthreads();
+    // Yep, this is a very bogus sorting algorithm, not even quicksort, but the size of critical shouldn't be > 10
     if (threadIdx.x == 0 && blockIdx.x == 0){
 
       for (unsigned int sortO = 0; sortO < ncritical ; ++sortO){//This we might be able to parallelize more. TODO
@@ -396,7 +417,7 @@ namespace clusterizerCUDA {
         if ((ivertexO + 1 < nvprev) && (z2 > (0.6 * vertices->z(ivertex) + 0.4 * vertices->z(ivertexnext)))) {
           z2 = 0.6 * vertices->z(ivertex) + 0.4 * vertices->z(ivertexnext);
         }
-        printf("New Z1, Z2, epsilon: %1.10f %1.10f %1.10f\n", z1, z2, epsilon);
+        ////////// printf("New Z1, Z2, epsilon: %1.10f %1.10f %1.10f\n", z1, z2, epsilon);
         if (abs(z2-z1) > epsilon){
           double pk1 = p1 * vertices->rho(ivertex) / (p1 + p2);
           double pk2 = p2 * vertices->rho(ivertex) / (p1 + p2);
@@ -406,14 +427,15 @@ namespace clusterizerCUDA {
           unsigned int nnew = 999999;
           unsigned int icheck = 0;
           while (nnew == 999999){
-            if (not(vertices->isGood(icheck))) nnew = icheck;
+            if (not(vertices->isGood(vertices->order(icheck)))) nnew = icheck;
             icheck++;
           }
+          //nnew = vertices->order(nnew);
           // Insert it into the first available slot           
           vertices->z(nnew)      = z1; 
           vertices->rho(nnew)    = pk1; 
           // And register it as used
-          vertices->isGood(nnew);
+          vertices->isGood(nnew) = true;
           // TODO:: this is likely not needed as far as it is reset anytime we call update
           vertices->sw(nnew)     = 0.;
           vertices->se(nnew)     = 0.;
@@ -428,19 +450,25 @@ namespace clusterizerCUDA {
             if ((tracks->kmax(itrack) >= ivertexO) || (tracks->kmax(itrack) == tracks->kmin(itrack))) tracks->kmax(itrack)++;
           }
           for (unsigned int ivnew = nvprev ; ivnew > 0 ; ivnew--){ // As we add a vertex, we update from the back downwards
-            if (ivnew > ivertexO) vertices->order(ivnew) = vertices->order(ivnew-1);
+            if (ivnew > ivertexO){
+              ////////// printf("I'm changing order %i for %i at %i\n", vertices->order(ivnew), vertices->order(ivnew-1), ivnew);
+              vertices->order(ivnew) = vertices->order(ivnew-1);
+            }
           }
           // And then the new vertex will be at the old split one position
+          ////////// printf("I'm adding %i at %i\n", nnew, ivertexO);
           vertices->order(ivertexO) = nnew;
           vertices->nTrueVertex++; // Add one to the count of real vertex
+          nvprev++; // And to the counter of previous vertices
           // However, the original list of vertices to be split is going to refer to the old vertices_order vector, so we need to add some shenanigans
           for (unsigned int resort = 0; resort < ncritical ; ++resort){
             if (critical_index[resort] > ivertexO) critical_index[resort]++; // critical_index refers to the original vertices->order, so it needs to be updated 
           }
         }
+        ////////// printf("Vertex created\n");
       }
     }
-   __syncthreads();
+    __syncthreads();
   }
 
 
