@@ -132,7 +132,7 @@ __global__ void coolingWhileSplittingKernel(unsigned int ntracks, TrackForPV::Tr
     ////////// if (0 == threadIdx.x && 0 == blockIdx.x) printf("After merge loop nv = %i \n", vertices->nTrueVertex);
     clock_t sstart = clock();
     split(ntracks, tracks, vertices, params, osumtkwt, beta, 1.); // Then split if we need to
-    clock_t stop = clock();
+    clock_t sstop = clock();
     if (threadIdx.x == 0 && 0 == blockIdx.x) printf("Clock for split: %i\n", (int) (sstop-sstart));
     __syncthreads();
     ////////// if (0 == threadIdx.x && 0 == blockIdx.x) printf("After splitting nv = %i \n", vertices->nTrueVertex);
@@ -221,7 +221,8 @@ __global__ void outlierRejectionKernel(unsigned int ntracks, TrackForPV::TrackFo
   // Now we go to the purge temperature, without splitting or merging
   double betapurge = 1./params.Tpurge;
   while ((*beta) < betapurge){
-    (*beta) = std::min((*beta)/params.coolingFactor, betapurge);
+    if (0==threadIdx.x && 0==blockIdx.x) (*beta) = std::min((*beta)/params.coolingFactor, betapurge);
+    __syncthreads();
     thermalize(ntracks, tracks, vertices, params, osumtkwt, beta, params.delta_lowT, rho0);
     __syncthreads();
   }
@@ -239,7 +240,8 @@ __global__ void outlierRejectionKernel(unsigned int ntracks, TrackForPV::TrackFo
   // And cool down more to make the assignment harder
   double betastop = 1./params.Tstop;
   while ((*beta) < betastop){
-    (*beta) = std::min((*beta)/params.coolingFactor, betastop);
+    if (0==threadIdx.x && 0==blockIdx.x) (*beta) = std::min((*beta)/params.coolingFactor, betastop);
+    __syncthreads();
     thermalize(ntracks, tracks, vertices, params, osumtkwt, beta, params.delta_lowT, rho0);
     __syncthreads();
   }

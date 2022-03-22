@@ -507,40 +507,43 @@ namespace clusterizerCUDA {
       vertices->aux2(ivertex) = 0; //pnUnique
       for (unsigned int itrack = 0; itrack < ntracks; itrack++){
         if (not(tracks->isGood(itrack))) continue;
-        double p = vertices->rho(ivertex)*tracks->vert_exp(ivertex)(itrack)*tracks->aux1(itrack);
+        double p = vertices->rho(ivertex)*tracks->vert_exp(itrack)(ivertex)*tracks->aux1(itrack);
         vertices->aux1(ivertex) += p; //psump
         vertices->aux2(ivertex) += (p > ppcut) ? 1 : 0; //pnUique
       }
     }
     __syncthreads();
-    double sumpmin  = ntracks;
-    unsigned int k0 = nvprev;
-    for (unsigned int ivertexO = 0; ivertexO < nvprev ; ivertexO++){
-      unsigned int ivertex = vertices->order(ivertexO);
-      if ((vertices->aux2(ivertex) < nunique_min) && (vertices->aux1(ivertex) < sumpmin)){
-        // Will purge the worst one
-        sumpmin = vertices->aux1(ivertex);
-        k0 = ivertexO;
-      }
-    }
-    if (k0 != nvprev){
-      for (unsigned int ivertexOO = 0; ivertexOO < nvprev - 1; ++ivertexOO){ // TODO:: Any tricks here?
-        if (ivertexOO >= k0){ //As we copy from the next, we go forward in ivertex 
-          vertices->order(ivertexOO) =vertices->order(ivertexOO+1);
+    if (0==threadIdx.x && 0==blockIdx.x){
+      double sumpmin  = ntracks;
+      unsigned int k0 = nvprev;
+      for (unsigned int ivertexO = 0; ivertexO < nvprev ; ivertexO++){
+        unsigned int ivertex = vertices->order(ivertexO);
+        if ((vertices->aux2(ivertex) < nunique_min) && (vertices->aux1(ivertex) < sumpmin)){
+          // Will purge the worst one
+          sumpmin = vertices->aux1(ivertex);
+          k0 = ivertexO;
         }
       }
-      vertices->nTrueVertex = vertices->nTrueVertex-1; // Also update nvertex
-      __syncthreads();
-      for (unsigned int itrack = firstElement; itrack < ntracks ; itrack += gridSize){
+      if (k0 != nvprev){
+        for (unsigned int ivertexOO = 0; ivertexOO < nvprev - 1; ++ivertexOO){ // TODO:: Any tricks here?
+          if (ivertexOO >= k0){ //As we copy from the next, we go forward in ivertex 
+            vertices->order(ivertexOO) =vertices->order(ivertexOO+1);
+          }
+        }
+        vertices->nTrueVertex = vertices->nTrueVertex-1; // Also update nvertex
+        for (unsigned int itrack = firstElement; itrack < ntracks ; itrack += gridSize){
           if (not tracks->isGood(itrack)) continue;
           if (tracks->kmax(itrack) > k0) tracks->kmax(itrack)--;
           if ((tracks->kmin(itrack) > k0) || ((tracks->kmax(itrack) < (tracks->kmin(itrack) + 1)) && (tracks->kmin(itrack) > 0))) tracks->kmin(itrack)--;
+        }
       }
-      __syncthreads();
-      set_vtx_range(ntracks, tracks, vertices, params, osumtkwt, beta);
-      __syncthreads();
     }
     __syncthreads();
+    if (nvprev != vertices->nTrueVertex){
+      set_vtx_range(ntracks, tracks, vertices, params, osumtkwt, beta);
+    }
+    __syncthreads();
+   
   }  
 
   void initializeWrapper(unsigned int ntracks, TrackForPV::TrackForPVSoA* tracks, TrackForPV::VertexForPVSoA* vertices, double* beta, double* osumtkwt, clusterParameters params, cudaStream_t stream);
