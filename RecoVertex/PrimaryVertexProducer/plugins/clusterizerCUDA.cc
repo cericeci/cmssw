@@ -69,21 +69,21 @@ __global__ void getBeta0Kernel(unsigned int ntracks, TrackForPV::TrackForPVSoA* 
         a += tracks->aux2(itrack);
       }
       (*beta) = 2 * a/wnew; // Here it is technically 1/beta0, i.e. Tc, but ok to save on memory allocation
-      ////////// printf("Beta0 before comparing: %1.3f\n", (*beta));
-      ////////// printf("znew, wnew, a: %1.16f, %1.16f, %1.16f \n", znew, wnew, a);
+       printf("Beta0 before comparing: %1.3f\n", (*beta));
+       printf("znew, wnew, a: %1.16f, %1.16f, %1.16f \n", znew, wnew, a);
 
       double betamax_ = 1./params.Tmin; //From the config file, 
-      ////////// printf("Betamax, coolingFactor %1.10f, %1.10f\n", betamax_, params.coolingFactor);
+       printf("Betamax, coolingFactor %1.10f, %1.10f\n", betamax_, params.coolingFactor);
       if ((*beta) > 1./betamax_){
         int coolingsteps = 1 - int(std::log((*beta) * betamax_) / std::log(params.coolingFactor)); // A tricky conversion to round the number
         (*beta) = betamax_ * std::pow(params.coolingFactor, coolingsteps);
-        ////////// printf("Betamax, coolingFactor, coolingsteps %1.10f, %1.10f %i \n", betamax_, params.coolingFactor, coolingsteps);
+         printf("Betamax, coolingFactor, coolingsteps %1.10f, %1.10f %i \n", betamax_, params.coolingFactor, coolingsteps);
       }
       else{
         (*beta) = betamax_ * params.coolingFactor;
       }
       //TODO::Add debugging option
-      ////////// printf("1./Beta0 %1.3f\n", 1./(*beta));
+       printf("1./Beta0 %1.3f\n", 1./(*beta));
       //printf("%1.10f",beta[0]);
     }
     __syncthreads();
@@ -102,49 +102,49 @@ __global__ void thermalizeKernel(unsigned int ntracks, TrackForPV::TrackForPVSoA
 __global__ void coolingWhileSplittingKernel(unsigned int ntracks, TrackForPV::TrackForPVSoA* tracks, TrackForPV::VertexForPVSoA* vertices, clusterParameters params, double* osumtkwt, double* beta){
   double betafreeze = (1./params.Tmin) * sqrt(params.coolingFactor); //Last T to be updated
   // First the T loop
-  ////////// if (0 == threadIdx.x && 0 == blockIdx.x) printf("Start cooling! \n");
+   if (0 == threadIdx.x && 0 == blockIdx.x) printf("Start cooling! \n");
   while ((*beta) < betafreeze) {
     unsigned int nprev = vertices->nTrueVertex;
-    ////////// if (0 == threadIdx.x && 0 == blockIdx.x) printf("New T: %1.5f ; nv = %i \n",1./(*beta), nprev);
-    clock_t mstart = clock();
+     if (0 == threadIdx.x && 0 == blockIdx.x) printf("New T: %1.5f ; nv = %i \n",1./(*beta), nprev);
+    //clock_t mstart = clock();
     merge(ntracks, tracks, vertices, params, osumtkwt, beta);
     __syncthreads();
-    clock_t mstop = clock();
-    if (threadIdx.x == 0 && 0 == blockIdx.x) printf("Clock for merge: %i\n", (int) (mstop-mstart));
-    ////////// if (0 == threadIdx.x && 0 == blockIdx.x) printf("After merging nv = %i \n", vertices->nTrueVertex);
+    //clock_t mstop = clock();
+    //if (threadIdx.x == 0 && 0 == blockIdx.x) printf("Clock for merge: %i\n", (int) (mstop-mstart));
+     if (0 == threadIdx.x && 0 == blockIdx.x) printf("After merging nv = %i \n", vertices->nTrueVertex);
 
     while (nprev !=  vertices->nTrueVertex) { // While merge is true
       nprev = vertices->nTrueVertex;
       __syncthreads();
-      clock_t ustart = clock();
+      //clock_t ustart = clock();
       update(ntracks, tracks, vertices, params, osumtkwt, beta, 0.0, false); //Udpdate them 
-      clock_t ustop = clock();
-      if (threadIdx.x == 0 && 0 == blockIdx.x) printf("Clock for update: %i\n", (int) (ustop-ustart));
+      //clock_t ustop = clock();
+      //if (threadIdx.x == 0 && 0 == blockIdx.x) printf("Clock for update: %i\n", (int) (ustop-ustart));
       __syncthreads();
-      mstart = clock();
+      //mstart = clock();
       merge(ntracks, tracks, vertices, params, osumtkwt, beta);
-      mstop = clock();
-      if (threadIdx.x == 0 && 0 == blockIdx.x) printf("Clock for merge: %i\n", (int) (mstop-mstart));
-      ////////// if (0 == threadIdx.x && 0 == blockIdx.x) printf("After merging nv = %i \n", vertices->nTrueVertex);
+      //mstop = clock();
+      //if (threadIdx.x == 0 && 0 == blockIdx.x) printf("Clock for merge: %i\n", (int) (mstop-mstart));
+       if (0 == threadIdx.x && 0 == blockIdx.x) printf("After merging nv = %i \n", vertices->nTrueVertex);
       //
       __syncthreads();
     }
-    ////////// if (0 == threadIdx.x && 0 == blockIdx.x) printf("After merge loop nv = %i \n", vertices->nTrueVertex);
-    clock_t sstart = clock();
+     if (0 == threadIdx.x && 0 == blockIdx.x) printf("After merge loop nv = %i \n", vertices->nTrueVertex);
+    // clock_t sstart = clock();
     split(ntracks, tracks, vertices, params, osumtkwt, beta, 1.); // Then split if we need to
-    clock_t sstop = clock();
-    if (threadIdx.x == 0 && 0 == blockIdx.x) printf("Clock for split: %i\n", (int) (sstop-sstart));
+    //clock_t sstop = clock();
+    //if (threadIdx.x == 0 && 0 == blockIdx.x) printf("Clock for split: %i\n", (int) (sstop-sstart));
     __syncthreads();
-    ////////// if (0 == threadIdx.x && 0 == blockIdx.x) printf("After splitting nv = %i \n", vertices->nTrueVertex);
+     if (0 == threadIdx.x && 0 == blockIdx.x) printf("After splitting nv = %i \n", vertices->nTrueVertex);
 
     if (0 == threadIdx.x && 0 == blockIdx.x) (*beta) = (*beta) / params.coolingFactor; // Reduce temperature
-    ////////// if (0 == threadIdx.x && 0 == blockIdx.x) printf("New T = %1.5f \n", 1./(*beta));
+    if (0 == threadIdx.x && 0 == blockIdx.x) printf("New T = %1.5f \n", 1./(*beta));
 
     __syncthreads();
-    clock_t tstart = clock();
+    //clock_t tstart = clock();
     thermalize(ntracks, tracks, vertices, params, osumtkwt, beta, params.delta_highT, 0.0); // And recompute everything at the new temperature
-    clock_t tstop = clock();
-    if (threadIdx.x == 0 && 0 == blockIdx.x) printf("Clock for thermalize: %i\n", (int) (tstop-tstart));
+    //clock_t tstop = clock();
+    //if (threadIdx.x == 0 && 0 == blockIdx.x) printf("Clock for thermalize: %i\n", (int) (tstop-tstart));
     __syncthreads();
   }
   // After the T loop, reassign vertices, and update again
