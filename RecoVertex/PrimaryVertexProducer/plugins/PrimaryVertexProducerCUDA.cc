@@ -260,7 +260,9 @@ void PrimaryVertexProducerCUDA::produce(edm::Event& iEvent, const edm::EventSetu
   ////////////////////////////////////////////////////////////////////
   ////////////////////// Track filtering on GPU //////////////////////
   ////////////////////////////////////////////////////////////////////
+  //std::cout << "Begin copying 1" << std::endl;
   cudaCheck(cudaMemcpy(GPUtracksObject, CPUtracksObject, sizeof(TrackForPV::TrackForPVSoA), cudaMemcpyHostToDevice));
+  //std::cout << "Finished copying 1" << std::endl;
   auto osumtkwt      = cms::cuda::make_device_unique<double[]>(1, cudaStreamDefault); //Sum of all track weights, for the clusterizer later
 
   trackFilterCUDA::filterWrapper(ntracks, GPUtracksObject, fParams, osumtkwt.get(), cudaStreamDefault); //TODO:: We can also consider a minidataformat for the beamspot in GPU
@@ -272,23 +274,27 @@ void PrimaryVertexProducerCUDA::produce(edm::Event& iEvent, const edm::EventSetu
   ////////////////////////////////////////////////////////////////////
   
   // First, object creation
+  VertexForPVHeterogeneous CPUvertices(cms::cuda::make_host_unique<TrackForPV::VertexForPVSoA>(cudaStreamDefault));  // By construction we iterate over 8096 tracks, 512 vertices
   VertexForPVHeterogeneous GPUvertices(cms::cuda::make_device_unique<TrackForPV::VertexForPVSoA>(cudaStreamDefault));// By construction we iterate over 512 vertices
+  auto* CPUverticesObject = CPUvertices.get();
   auto* GPUverticesObject = GPUvertices.get();
-  auto beta = cms::cuda::make_device_unique<double[]>(1, cudaStreamDefault);                                         // 1/T, to be kept across iterations
+
+  auto CPUbeta = cms::cuda::make_host_unique<double[]>(1, cudaStreamDefault);                                         // 1/T, to be kept across iterations
+  auto GPUbeta = cms::cuda::make_device_unique<double[]>(1, cudaStreamDefault);                                         // 1/T, to be kept across iterations
   // Add first vertex, init all collections
-  clusterizerCUDA::initializeWrapper(ntracks, GPUtracksObject, GPUverticesObject, beta.get(), osumtkwt.get(), cParams, cudaStreamDefault);
+  clusterizerCUDA::initializeWrapper(ntracks, GPUtracksObject, GPUverticesObject, GPUbeta.get(), osumtkwt.get(), cParams, cudaStreamDefault);
   // Estimate first critical temperature
-  clusterizerCUDA::getBeta0Wrapper(ntracks, GPUtracksObject, GPUverticesObject, beta.get(), osumtkwt.get(), cParams, cudaStreamDefault);
+  clusterizerCUDA::getBeta0Wrapper(ntracks, GPUtracksObject, GPUverticesObject, GPUbeta.get(), osumtkwt.get(), cParams, cudaStreamDefault);
   // First thermalization
-  clusterizerCUDA::thermalizeWrapper(ntracks, GPUtracksObject, GPUverticesObject, beta.get(), osumtkwt.get(), cParams, cudaStreamDefault);
+  clusterizerCUDA::thermalizeWrapper(ntracks, GPUtracksObject, GPUverticesObject, GPUbeta.get(), osumtkwt.get(), cParams, cudaStreamDefault);
   // First T loop, includes splitting and merging
-  clusterizerCUDA::coolingWhileSplittingWrapper(ntracks, GPUtracksObject, GPUverticesObject, beta.get(), osumtkwt.get(), cParams, cudaStreamDefault);
+  clusterizerCUDA::coolingWhileSplittingWrapper(ntracks, GPUtracksObject, GPUverticesObject, GPUbeta.get(), osumtkwt.get(), cParams, cudaStreamDefault);
   // Without varying T, reassign tracks to vertices and possibly merge more
-  clusterizerCUDA::remergeTracksWrapper(ntracks, GPUtracksObject, GPUverticesObject, beta.get(), osumtkwt.get(), cParams, cudaStreamDefault);
+  clusterizerCUDA::remergeTracksWrapper(ntracks, GPUtracksObject, GPUverticesObject, GPUbeta.get(), osumtkwt.get(), cParams, cudaStreamDefault);
   // Without varying T, redo splitting with increasingly relaxed criteria
-  clusterizerCUDA::resplitTracksWrapper(ntracks, GPUtracksObject, GPUverticesObject, beta.get(), osumtkwt.get(), cParams, cudaStreamDefault);
+  clusterizerCUDA::resplitTracksWrapper(ntracks, GPUtracksObject, GPUverticesObject, GPUbeta.get(), osumtkwt.get(), cParams, cudaStreamDefault);
   // Outlier rejection at fixed T, low quality vertex purging and final cooling down to the stopping criteria
-  clusterizerCUDA::outlierRejectionWrapper(ntracks, GPUtracksObject, GPUverticesObject, beta.get(), osumtkwt.get(), cParams, cudaStreamDefault);
+  clusterizerCUDA::outlierRejectionWrapper(ntracks, GPUtracksObject, GPUverticesObject, GPUbeta.get(), osumtkwt.get(), cParams, cudaStreamDefault);
   
   ///// TODO:: update this when we put the fitter into GPU as well ////
   
@@ -298,17 +304,27 @@ void PrimaryVertexProducerCUDA::produce(edm::Event& iEvent, const edm::EventSetu
   //cudaCheck(cudaFree(beta.get()));
   //cudaCheck(cudaFree(osumtkwt.get()));
 
+  //std::cout << "Begin copying 2" << std::endl;
+  cudaCheck(cudaMemcpy(CPUverticesObject, GPUverticesObject, sizeof(TrackForPV::VertexForPVSoA), cudaMemcpyDeviceToHost));
+  cudaCheck(cudaMemcpy(CPUtracksObject, GPUtracksObject, sizeof(TrackForPV::TrackForPVSoA), cudaMemcpyDeviceToHost));
+  cudaCheck(cudaMemcpy(CPUbeta.get(), GPUbeta.get(), sizeof(double), cudaMemcpyDeviceToHost));
+  //std::cout << "Finished copying 2" << std::endl;
+  std::vector<TransientVertex> pv = clusterizerCUDA::vertices(ntracks, CPUtracksObject, CPUverticesObject, cParams, t_tks, CPUbeta.get());
+  // clusterize tracks in Z
+  std::vector<std::vector<reco::TransientTrack> >&& clusters = clusterizerCUDA::clusterize(pv, cParams);
 
   ////////////////////////////////////////////////////////////////////
   ////////////////////// Fitting on GPU //////////////////////////////
   ////////////////////////////////////////////////////////////////////
-  std::vector<reco::TransientTrack> seltks;
-  std::vector<std::vector<reco::TransientTrack> > clusters;
- 
+  //std::vector<reco::TransientTrack> seltks;
+  // std::vector<std::vector<reco::TransientTrack> > clusters;
+  
+  /* 
   if (fVerbose) {
     std::cout << " clustering returned  " << clusters.size() << " clusters  from " << seltks.size()
               << " selected tracks" << std::endl;
   }
+  */
 
   // vertex fits
   for (std::vector<algo>::const_iterator algorithm = algorithms.begin(); algorithm != algorithms.end(); algorithm++) {
@@ -382,11 +398,11 @@ void PrimaryVertexProducerCUDA::produce(edm::Event& iEvent, const edm::EventSetu
     if (clusters.size() > 2 && clusters.size() > 2 * pvs.size())
       edm::LogWarning("PrimaryVertexProducerCUDA")
           << "more than half of candidate vertices lost " << pvs.size() << ' ' << clusters.size();
-
+    /*
     if (pvs.empty() && seltks.size() > 5)
       edm::LogWarning("PrimaryVertexProducerCUDA")
           << "no vertex found with " << seltks.size() << " tracks and " << clusters.size() << " vertex-candidates";
-
+    */
     // sort vertices by pt**2  vertex (aka signal vertex tagging)
     if (pvs.size() > 1) {
       sort(pvs.begin(), pvs.end(), VertexHigherPtSquared());
