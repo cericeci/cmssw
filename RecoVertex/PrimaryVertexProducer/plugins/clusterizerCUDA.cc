@@ -106,34 +106,34 @@ __global__ void coolingWhileSplittingKernel(unsigned int ntracks, TrackForPV::Tr
   while ((*beta) < betafreeze) {
     unsigned int nprev = vertices->nTrueVertex;
     ////////// if (0 == threadIdx.x && 0 == blockIdx.x) printf("New T: %1.5f ; nv = %i \n",1./(*beta), nprev);
-    clock_t mstart = clock();
+    //clock_t mstart = clock();
     merge(ntracks, tracks, vertices, params, osumtkwt, beta);
     __syncthreads();
-    clock_t mstop = clock();
-    if (threadIdx.x == 0 && 0 == blockIdx.x) printf("Clock for merge: %i\n", (int) (mstop-mstart));
+    //clock_t mstop = clock();
+    //if (threadIdx.x == 0 && 0 == blockIdx.x) printf("Clock for merge: %i\n", (int) (mstop-mstart));
     ////////// if (0 == threadIdx.x && 0 == blockIdx.x) printf("After merging nv = %i \n", vertices->nTrueVertex);
 
     while (nprev !=  vertices->nTrueVertex) { // While merge is true
       nprev = vertices->nTrueVertex;
       __syncthreads();
-      clock_t ustart = clock();
+      //clock_t ustart = clock();
       update(ntracks, tracks, vertices, params, osumtkwt, beta, 0.0, false); //Udpdate them 
-      clock_t ustop = clock();
-      if (threadIdx.x == 0 && 0 == blockIdx.x) printf("Clock for update: %i\n", (int) (ustop-ustart));
+      //clock_t ustop = clock();
+      //if (threadIdx.x == 0 && 0 == blockIdx.x) printf("Clock for update: %i\n", (int) (ustop-ustart));
       __syncthreads();
-      mstart = clock();
+      //mstart = clock();
       merge(ntracks, tracks, vertices, params, osumtkwt, beta);
-      mstop = clock();
-      if (threadIdx.x == 0 && 0 == blockIdx.x) printf("Clock for merge: %i\n", (int) (mstop-mstart));
+      //mstop = clock();
+      //if (threadIdx.x == 0 && 0 == blockIdx.x) printf("Clock for merge: %i\n", (int) (mstop-mstart));
       ////////// if (0 == threadIdx.x && 0 == blockIdx.x) printf("After merging nv = %i \n", vertices->nTrueVertex);
       //
       __syncthreads();
     }
     ////////// if (0 == threadIdx.x && 0 == blockIdx.x) printf("After merge loop nv = %i \n", vertices->nTrueVertex);
-    clock_t sstart = clock();
+    //clock_t sstart = clock();
     split(ntracks, tracks, vertices, params, osumtkwt, beta, 1.); // Then split if we need to
-    clock_t sstop = clock();
-    if (threadIdx.x == 0 && 0 == blockIdx.x) printf("Clock for split: %i\n", (int) (sstop-sstart));
+    //clock_t sstop = clock();
+    //if (threadIdx.x == 0 && 0 == blockIdx.x) printf("Clock for split: %i\n", (int) (sstop-sstart));
     __syncthreads();
     ////////// if (0 == threadIdx.x && 0 == blockIdx.x) printf("After splitting nv = %i \n", vertices->nTrueVertex);
 
@@ -141,10 +141,10 @@ __global__ void coolingWhileSplittingKernel(unsigned int ntracks, TrackForPV::Tr
     ////////// if (0 == threadIdx.x && 0 == blockIdx.x) printf("New T = %1.5f \n", 1./(*beta));
 
     __syncthreads();
-    clock_t tstart = clock();
+    //clock_t tstart = clock();
     thermalize(ntracks, tracks, vertices, params, osumtkwt, beta, params.delta_highT, 0.0); // And recompute everything at the new temperature
-    clock_t tstop = clock();
-    if (threadIdx.x == 0 && 0 == blockIdx.x) printf("Clock for thermalize: %i\n", (int) (tstop-tstart));
+    //clock_t tstop = clock();
+    //if (threadIdx.x == 0 && 0 == blockIdx.x) printf("Clock for thermalize: %i\n", (int) (tstop-tstart));
     __syncthreads();
   }
   // After the T loop, reassign vertices, and update again
