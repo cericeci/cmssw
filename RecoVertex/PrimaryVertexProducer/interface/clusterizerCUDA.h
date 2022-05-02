@@ -39,30 +39,6 @@ namespace clusterizerCUDA {
     double Z_init = rho0 * exp(-(*beta) * params.dzCutOff * params.dzCutOff); // TODO::99% of the time rho0 is going to be 0, so maybe an if here can save some time. Exponentials are not cheap
     // printf("Temps set\n");
 
-    //D if (0==threadIdx.x && 0 == blockIdx.x) printf("Update running, nt=%i, nv=%i, Zinit=%1.6f, rho0=%1.6f, updateTc=%i\n", ntracks, vertices->nTrueVertex, Z_init, rho0, updateTc);
-    // Initiliaze stuff to 0
-    for (unsigned int itrack = firstElement; itrack < ntracks ; itrack += gridSize){
-      // printf("iTrack: %i:\n", itrack);
-
-      if (not(tracks->isGood(itrack))) continue;
-      //for (unsigned int ivertexO = 0 ; ivertexO < vertices->nTrueVertex ; ++ivertexO){ //Only init over really existing ones
-      for (unsigned int ivertexO = tracks->kmin(itrack) ; ivertexO < tracks->kmax(itrack) ; ++ivertexO){ // ivertexO loops over ordered vertex
-        unsigned int ivertex = vertices->order(ivertexO); // ivertex translates from ordered vertex to real vertex positions
-        // printf("ivertex %i, ivertexo %i \n", ivertex, ivertexO);
-        tracks->vert_sw(itrack)(ivertex) = 0.;
-        // printf("--sw \n");
-        tracks->vert_se(itrack)(ivertex) = 0.;
-        // printf("--se \n");
-        tracks->vert_swz(itrack)(ivertex) = 0.;
-        // printf("--swz \n");
-        if (updateTc) tracks->vert_swE(itrack)(ivertex) = 0.;
-        // printf("--swE \n");
-        tracks->vert_exp(itrack)(ivertex) = 0.;
-        // printf("--exp \n");
-        tracks->vert_exparg(itrack)(ivertex) = 0.;
-        // printf("--exparg \n");
-      }
-    }
     //D if (0==threadIdx.x && 0==blockIdx.x) printf("Params for first vertex, before update, se=%1.10f, sw=%1.10f, swz=%1.10f, swE=%1.10f, z=%1.10f, rho=%1.10f\n", vertices->se(0), vertices->sw(0), vertices->swz(0), vertices->swE(0), vertices->z(0), vertices->rho(0));
     // printf("Everything at 0\n");
     __syncthreads();
@@ -125,17 +101,19 @@ namespace clusterizerCUDA {
     }
     __syncthreads(); //Just to be extremely careful
     
-      for (unsigned int itrack = firstElement ; itrack < ntracks ; itrack+=gridSize){ //skip 0, as that is already in place
-        if (not(tracks->isGood(itrack))) continue;
+    for (unsigned int itrack = firstElement ; itrack < ntracks ; itrack+=gridSize){ //skip 0, as that is already in place
+      if (not(tracks->isGood(itrack)) or (tracks->sum_Z(itrack)==0) ) continue;
+      if (tracks->sum_Z(itrack) > 0){
         for (unsigned int ivertexO = tracks->kmin(itrack); ivertexO < tracks->kmax(itrack); ivertexO++){
           unsigned int ivertex    = vertices->order(ivertexO); // ivertex translates from ordered vertex to real vertex positions
-        atomicAdd(&vertices->se(ivertex), tracks->vert_se(itrack)(ivertex));
-        atomicAdd(&vertices->sw(ivertex) , tracks->vert_sw(itrack)(ivertex));
-        atomicAdd(&vertices->swz(ivertex) , tracks->vert_swz(itrack)(ivertex));
-        if (updateTc) atomicAdd(&vertices->swE(ivertex) , tracks->vert_swE(itrack)(ivertex));
+          atomicAdd(&vertices->se(ivertex), tracks->vert_se(itrack)(ivertex));
+          atomicAdd(&vertices->sw(ivertex) , tracks->vert_sw(itrack)(ivertex));
+          atomicAdd(&vertices->swz(ivertex) , tracks->vert_swz(itrack)(ivertex));
+          if (updateTc) atomicAdd(&vertices->swE(ivertex) , tracks->vert_swE(itrack)(ivertex));
+        }
       }
     }
-      __syncthreads();
+    __syncthreads();
     for (unsigned int ivertexO = firstElement; ivertexO < vertices->nTrueVertex; ivertexO+=gridSize){
       unsigned int ivertex    = vertices->order(ivertexO); // ivertex translates from ordered vertex to real vertex positions
       if (vertices->sw(ivertex) > 0){ //The vertex position is updated
