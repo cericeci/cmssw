@@ -18,8 +18,12 @@ namespace trackFilterCUDA {
     int mintrackerHits;
     double vertexSize;
     double d0CutOff;
+    double vertexSizeTime;
+    double t0Max;
   };
+
   void filterWrapper(unsigned int ntracks, TrackForPV::TrackForPVSoA* tracks, filterParameters params, double* osumtkwt, cudaStream_t stream);
+  void filterWrapper4D(unsigned int ntracks, TrackForPV::TrackForPVSoA* tracks, filterParameters params, double* osumtkwt, cudaStream_t stream);
 }
 
 #endif

@@ -133,8 +133,14 @@ PrimaryVertexProducerCUDA::PrimaryVertexProducerCUDA(const edm::ParameterSet& co
      .mintrackerHits=conf.getParameter<edm::ParameterSet>("TkFilterParameters").getParameter<int>("minSiliconLayersWithHits"),
      // TODO:: Move this to the proper TkFilterParameters, as we do it in the filtering now
      .vertexSize=conf.getParameter<edm::ParameterSet>("TkClusParameters").getParameter<edm::ParameterSet>("TkDAClusParameters").getParameter<double>("vertexSize"),
-     .d0CutOff  =conf.getParameter<edm::ParameterSet>("TkClusParameters").getParameter<edm::ParameterSet>("TkDAClusParameters").getParameter<double>("d0CutOff")
+     .d0CutOff  =conf.getParameter<edm::ParameterSet>("TkClusParameters").getParameter<edm::ParameterSet>("TkDAClusParameters").getParameter<double>("d0CutOff"),
+     .vertexSizeTime = 0.,
+     .t0Max = 0.
     };
+    if (f4D){
+      fParams.vertexSizeTime = conf.getParameter<edm::ParameterSet>("TkClusParameters").getParameter<edm::ParameterSet>("TkDAClusParameters").getParameter<double>("vertexSizeTime");
+      fParams.t0Max          = conf.getParameter<edm::ParameterSet>("TkClusParameters").getParameter<edm::ParameterSet>("TkDAClusParameters").getParameter<double>("t0Max");
+    }
     cParams = {
       .Tmin   = conf.getParameter<edm::ParameterSet>("TkClusParameters").getParameter<edm::ParameterSet>("TkDAClusParameters").getParameter<double>("Tmin"),
       .Tpurge = conf.getParameter<edm::ParameterSet>("TkClusParameters").getParameter<edm::ParameterSet>("TkDAClusParameters").getParameter<double>("Tpurge"),
@@ -253,6 +259,10 @@ void PrimaryVertexProducerCUDA::produce(edm::Event& iEvent, const edm::EventSetu
     CPUtracksObject->chi2(idx)         = t_tks.at(idx).normalizedChi2();
     CPUtracksObject->nPixelHits(idx)   = t_tks.at(idx).hitPattern().pixelLayersWithMeasurement();
     CPUtracksObject->nTrackerHits(idx) = t_tks.at(idx).hitPattern().trackerLayersWithMeasurement();
+    if (f4D){
+      CPUtracksObject->t(idx)          = t_tks.at(idx).timeExt();
+      CPUtracksObject->dt2(idx)        = t_tks.at(idx).dtErrorExt()*t_tks.at(idx).dtErrorExt();
+    }
   }
   
  
@@ -265,8 +275,13 @@ void PrimaryVertexProducerCUDA::produce(edm::Event& iEvent, const edm::EventSetu
   //std::cout << "Finished copying 1" << std::endl;
   auto osumtkwt      = cms::cuda::make_device_unique<double[]>(1, cudaStreamDefault); //Sum of all track weights, for the clusterizer later
 
-  trackFilterCUDA::filterWrapper(ntracks, GPUtracksObject, fParams, osumtkwt.get(), cudaStreamDefault); //TODO:: We can also consider a minidataformat for the beamspot in GPU
-  
+  if (f4D){
+    trackFilterCUDA::filterWrapper4D(ntracks, GPUtracksObject, fParams, osumtkwt.get(), cudaStreamDefault); //TODO:: We can also consider a minidataformat for the beamspot in GPU
+  }
+
+  else{
+    trackFilterCUDA::filterWrapper(ntracks, GPUtracksObject, fParams, osumtkwt.get(), cudaStreamDefault); //TODO:: We can also consider a minidataformat for the beamspot in GPU
+  }
 
 
   ////////////////////////////////////////////////////////////////////

@@ -24,6 +24,9 @@ public:
   eigenSoA::ScalarSoA<double, S> dxy2;
   eigenSoA::ScalarSoA<double, S> dz2;
   eigenSoA::ScalarSoA<double, S> z;
+  eigenSoA::ScalarSoA<double, S> dt2;
+  eigenSoA::ScalarSoA<double, S> t;
+
   eigenSoA::ScalarSoA<double, S> weight;
   eigenSoA::ScalarSoA<double, S> sum_Z;
   eigenSoA::ScalarSoA<unsigned int, S> kmin;
