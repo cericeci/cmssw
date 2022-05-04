@@ -42,7 +42,6 @@ process.maxEvents = cms.untracked.PSet(
 
 process.source = cms.Source("EmptySource",
     firstEvent = cms.untracked.uint32(1),
-    firstRun   = cms.untracked.uint32(options.firstRun)
 )
 
 
