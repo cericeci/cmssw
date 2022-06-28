@@ -1,0 +1,12 @@
+<use name="FWCore/Framework"/>
+<use name="clhep"/>
+<use name="cuda"/>
+<use name="FWCore/ParameterSet"/>
+<use name="FWCore/PluginManager"/>
+<use name="FWCore/Utilities"/>
+<use name="HeterogeneousCore/CUDAUtilities"/>
+<use name="HeterogeneousCore/CUDACore"/>
+<library file="*.cc *.cu" name="testRadixPlugins">
+  <flags EDM_PLUGIN="1"/>
+  <flags CXXFLAGS="-g"/>
+</library>
