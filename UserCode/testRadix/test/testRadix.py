@@ -3,22 +3,20 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process("GEN")
 
 process.options = cms.untracked.PSet(
-  numberOfThreads = cms.untracked.uint32( 8 ),
-  numberOfStreams = cms.untracked.uint32( 0 ),
   wantSummary = cms.untracked.bool( True )
 )
 
 process.source = cms.Source("EmptySource")
 
-process.generateCylindricalVectors = cms.EDProducer('testRadix',
+process.testRadix = cms.EDProducer('testRadix',
 )
 
-process.path = cms.Path(process.generateCylindricalVectors)
+process.path = cms.Path(process.testRadix)
 
 process.out = cms.OutputModule("PoolOutputModule",
   fileName = cms.untracked.string("testRadix.root"),
   outputCommands = cms.untracked.vstring(
-    'keep *')
+    'drop *')
 )
 
 process.endp = cms.EndPath(process.out)
