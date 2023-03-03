@@ -1,0 +1,6 @@
+<lcgdict>
+  <class name="portablevertex::VertexSoA"/>
+  <class name="portablevertex::VertexSoA::View"/>
+  <class name="portablevertex::TrackSoA"/>
+  <class name="portablevertex::TrackSoA::View"/>
+</lcgdict>
