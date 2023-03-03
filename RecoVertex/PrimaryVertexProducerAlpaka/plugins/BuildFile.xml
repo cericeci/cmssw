@@ -1,0 +1,30 @@
+<!-- host-only plugins -->
+<library file="*.cc" name="RecoVertexPrimaryVertexProducerAlpakaplugins">
+  <use name="alpaka"/>
+  <use name="fmt"/>
+  <use name="DataFormats/PortableVertex"/>
+  <use name="FWCore/Framework"/>
+  <use name="FWCore/MessageLogger"/>
+  <use name="FWCore/ParameterSet"/>
+  <use name="FWCore/Utilities"/>
+  <use name="RecoVertex/PrimaryVertexProducerAlpaka"/>
+  <flags EDM_PLUGIN="1"/>
+</library>
+
+<!-- alpaka-based portable plugins -->
+<library file="alpaka/*.cc" name="RecoVertexPrimaryVertexProducerAlpakapluginsportable">
+  <use name="alpaka"/>
+  <!--
+  The dependency on "DataFormats/PortableVertex" automatically expands to include
+  the host-only library (if it exists) and the corresponding Alpaka libraries (if they exist)
+  -->
+  <use name="DataFormats/PortableVertex"/>
+  <use name="FWCore/Framework"/>
+  <use name="FWCore/ParameterSet"/>
+  <use name="FWCore/Utilities"/>
+  <use name="HeterogeneousCore/AlpakaCore"/>
+  <use name="HeterogeneousCore/AlpakaInterface"/>
+  <use name="RecoVertex/PrimaryVertexProducerAlpaka"/>
+  <flags ALPAKA_BACKENDS="1"/>
+  <flags EDM_PLUGIN="1"/>
+</library>
