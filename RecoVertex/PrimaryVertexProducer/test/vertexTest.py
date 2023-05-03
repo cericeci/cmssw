@@ -1,5 +1,5 @@
 import FWCore.ParameterSet.Config as cms
-from RecoVertex.PrimaryVertexProducer.OfflinePrimaryVertices_cfi import offlinePrimaryVertices, offlinePrimaryVerticesCUDA, offlinePrimaryVerticesDumbFitter
+from RecoVertex.PrimaryVertexProducer.OfflinePrimaryVertices_cfi import offlinePrimaryVertices, offlinePrimaryVerticesCUDA, offlinePrimaryVerticesCUDA_CPUFitter,  offlinePrimaryVerticesDumbFitter
 #from RecoVertex.PrimaryVertexProducer.OfflinePrimaryVerticesCUDA_cfi import offlinePrimaryVertices as offlinePrimaryVerticesCUDA
 #from RecoVertex.PrimaryVertexProducer.OfflinePrimaryVerticesCUDA_cfi import offlinePrimaryVertices as offlinePrimaryVerticesDumpFitter
 import FWCore.ParameterSet.VarParsing as VarParsing
@@ -100,7 +100,8 @@ fileNames = cms.untracked.vstring(
 #'/store/relval/CMSSW_12_4_0_pre3/RelValTTbar_14TeV/GEN-SIM-RECO/PU_123X_mcRun4_realistic_v11_2026D88PU200-v1/2580000/f6b68ca4-5b0e-42bb-b1d0-f94480067693.root',
 #'/store/relval/CMSSW_12_4_0_pre3/RelValTTbar_14TeV/GEN-SIM-RECO/PU_123X_mcRun4_realistic_v11_2026D88PU200-v1/2580000/876a46e3-477e-4c53-8a4a-c16e7c8dee0b.root'
 #'file:aca7b050-5990-4576-a9ee-f41ac82e5b86.root'
-'file:/eos/user/j/jshteren/PV/7781d089-b51a-495a-b1ba-384c15e90749.root'
+#'file:/eos/user/j/jshteren/PV/7781d089-b51a-495a-b1ba-384c15e90749.root'
+'file:/eos/user/c/cericeci/PV/QCD_5_update/reco_1002.root'
 ),
 skipEvents=cms.untracked.uint32(0),
 inputCommands = cms.untracked.vstring(
@@ -141,7 +142,7 @@ if options.gpu:
     #process.vertex = offlinePrimaryVerticesDumbFitter.clone()
     process.vertex = offlinePrimaryVerticesCUDA.clone()
 else:
-    process.vertex = offlinePrimaryVertices.clone()
+    process.vertex = offlinePrimaryVerticesCUDA_CPUFitter.clone()
 
 ##############################CHANGED
 process.vertex.vertexCollections = cms.VPSet(
@@ -202,7 +203,7 @@ process.DQMoutput_step = cms.EndPath(process.DQMoutput)
 process.vertexing_step = cms.Path(process.vertex)
 process.output_step = cms.EndPath(process.output)
 
-process.schedule = cms.Schedule(process.vertexing_step)
+process.schedule = cms.Schedule(process.vertexing_step,process.prevalidation_step,process.dqmoffline_step,process.DQMoutput_step,process.output_step)
 
 if options.timing:
 
@@ -211,7 +212,7 @@ if options.timing:
     process.schedule.append(process.consume_step)
 
 else:
-    process.schedule = cms.Schedule(process.vertexing_step,process.prevalidation_step,process.dqmoffline_step,process.DQMoutput_step,process.output_step)
+    process.schedule = cms.Schedule(process.vertexing_step)
 
 if options.both:
 
