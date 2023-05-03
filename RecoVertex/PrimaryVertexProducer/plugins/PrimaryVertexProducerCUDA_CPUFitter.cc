@@ -1,4 +1,4 @@
-#include "RecoVertex/PrimaryVertexProducer/interface/PrimaryVertexProducerCUDA.h"
+#include "RecoVertex/PrimaryVertexProducer/interface/PrimaryVertexProducerCUDA_CPUFitter.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "DataFormats/TrackReco/interface/TrackFwd.h"
 #include "DataFormats/Common/interface/Handle.h"
@@ -21,7 +21,7 @@
 
 #include "HeterogeneousCore/CUDAUtilities/interface/cudaCheck.h"
 #include <unistd.h> //del if weird
-PrimaryVertexProducerCUDA::PrimaryVertexProducerCUDA(const edm::ParameterSet& conf)
+PrimaryVertexProducerCUDA_CPUFitter::PrimaryVertexProducerCUDA_CPUFitter(const edm::ParameterSet& conf)
     : theTTBToken(esConsumes(edm::ESInputTag("", "TransientTrackBuilder"))), theConfig(conf) {
   fVerbose = conf.getUntrackedParameter<bool>("verbose", false);
 
@@ -50,7 +50,7 @@ PrimaryVertexProducerCUDA::PrimaryVertexProducerCUDA(const edm::ParameterSet& co
     f4D = true;
   }
   else {
-    throw VertexException("PrimaryVertexProducerCUDA: unknown clustering algorithm: " + clusteringAlgorithm);
+    throw VertexException("PrimaryVertexProducerCUDA_CPUFitter: unknown clustering algorithm: " + clusteringAlgorithm);
   }
 
   if (f4D) {
@@ -77,7 +77,7 @@ PrimaryVertexProducerCUDA::PrimaryVertexProducerCUDA(const edm::ParameterSet& co
         //std::cout << "got here!";
         weightFit = true;
       } else {
-        throw VertexException("PrimaryVertexProducerCUDA: unknown algorithm: " + fitterAlgorithm);
+        throw VertexException("PrimaryVertexProducerCUDA_CPUFitter: unknown algorithm: " + fitterAlgorithm);
       }
       algorithm.label = algoconf->getParameter<std::string>("label");
       algorithm.minNdof = algoconf->getParameter<double>("minNdof");
@@ -99,7 +99,7 @@ PrimaryVertexProducerCUDA::PrimaryVertexProducerCUDA(const edm::ParameterSet& co
     } else if (fitterAlgorithm == "AdaptiveVertexFitter") {
       algorithm.fitter = new AdaptiveVertexFitter();
     } else {
-      throw VertexException("PrimaryVertexProducerCUDAAlgorithm: unknown algorithm: " + fitterAlgorithm);
+      throw VertexException("PrimaryVertexProducerCUDA_CPUFitterAlgorithm: unknown algorithm: " + fitterAlgorithm);
     }
     algorithm.label = "";
     algorithm.minNdof = conf.getParameter<double>("minNdof");
@@ -117,10 +117,10 @@ PrimaryVertexProducerCUDA::PrimaryVertexProducerCUDA(const edm::ParameterSet& co
   fRecoveryIteration = conf.getParameter<bool>("isRecoveryIteration");
   if (fRecoveryIteration) {
     if (algorithms.empty()) {
-      throw VertexException("PrimaryVertexProducerCUDA: No algorithm specified. ");
+      throw VertexException("PrimaryVertexProducerCUDA_CPUFitter: No algorithm specified. ");
     } else if (algorithms.size() > 1) {
       throw VertexException(
-          "PrimaryVertexProducerCUDA: Running in Recovery mode and more than one algorithm specified.  Please "
+          "PrimaryVertexProducerCUDA_CPUFitter: Running in Recovery mode and more than one algorithm specified.  Please "
           "only one algorithm.");
     }
     recoveryVtxToken = consumes<reco::VertexCollection>(conf.getParameter<edm::InputTag>("recoveryVtxCollection"));
@@ -159,7 +159,7 @@ PrimaryVertexProducerCUDA::PrimaryVertexProducerCUDA(const edm::ParameterSet& co
   }
 }
 
-PrimaryVertexProducerCUDA::~PrimaryVertexProducerCUDA() {
+PrimaryVertexProducerCUDA_CPUFitter::~PrimaryVertexProducerCUDA_CPUFitter() {
   if (theTrackClusterizer)
     delete theTrackClusterizer;
   for (std::vector<algo>::const_iterator algorithm = algorithms.begin(); algorithm != algorithms.end(); algorithm++) {
@@ -170,8 +170,8 @@ PrimaryVertexProducerCUDA::~PrimaryVertexProducerCUDA() {
   }
 }
 
-void PrimaryVertexProducerCUDA::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
-  std::cout << "This is PrimaryVertexProducerCUDA" << std::endl;
+void PrimaryVertexProducerCUDA_CPUFitter::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
+  std::cout << "This is PrimaryVertexProducerCUDA_CPUFitter" << std::endl;
   // get the BeamSpot, it will always be needed, even when not used as a constraint
   // if (onGPU_) std::cout << "I'm producing this on CUDA!!" << std::endl;
   reco::BeamSpot beamSpot;
@@ -183,13 +183,13 @@ void PrimaryVertexProducerCUDA::produce(edm::Event& iEvent, const edm::EventSetu
     edm::LogError("UnusableBeamSpot") << "No beam spot available from EventSetup";
   }
 
-  /*bool validBS = true;
+  bool validBS = true;
   VertexState beamVertexState(beamSpot);
   if ((beamVertexState.error().cxx() <= 0.) || (beamVertexState.error().cyy() <= 0.) ||
       (beamVertexState.error().czz() <= 0.)) {
     validBS = false;
     edm::LogError("UnusableBeamSpot") << "Beamspot with invalid errors " << beamVertexState.error().matrix();
-  }*/
+  }
 
   //if this is a recovery iteration, check if we already have a valid PV
   if (fRecoveryIteration) {
@@ -226,7 +226,7 @@ void PrimaryVertexProducerCUDA::produce(edm::Event& iEvent, const edm::EventSetu
     t_tks = (*theB).build(tks, beamSpot);
   }
   if (fVerbose) {
-    std::cout << "RecoVertex/PrimaryVertexProducerCUDA"
+    std::cout << "RecoVertex/PrimaryVertexProducerCUDA_CPUFitter"
               << "Found: " << t_tks.size() << " reconstructed tracks"
               << "\n";
   }
@@ -408,182 +408,24 @@ void PrimaryVertexProducerCUDA::produce(edm::Event& iEvent, const edm::EventSetu
 
 
   ////////////////////////////////////////////////////////////////////
-  ////////////////////// Fitting on GPU //////////////////////////////
+  ////////////////////// Fitting on CPU //////////////////////////////
   ////////////////////////////////////////////////////////////////////
 
-  //JS_EDIT: fitting moved here before copies back to the cpu
-  clusterizerCUDA::verticesAndClusterize(ntracks, GPUtracksObject, GPUverticesObject, cParams, cudaStreamDefault);
-
-
-  //change to just first algo with beamspot constraint
-  //for (std::vector<algo>::const_iterator algorithm = algorithms.begin(); algorithm != algorithms.end(); algorithm++) {
-  std::vector<algo>::const_iterator algorithm = algorithms.begin();
-    auto result = std::make_unique<reco::VertexCollection>();
-    reco::VertexCollection& vColl = (*result);
-    std::vector<TransientVertex> pvs;
-    //outsource move algo to fitterCUDA::algo, less data movement
-    fitterCUDA::algo algorithm_for_fitter;
-    algorithm_for_fitter.fitter = (*algorithm).fitter;
-    algorithm_for_fitter.vertexSelector = (*algorithm).vertexSelector;
-    algorithm_for_fitter.label = (*algorithm).label;
-    algorithm_for_fitter.useBeamConstraint = (*algorithm).useBeamConstraint;
-    algorithm_for_fitter.minNdof = (*algorithm).minNdof;
-
-    fitterCUDA::wrapper(ntracks, GPUtracksObject, GPUverticesObject, algorithm_for_fitter);
-
-    //copy over back to CPU, keep conditionals below the same
-    //conversion happens here//
-
-    //POST_CONDITIONS
-
-    //if (fVerbose) std::cout << "PrimaryVertexProducerCUDAAlgorithm::vertices  candidates =" << pvs.size() << std::endl;
-    //if (clusters.size() > 2 && clusters.size() > 2 * GPUverticesObject->nTrueVertex(0))
-    //  edm::LogWarning("PrimaryVertexProducerCUDA")
-    //      << "more than half of candidate vertices lost " << GPUverticesObject->nTrueVertex(0) << ' ' << clusters.size();
-
-    //should already be sorted
-    //if (GPUverticesObject->nTrueVertex(0) > 1) sort(GPUverticesObject->order(0), GPUverticesObject->order(GPUverticesObject->nTrueVertex(0)-1), VertexHigherPtSquared());
-    //   for (unsigned int i = 0; i < GPUverticesObject->nTrueVertex(0); i++) {
-    //   auto iv = GPUverticesObject->order(i);
-    //   for (TrackForPV::VertexForPvSoA::const_iterator iv = GPUverticesObject->order(0); iv != GPUverticesObject->order(GPUverticesObject->nTrueVertex(0)-1); iv++) {
-    //  vColl.push_back(*iv);
-    //  }
-    // We have to copy the vertex back to CPU first
-
-    //syncing first because memcpy is a sync op
-    cudaCheck(cudaDeviceSynchronize());
-    cudaCheck(cudaMemcpy(CPUverticesObject, GPUverticesObject, sizeof(TrackForPV::VertexForPVSoA), cudaMemcpyDeviceToHost));
-
-    // Then we iterate over them and apply the conversion
-    for (unsigned int k = 0; k < CPUverticesObject->nTrueVertex(0) ; k++){
-      unsigned int ivertex = CPUverticesObject->order(k);
-      if (CPUverticesObject->isGood(ivertex)){
-	// I.e. the vertex is correct, so we fill a new one, first we get the error matrix
-        AlgebraicSymMatrix33 newErr;
-        newErr(0, 0) = CPUverticesObject->errx(ivertex);
-        newErr(1, 1) = CPUverticesObject->erry(ivertex);
-        newErr(2, 2) = CPUverticesObject->errz(ivertex);
-        // Then we build the new vertex
-	reco::Vertex newVertex = reco::Vertex(reco::Vertex::Point(CPUverticesObject->x(ivertex), CPUverticesObject->y(ivertex), CPUverticesObject->z(ivertex)),
-                GlobalError(newErr).matrix4D(),
-                CPUverticesObject->t(ivertex), // Without time, for the moment
-                CPUverticesObject->chi2(ivertex),
-                CPUverticesObject->ndof(ivertex),
-                CPUverticesObject->ntracks(ivertex));
-        // And we fill up the track information
-	for (unsigned int itrack = 0; itrack < CPUverticesObject->ntracks(ivertex) ; itrack++){
-          newVertex.add(t_tks.at(CPUverticesObject->track_id(ivertex)(itrack)).trackBaseRef(), CPUverticesObject->track_weight(ivertex)(itrack)); // They are never refitted tracks so this is ok
-        }
-	// We push the new vertex into the collection then
-	vColl.push_back(newVertex);
-      }
-    }
-
-    // This we can keep as is, if we found no vertex, fill a dummy one
-    if (vColl.empty()) {
-      GlobalError bse(beamSpot.rotatedCovariance3D());
-      if ((bse.cxx() <= 0.) || (bse.cyy() <= 0.) || (bse.czz() <= 0.)) {
-        AlgebraicSymMatrix33 we;
-        we(0, 0) = 10000;
-        we(1, 1) = 10000;
-        we(2, 2) = 10000;
-        vColl.push_back(reco::Vertex(beamSpot.position(), we, 0., 0., 0));
-        if (fVerbose) {
-          std::cout << "RecoVertex/PrimaryVertexProducerCUDA: "
-                    << "Beamspot with invalid errors " << bse.matrix() << std::endl;
-          std::cout << "Will put Vertex derived from dummy-fake BeamSpot into Event.\n";
-        }
-      } else {
-        vColl.push_back(reco::Vertex(beamSpot.position(), beamSpot.rotatedCovariance3D(), 0., 0., 0));
-        if (fVerbose) {
-          std::cout << "RecoVertex/PrimaryVertexProducerCUDA: "
-                    << " will put Vertex derived from BeamSpot into Event.\n";
-        }
-      }
-    }
-
-    if (fVerbose) {
-      int ivtx = 0;
-      for (reco::VertexCollection::const_iterator v = vColl.begin(); v != vColl.end(); ++v) {
-        std::cout << "recvtx " << ivtx++ << "#trk " << std::setw(3) << v->tracksSize() << " chi2 " << std::setw(4)
-                  << v->chi2() << " ndof " << std::setw(3) << v->ndof() << " x " << std::setw(6) << v->position().x()
-                  << " dx " << std::setw(6) << v->xError() << " y " << std::setw(6) << v->position().y() << " dy "
-                  << std::setw(6) << v->yError() << " z " << std::setw(6) << v->position().z() << " dz " << std::setw(6)
-                  << v->zError();
-        if (f4D) {
-          std::cout << " t " << std::setw(6) << v->t() << " dt " << std::setw(6) << v->tError();
-        }
-        std::cout << std::endl;
-      }
-    }
-    iEvent.put(std::move(result), algorithm->label);
-  //}
-
-
-
-
-
-  ///// TODO:: update this when we put the fitter into GPU as well ////
-  //cudaCheck(cudaFree(GPUverticesObject));
-  //cudaCheck(cudaFree(CPUtracksObject));
-  //cudaCheck(cudaFree(GPUtracksObject));
-  //cudaCheck(cudaFree(beta.get()));
-  //cudaCheck(cudaFree(osumtkwt.get()));
-
-//  std::cout << "Begin copying back" << std::endl;
-//  std::cout << "size of vertices: " << sizeof(TrackForPV::VertexForPVSoA) << std::endl;
   cudaCheck(cudaMemcpy(CPUverticesObject, GPUverticesObject, sizeof(TrackForPV::VertexForPVSoA), cudaMemcpyDeviceToHost));
-//  std::cout << "End copying back" << std::endl;
-//  std::cout << "Begin copying back 2" << std::endl;
   cudaCheck(cudaMemcpy(CPUtracksObject, GPUtracksObject, sizeof(TrackForPV::TrackForPVSoA), cudaMemcpyDeviceToHost));
-//  std::cout << "End copying back 2" << std::endl;
-  //unsigned int gridSize  = 32;
-  //clusterizerCUDA::dumpTV(CPUtracksObject, CPUverticesObject, gridSize);
-
   cudaCheck(cudaMemcpy(CPUbeta.get(), GPUbeta.get(), sizeof(double), cudaMemcpyDeviceToHost));
-//  cudaCheck(cudaFree(GPUverticesObject));
- // cudaCheck(cudaFree(GPUtracksObject));
-  //cudaCheck(cudaFree(d_obj_ptr));  
-//  //std::cout << "Finished copying 2" << std::endl;
-
-
-  //JS_EDIT: COMMENT BC CHANGED
-//  std::vector<TransientVertex> pv = clusterizerCUDA::vertices(ntracks, CPUtracksObject, CPUverticesObject, cParams, t_tks, CPUbeta.get());
-  // clusterize tracks in Z
-  //std::vector<std::vector<reco::TransientTrack> >&& clusters = clusterizerCUDA::clusterize(pv, cParams);
-
-
- // cudaCheck(cudaFree(CPUverticesObject));
- // cudaCheck(cudaFree(CPUtracksObject));
+  std::vector<TransientVertex> pv = clusterizerCUDA::vertices(ntracks, CPUtracksObject, CPUverticesObject, cParams, t_tks, CPUbeta.get());
+  std::vector<std::vector<reco::TransientTrack> >&& clusters = clusterizerCUDA::clusterize(pv, cParams);
   cudaCheck(cudaDeviceSynchronize());
 
 
-
-  //std::vector<reco::TransientTrack> seltks;
-  // std::vector<std::vector<reco::TransientTrack> > clusters;
-  
-  // std::vector<std::vector<reco::TransientTrack> > clusters;
-
   // vertex fits
-  /*
   for (std::vector<algo>::const_iterator algorithm = algorithms.begin(); algorithm != algorithms.end(); algorithm++) {
     auto result = std::make_unique<reco::VertexCollection>();
     reco::VertexCollection& vColl = (*result);
 
     std::vector<TransientVertex> pvs;
-
-    //JS_EDIT: outsource cluster loop to CUDA file.
-    fitterCUDA::algo algorithm_for_fitter;
-    algorithm_for_fitter.fitter = (*algorithm).fitter;
-    algorithm_for_fitter.vertexSelector = (*algorithm).vertexSelector;
-    algorithm_for_fitter.label = (*algorithm).label;
-    algorithm_for_fitter.useBeamConstraint = (*algorithm).useBeamConstraint;
-    algorithm_for_fitter.minNdof = (*algorithm).minNdof;
-
-    pvs = fitterCUDA::wrapper(algorithm_for_fitter, std::move(clusters), beamSpot, beamVertexState, f4D, validBS, weightFit, fVerbose);
-  */
-    /*
-    for (std::vector<std::vector<reco::TransientTrack> >::const_iterator iclus = clusters.begin();
+    for (std::vector<std::vector<reco::TransientTrack>>::const_iterator iclus = clusters.begin();
          iclus != clusters.end();
          iclus++) {
       double sumwt = 0.;
@@ -608,40 +450,44 @@ void PrimaryVertexProducerCUDA::produce(edm::Event& iEvent, const edm::EventSetu
       }
 
       TransientVertex v;
-      if (!weightFit) {
+      if (algorithm->fitter) {
         if (algorithm->useBeamConstraint && validBS && (iclus->size() > 1)) {
           v = algorithm->fitter->vertex(*iclus, beamSpot);
         } else if (!(algorithm->useBeamConstraint) && (iclus->size() > 1)) {
           v = algorithm->fitter->vertex(*iclus);
-        }
+        }  // else: no fit ==> v.isValid()=False
       } else if (weightFit) {
-        //std::cout << "\n\ngot here!!!!!\n\n";
         std::vector<std::pair<GlobalPoint, GlobalPoint>> points;
         if (algorithm->useBeamConstraint && validBS && (iclus->size() > 1)) {
-            for (const auto& itrack : *iclus){
-                   GlobalPoint p =  itrack.stateAtBeamLine().trackStateAtPCA().position();
-                   GlobalPoint err(itrack.stateAtBeamLine().transverseImpactParameter().error(), itrack.stateAtBeamLine().transverseImpactParameter().error(), itrack.track().dzError());
-                   std::pair<GlobalPoint, GlobalPoint> p2(p, err);
-                   points.push_back(p2);
-            }
-            //std::cout << "\ngoing into weightedmeanfitter\n";
-            v = WeightedMeanFitter::weightedMeanOutlierRejectionBeamSpot(points, *iclus, beamSpot);
-            if ((v.positionError().matrix())(2,2) != (WeightedMeanFitter::startError*WeightedMeanFitter::startError)) pvs.push_back(v);
+          for (const auto& itrack : *iclus) {
+            GlobalPoint p = itrack.stateAtBeamLine().trackStateAtPCA().position();
+            GlobalPoint err(itrack.stateAtBeamLine().transverseImpactParameter().error(),
+                            itrack.stateAtBeamLine().transverseImpactParameter().error(),
+                            itrack.track().dzError());
+            std::pair<GlobalPoint, GlobalPoint> p2(p, err);
+            points.push_back(p2);
+          }
 
-        }
-        else if (!(algorithm->useBeamConstraint) && (iclus->size() > 1)) {
-           for (const auto& itrack : *iclus){
-                   GlobalPoint p = itrack.impactPointState().globalPosition();
-                   GlobalPoint err(itrack.track().dxyError(), itrack.track().dxyError(), itrack.track().dzError());
-                   std::pair<GlobalPoint, GlobalPoint> p2(p, err);
-                   points.push_back(p2);
-           }
-           //std::cout << "\ngoing into weightedmeanfitter\n";
-           v = WeightedMeanFitter::weightedMeanOutlierRejection(points, *iclus);
-           if ((v.positionError().matrix())(2,2) != (WeightedMeanFitter::startError*WeightedMeanFitter::startError)) pvs.push_back(v); //FIX with constants
+          v = WeightedMeanFitter::weightedMeanOutlierRejectionBeamSpot(points, *iclus, beamSpot);
+          if ((v.positionError().matrix())(2, 2) != (WeightedMeanFitter::startError * WeightedMeanFitter::startError))
+            pvs.push_back(v);
+        } else if (!(algorithm->useBeamConstraint) && (iclus->size() > 1)) {
+          for (const auto& itrack : *iclus) {
+            GlobalPoint p = itrack.impactPointState().globalPosition();
+            GlobalPoint err(itrack.track().dxyError(), itrack.track().dxyError(), itrack.track().dzError());
+            std::pair<GlobalPoint, GlobalPoint> p2(p, err);
+            points.push_back(p2);
+          }
 
+          v = WeightedMeanFitter::weightedMeanOutlierRejection(points, *iclus);
+          if ((v.positionError().matrix())(2, 2) != (WeightedMeanFitter::startError * WeightedMeanFitter::startError))
+            pvs.push_back(v);  //FIX with constants
         }
-      }
+      } else
+        throw VertexException(
+            "PrimaryVertexProducer: Something went wrong. You are not using the weighted mean fit and no algorithm was "
+            "selected.");
+
       // 4D vertices: add timing information
       if (f4D and v.isValid()) {
         auto err = v.positionError().matrix4D();
@@ -665,23 +511,23 @@ void PrimaryVertexProducerCUDA::produce(edm::Event& iEvent, const edm::EventSetu
         }
       }
 
-      if (v.isValid() && (v.degreesOfFreedom() >= algorithm->minNdof) &&
+      //for weightFit we have already pushed it above (no timing infomration anyway)
+      if (v.isValid() && not weightFit && (v.degreesOfFreedom() >= algorithm->minNdof) &&
           (!validBS || (*(algorithm->vertexSelector))(v, beamVertexState)))
         pvs.push_back(v);
     }  // end of cluster loop
 
-
     if (fVerbose) {
-      std::cout << "PrimaryVertexProducerCUDAAlgorithm::vertices  candidates =" << pvs.size() << std::endl;
+      std::cout << "PrimaryVertexProducerAlgorithm::vertices  candidates =" << pvs.size() << std::endl;
     }
 
     if (clusters.size() > 2 && clusters.size() > 2 * pvs.size())
-      edm::LogWarning("PrimaryVertexProducerCUDA")
+      edm::LogWarning("PrimaryVertexProducer")
           << "more than half of candidate vertices lost " << pvs.size() << ' ' << clusters.size();
-    /*
-    if (pvs.empty() && seltks.size() > 5)
-      edm::LogWarning("PrimaryVertexProducerCUDA")
-          << "no vertex found with " << seltks.size() << " tracks and " << clusters.size() << " vertex-candidates";
+
+    //if (pvs.empty() && seltks.size() > 5)
+    //  edm::LogWarning("PrimaryVertexProducer")
+    //      << "no vertex found with " << seltks.size() << " tracks and " << clusters.size() << " vertex-candidates";
 
     // sort vertices by pt**2  vertex (aka signal vertex tagging)
     if (pvs.size() > 1) {
@@ -703,14 +549,14 @@ void PrimaryVertexProducerCUDA::produce(edm::Event& iEvent, const edm::EventSetu
         we(2, 2) = 10000;
         vColl.push_back(reco::Vertex(beamSpot.position(), we, 0., 0., 0));
         if (fVerbose) {
-          std::cout << "RecoVertex/PrimaryVertexProducerCUDA: "
+          std::cout << "RecoVertex/PrimaryVertexProducer: "
                     << "Beamspot with invalid errors " << bse.matrix() << std::endl;
           std::cout << "Will put Vertex derived from dummy-fake BeamSpot into Event.\n";
         }
       } else {
         vColl.push_back(reco::Vertex(beamSpot.position(), beamSpot.rotatedCovariance3D(), 0., 0., 0));
         if (fVerbose) {
-          std::cout << "RecoVertex/PrimaryVertexProducerCUDA: "
+          std::cout << "RecoVertex/PrimaryVertexProducer: "
                     << " will put Vertex derived from BeamSpot into Event.\n";
         }
       }
@@ -730,23 +576,13 @@ void PrimaryVertexProducerCUDA::produce(edm::Event& iEvent, const edm::EventSetu
         std::cout << std::endl;
       }
     }
-    /*
-    int ivtx = 0;
-    std::cout << "recvtx,#trk,chi2,ndof,x,dx,y,dy,z,dz" << std::endl;
-    for (reco::VertexCollection::const_iterator v = vColl.begin(); v != vColl.end(); ++v) {
-      std::cout << ivtx++ << "," << v->tracksSize() << "," << v->chi2() << ","  << v->ndof() << ","  << v->position().x()
-                << ","  << v->xError() << ","  << v->position().y() << ","
-                 << v->yError() << ","  << v->position().z() << "," 
-                << v->zError();
-      std::cout << std::endl;
-    }
 
     iEvent.put(std::move(result), algorithm->label);
   }
-  */
+
 }
 
-void PrimaryVertexProducerCUDA::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
+void PrimaryVertexProducerCUDA_CPUFitter::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   // offlinePrimaryVertices
   edm::ParameterSetDescription desc;
   {
@@ -811,8 +647,8 @@ void PrimaryVertexProducerCUDA::fillDescriptions(edm::ConfigurationDescriptions&
   desc.add<bool>("isRecoveryIteration", false);
   desc.add<edm::InputTag>("recoveryVtxCollection", {""});
   desc.add<bool>("onGPU", true);
-  descriptions.add("primaryVertexProducerCUDA", desc);
+  descriptions.add("primaryVertexProducerCUDA_CPUFitter", desc);
 }
 
 //define this as a plug-in
-DEFINE_FWK_MODULE(PrimaryVertexProducerCUDA);
+DEFINE_FWK_MODULE(PrimaryVertexProducerCUDA_CPUFitter);
