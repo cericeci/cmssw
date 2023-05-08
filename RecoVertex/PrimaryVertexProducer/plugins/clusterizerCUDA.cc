@@ -877,13 +877,14 @@ __global__ void verticesAndClusterizeKernel(unsigned int ntracks, TrackForPV::Tr
 
   for (unsigned int k = firstElement; k < vertices->nTrueVertex(0); k+= gridSize) {
     unsigned int ivertex = vertices->order(k);
-    vertices->ntracks(ivertex) = 0;
+    vertices->ntracks(ivertex) = 0;    
     for (unsigned int itrackO = 0; itrackO < tracks->nTrueTracks; itrackO+= 1){ 
       // Check if vertex is valid, i.e. count tracks
       unsigned int itrack = tracks->order(itrackO);
       unsigned int ivtxFromTk = tracks->kmin(itrack);
       if (ivtxFromTk == k){
 	vertices->ntracks(ivertex)++;
+	printf("verticesAndClusterizeKernel: adding track with x,z=%f,%f to vtx. %d. isGood itrack/itrackO? %d/%d \n",tracks->x(itrack),tracks->z(itrack),ivertex,tracks->isGood(itrack),tracks->isGood(itrackO));
       }
     }
     if (vertices->ntracks(ivertex) < 1){
@@ -1033,7 +1034,7 @@ std::vector<TransientVertex> vertices(unsigned int ntracks, TrackForPV::TrackFor
   }
   */
   std::vector<TransientVertex> clusters;
- // std::cout << "\n\nFound n vertices: " << vertices->nTrueVertex(0) << std::endl;
+  std::cout << "\n\nFound n vertices: " << vertices->nTrueVertex(0) << std::endl;
   std::vector<std::vector<unsigned int> > vtx_track_indices(vertices->nTrueVertex(0));
     
   for (unsigned int itrackO = 0; itrackO < tracks->nTrueTracks; itrackO++){
@@ -1041,6 +1042,7 @@ std::vector<TransientVertex> vertices(unsigned int ntracks, TrackForPV::TrackFor
         unsigned int ivtx = tracks->kmin(itrack);
         if (ivtx < vertices->stride()){
           vtx_track_indices[ivtx].push_back(tracks->tt_index(itrack));
+	  std::cout<<"vertices: adding track with x,z="<<tracks->x(itrack)<<","<<tracks->z(itrack)<<" to vtx. "<<ivtx<<std::endl;
         }
         else{
 //            std::cout << "rejecting vertex " << ivtx << vertices->z(vertices->order(ivtx))<< std::endl;
@@ -1110,7 +1112,7 @@ std::vector<TransientVertex> vertices(unsigned int ntracks, TrackForPV::TrackFor
 
 std::vector<std::vector<reco::TransientTrack>> clusterize(std::vector<TransientVertex>& pv, clusterParameters params) {
   std::vector<std::vector<reco::TransientTrack> > clusters;
-  // vector<TransientVertex>&& pv = vertices(tracks);
+  // vector<TransientVertex>&& pv =vertices(tracks);
 
 
   if (pv.empty()) {

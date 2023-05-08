@@ -32,7 +32,7 @@ options.register ('threads',
                   VarParsing.VarParsing.varType.int,
                   "threads")
 options.register ('gpu',
-                  True,
+                  False,
                   VarParsing.VarParsing.multiplicity.singleton,
                   VarParsing.VarParsing.varType.bool,
                   "gpu")
@@ -46,6 +46,11 @@ options.register ('both',
                   VarParsing.VarParsing.multiplicity.singleton,
                   VarParsing.VarParsing.varType.bool,
                   "gpuVScpu")
+options.register ('verbose',
+                  False,
+                  VarParsing.VarParsing.multiplicity.singleton,
+                  VarParsing.VarParsing.varType.bool,
+                  "verbose")
 options.parseArguments()
 
 from Configuration.AlCa.GlobalTag import GlobalTag
@@ -101,7 +106,8 @@ fileNames = cms.untracked.vstring(
 #'/store/relval/CMSSW_12_4_0_pre3/RelValTTbar_14TeV/GEN-SIM-RECO/PU_123X_mcRun4_realistic_v11_2026D88PU200-v1/2580000/876a46e3-477e-4c53-8a4a-c16e7c8dee0b.root'
 #'file:aca7b050-5990-4576-a9ee-f41ac82e5b86.root'
 #'file:/eos/user/j/jshteren/PV/7781d089-b51a-495a-b1ba-384c15e90749.root'
-'file:/eos/user/c/cericeci/PV/QCD_5_update/reco_1002.root'
+#'file:/eos/user/c/cericeci/PV/QCD_5_update/reco_1002.root'
+'file:/cms/data/store/user/dsperka/PV/RelValTTbar_14TeV/CMSSW_12_6_0_pre5/0a765d47-7b73-4fa2-bfc4-299186b6d952.root'
 ),
 skipEvents=cms.untracked.uint32(0),
 inputCommands = cms.untracked.vstring(
@@ -144,15 +150,18 @@ if options.gpu:
 else:
     process.vertex = offlinePrimaryVerticesCUDA_CPUFitter.clone()
 
+if options.verbose:
+    process.vertex.verbose = cms.untracked.bool(True)
+
 ##############################CHANGED
 process.vertex.vertexCollections = cms.VPSet(
-     [cms.PSet(label=cms.string(""),
-               algorithm=cms.string("WeightedMeanFitter"),
-               chi2cutoff = cms.double(2.5),
-               minNdof=cms.double(0.0),
-               useBeamConstraint = cms.bool(False),
-               maxDistanceToBeam = cms.double(1.0)
-               ),
+     [#cms.PSet(label=cms.string(""),
+      #         algorithm=cms.string("WeightedMeanFitter"),
+      #         chi2cutoff = cms.double(2.5),
+      #         minNdof=cms.double(0.0),
+      #         useBeamConstraint = cms.bool(False),
+      #         maxDistanceToBeam = cms.double(1.0)
+      #         ),
       cms.PSet(label=cms.string("WithBS"),
                algorithm = cms.string('WeightedMeanFitter'),
                chi2cutoff = cms.double(2.5),

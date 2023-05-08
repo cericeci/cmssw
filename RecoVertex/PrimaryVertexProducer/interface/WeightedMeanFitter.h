@@ -195,6 +195,9 @@ inline TransientVertex weightedMeanOutlierRejectionBeamSpot(const std::vector<st
            s_wx += wx;
            s_wy += wy;
            s_wz += wz;
+	   
+	   std::cout<<"cpu fitter x,dx2,wx,z,dz2,wz "<<p.first.x()<<","<<p.second.x()*p.second.x()<<","<<wx<<p.first.z()<<","<<p.second.z()*p.second.z()<<","<<wz<<std::endl;
+
      }
 
      if ( s_wx == 0. || s_wy == 0. ||s_wz == 0. ){
@@ -309,6 +312,7 @@ inline TransientVertex weightedMeanOutlierRejectionBeamSpot(const std::vector<st
         dist += std::pow(p.first.y() - y, 2) / ( std::pow(wx, 2) +  err(1,1) );
         dist += std::pow(p.first.z() - z, 2) / ( std::pow(wz, 2) +  err(2,2) ); 
         chi2 += dist;
+
      }
      TransientVertex v(GlobalPoint(x,y,z), err, iclus, chi2, (int) ndof_x);
      return v;

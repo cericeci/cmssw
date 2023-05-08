@@ -28,14 +28,21 @@ namespace fitterCUDA {
     bool useBeamConstraint;
     double minNdof;
   };
-
+  
+  struct bs {
+    double x;
+    double y;
+    double cxx;
+    double cyy;
+  };
 
   //void wrapper(unsigned int ntracks, TrackForPV::TrackForPVSoA* tracks, cudaStream_t stream);
   void wrapper(
     unsigned int ntracks,
     TrackForPV::TrackForPVSoA* GPUtracksObject,
     TrackForPV::VertexForPVSoA* GPUverticesObject,
-    algo algorithm
+    algo algorithm,
+    bs beamsport
   );
 }
 

@@ -323,9 +323,9 @@ void PrimaryVertexProducerCUDA_CPUFitter::produce(edm::Event& iEvent, const edm:
             }
             // If we are here, the track is to be passed to the clusterizer. So initialize the clusterizer stuff
             // really save track now!
-            //if (nTrueTracks > CPUtracksObject->stride()){
-            if (nTrueTracks > 1023){
-                //std::cout << "Error, size of tracks SoA is too small: " << CPUtracksObject->stride() << " while tracks are " << t_tks.size() << std::endl;
+            if (nTrueTracks > CPUtracksObject->stride()){
+            //if (nTrueTracks > 1023){
+                std::cout << "Error, size of tracks SoA is too small: " << CPUtracksObject->stride() << " while tracks are " << t_tks.size() << std::endl;
                 break;
             }
             (*CPUosumtkwtObject) += weight;
@@ -351,7 +351,7 @@ void PrimaryVertexProducerCUDA_CPUFitter::produce(edm::Event& iEvent, const edm:
       }
   }
   CPUtracksObject->nTrueTracks = nTrueTracks;
-  //std::cout << "nTrueTracks in producer: " << nTrueTracks << std::endl;
+  std::cout << "nTrueTracks in producer: " << nTrueTracks << std::endl;
   
   (*CPUosumtkwtObject) = (*CPUosumtkwtObject) > 0 ? 1./(*CPUosumtkwtObject) : 0.; 
 
@@ -530,9 +530,9 @@ void PrimaryVertexProducerCUDA_CPUFitter::produce(edm::Event& iEvent, const edm:
     //      << "no vertex found with " << seltks.size() << " tracks and " << clusters.size() << " vertex-candidates";
 
     // sort vertices by pt**2  vertex (aka signal vertex tagging)
-    if (pvs.size() > 1) {
-      sort(pvs.begin(), pvs.end(), VertexHigherPtSquared());
-    }
+    //if (pvs.size() > 1) {
+    //  sort(pvs.begin(), pvs.end(), VertexHigherPtSquared());
+    //}
 
     // convert transient vertices returned by the theAlgo to (reco) vertices
     for (std::vector<TransientVertex>::const_iterator iv = pvs.begin(); iv != pvs.end(); iv++) {
@@ -565,7 +565,7 @@ void PrimaryVertexProducerCUDA_CPUFitter::produce(edm::Event& iEvent, const edm:
     if (fVerbose) {
       int ivtx = 0;
       for (reco::VertexCollection::const_iterator v = vColl.begin(); v != vColl.end(); ++v) {
-        std::cout << "recvtx " << ivtx++ << "#trk " << std::setw(3) << v->tracksSize() << " chi2 " << std::setw(4)
+        std::cout <<  algorithm->label << " recvtx " << ivtx++ << "#trk " << std::setw(3) << v->tracksSize() << " chi2 " << std::setw(4)
                   << v->chi2() << " ndof " << std::setw(3) << v->ndof() << " x " << std::setw(6) << v->position().x()
                   << " dx " << std::setw(6) << v->xError() << " y " << std::setw(6) << v->position().y() << " dy "
                   << std::setw(6) << v->yError() << " z " << std::setw(6) << v->position().z() << " dz " << std::setw(6)

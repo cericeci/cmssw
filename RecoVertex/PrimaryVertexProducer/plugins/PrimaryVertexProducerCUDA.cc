@@ -74,7 +74,7 @@ PrimaryVertexProducerCUDA::PrimaryVertexProducerCUDA(const edm::ParameterSet& co
         algorithm.fitter = new AdaptiveVertexFitter(GeometricAnnealing(algoconf->getParameter<double>("chi2cutoff")));
       } else if (fitterAlgorithm == "WeightedMeanFitter") {
         algorithm.fitter = nullptr;
-        //std::cout << "got here!";
+        std::cout << "Using WeightedMeanFitter" << std::endl;
         weightFit = true;
       } else {
         throw VertexException("PrimaryVertexProducerCUDA: unknown algorithm: " + fitterAlgorithm);
@@ -176,12 +176,17 @@ void PrimaryVertexProducerCUDA::produce(edm::Event& iEvent, const edm::EventSetu
   // if (onGPU_) std::cout << "I'm producing this on CUDA!!" << std::endl;
   reco::BeamSpot beamSpot;
   edm::Handle<reco::BeamSpot> recoBeamSpotHandle;
+  //GlobalPoint bsp;
+  GlobalError bse;
   iEvent.getByToken(bsToken, recoBeamSpotHandle);
   if (recoBeamSpotHandle.isValid()) {
     beamSpot = *recoBeamSpotHandle;
+    bse = beamSpot.rotatedCovariance3D();
+    //bsp = Basic3DVector<float>(beamSpot.position());
   } else {
     edm::LogError("UnusableBeamSpot") << "No beam spot available from EventSetup";
   }
+
 
   /*bool validBS = true;
   VertexState beamVertexState(beamSpot);
@@ -298,6 +303,7 @@ void PrimaryVertexProducerCUDA::produce(edm::Event& iEvent, const edm::EventSetu
         if (std::fabs(z) > 1000.){ 
           isGood = false;
           weight = 0;
+	  std::cout << "PrimaryVertexProducerCUDA: rejecting track with z: " << z << " dz2: " << dz2 << " x: " << x<< " dxy2: "<<dxy2<<std::endl;
           continue;
         }
         else{ // Get dz2 for the track
@@ -309,6 +315,7 @@ void PrimaryVertexProducerCUDA::produce(edm::Event& iEvent, const edm::EventSetu
           if (not(std::isfinite(dz2)) || dz2< std::numeric_limits<double>::min()){ // Bad track dz2 is taken out
             isGood = false;
             weight = 0;
+	    std::cout << "PrimaryVertexProducerCUDA: rejecting track with z: " << z << " dz2: " << dz2 << " x: " << x<< " dxy2: "<<dxy2<<std::endl;
             continue;
           }
           else{
@@ -318,14 +325,15 @@ void PrimaryVertexProducerCUDA::produce(edm::Event& iEvent, const edm::EventSetu
               if (not(std::isfinite(weight)) || weight< std::numeric_limits<double>::epsilon()){ // Bad track weight is taken out
                 isGood = false;
                 weight = 0;
+		std::cout << "PrimaryVertexProducerCUDA: rejecting track with z: " << z << " dz2: " << dz2 << " x: " << x<< " dxy2: "<<dxy2<<" weight: "<<weight<<std::endl;
                 continue;
               }
             }
             // If we are here, the track is to be passed to the clusterizer. So initialize the clusterizer stuff
             // really save track now!
-            //if (nTrueTracks > CPUtracksObject->stride()){
-            if (nTrueTracks > 1023){
-                //std::cout << "Error, size of tracks SoA is too small: " << CPUtracksObject->stride() << " while tracks are " << t_tks.size() << std::endl;
+            if (nTrueTracks > CPUtracksObject->stride()){
+            //if (nTrueTracks > 1023){
+                std::cout << "Error, size of tracks SoA is too small: " << CPUtracksObject->stride() << " while tracks are " << t_tks.size() << std::endl;
                 break;
             }
             (*CPUosumtkwtObject) += weight;
@@ -342,16 +350,18 @@ void PrimaryVertexProducerCUDA::produce(edm::Event& iEvent, const edm::EventSetu
             CPUtracksObject->kmax(nTrueTracks) = 1;
             CPUtracksObject->aux1(nTrueTracks) = 0;
             CPUtracksObject->aux2(nTrueTracks) = 0;
-            //std::cout << nTrueTracks << "," << z << "," << weight << "," << dz2 << std::endl;
+            std::cout << "PrimaryVertexProducerCUDA: nTrueTracks: " << nTrueTracks << " z: " << z << " dz2: " << dz2 << " x: " << x<< " dxy2: "<<dxy2<<std::endl;
             nTrueTracks++;
 //            if (z > max_z) max_z = z;
 //            if (z < min_z) min_z = z;
           }
         }
+      } else {
+	std::cout << "PrimaryVertexProducerCUDA: rejecting track with z: " << z << " dz2: " << dz2 << " x: " << x<< " dxy2: "<<dxy2<<std::endl;
       }
   }
   CPUtracksObject->nTrueTracks = nTrueTracks;
-  //std::cout << "nTrueTracks in producer: " << nTrueTracks << std::endl;
+  std::cout << "nTrueTracks in producer: " << nTrueTracks << std::endl;
   
   (*CPUosumtkwtObject) = (*CPUosumtkwtObject) > 0 ? 1./(*CPUosumtkwtObject) : 0.; 
 
@@ -416,8 +426,8 @@ void PrimaryVertexProducerCUDA::produce(edm::Event& iEvent, const edm::EventSetu
 
 
   //change to just first algo with beamspot constraint
-  //for (std::vector<algo>::const_iterator algorithm = algorithms.begin(); algorithm != algorithms.end(); algorithm++) {
-  std::vector<algo>::const_iterator algorithm = algorithms.begin();
+  for (std::vector<algo>::const_iterator algorithm = algorithms.begin(); algorithm != algorithms.end(); algorithm++) {
+  //std::vector<algo>::const_iterator algorithm = algorithms.begin();
     auto result = std::make_unique<reco::VertexCollection>();
     reco::VertexCollection& vColl = (*result);
     std::vector<TransientVertex> pvs;
@@ -429,7 +439,13 @@ void PrimaryVertexProducerCUDA::produce(edm::Event& iEvent, const edm::EventSetu
     algorithm_for_fitter.useBeamConstraint = (*algorithm).useBeamConstraint;
     algorithm_for_fitter.minNdof = (*algorithm).minNdof;
 
-    fitterCUDA::wrapper(ntracks, GPUtracksObject, GPUverticesObject, algorithm_for_fitter);
+    fitterCUDA::bs beamspot;
+    beamspot.x = beamSpot.position().x();
+    beamspot.y = beamSpot.position().y();
+    beamspot.cxx = bse.cxx();
+    beamspot.cyy = bse.cyy();
+    
+    fitterCUDA::wrapper(ntracks, GPUtracksObject, GPUverticesObject, algorithm_for_fitter, beamspot);
 
     //copy over back to CPU, keep conditionals below the same
     //conversion happens here//
@@ -457,6 +473,7 @@ void PrimaryVertexProducerCUDA::produce(edm::Event& iEvent, const edm::EventSetu
     // Then we iterate over them and apply the conversion
     for (unsigned int k = 0; k < CPUverticesObject->nTrueVertex(0) ; k++){
       unsigned int ivertex = CPUverticesObject->order(k);
+      std::cout<<"PrimaryVertexProducerCUDA: vtx. "<<ivertex<<" "<<" ntracks: "<<CPUverticesObject->ntracks(ivertex)<<std::endl; 
       if (CPUverticesObject->isGood(ivertex)){
 	// I.e. the vertex is correct, so we fill a new one, first we get the error matrix
         AlgebraicSymMatrix33 newErr;
@@ -481,7 +498,7 @@ void PrimaryVertexProducerCUDA::produce(edm::Event& iEvent, const edm::EventSetu
 
     // This we can keep as is, if we found no vertex, fill a dummy one
     if (vColl.empty()) {
-      GlobalError bse(beamSpot.rotatedCovariance3D());
+      //GlobalError bse(beamSpot.rotatedCovariance3D());
       if ((bse.cxx() <= 0.) || (bse.cyy() <= 0.) || (bse.czz() <= 0.)) {
         AlgebraicSymMatrix33 we;
         we(0, 0) = 10000;
@@ -505,7 +522,7 @@ void PrimaryVertexProducerCUDA::produce(edm::Event& iEvent, const edm::EventSetu
     if (fVerbose) {
       int ivtx = 0;
       for (reco::VertexCollection::const_iterator v = vColl.begin(); v != vColl.end(); ++v) {
-        std::cout << "recvtx " << ivtx++ << "#trk " << std::setw(3) << v->tracksSize() << " chi2 " << std::setw(4)
+        std::cout << algorithm->label << " recvtx " << ivtx++ << "#trk " << std::setw(3) << v->tracksSize() << " chi2 " << std::setw(4)
                   << v->chi2() << " ndof " << std::setw(3) << v->ndof() << " x " << std::setw(6) << v->position().x()
                   << " dx " << std::setw(6) << v->xError() << " y " << std::setw(6) << v->position().y() << " dy "
                   << std::setw(6) << v->yError() << " z " << std::setw(6) << v->position().z() << " dz " << std::setw(6)
@@ -517,7 +534,7 @@ void PrimaryVertexProducerCUDA::produce(edm::Event& iEvent, const edm::EventSetu
       }
     }
     iEvent.put(std::move(result), algorithm->label);
-  //}
+  }
 
 
 
