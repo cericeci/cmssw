@@ -518,8 +518,8 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
     }
     // Initial vertex position
     alpaka::syncBlockThreads(acc);
-    float& wnew = alpaka::declareSharedVar<double, __COUNTER__>(acc);
-    float& znew = alpaka::declareSharedVar<double, __COUNTER__>(acc);
+    float& wnew = alpaka::declareSharedVar<float, __COUNTER__>(acc);
+    float& znew = alpaka::declareSharedVar<float, __COUNTER__>(acc);
     if (once_per_block(acc)){
       wnew = 0.;
       znew = 0.;
@@ -930,10 +930,11 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
       double& _beta = alpaka::declareSharedVar<double, __COUNTER__>(acc);
       double& osumtkwt = alpaka::declareSharedVar<double, __COUNTER__>(acc);
       for (int itrack = threadIdx+blockIdx*blockSize; itrack < threadIdx+(blockIdx+1)*blockSize ; itrack += blockSize){ // TODO:Saving and reading in the tracks dataformat might be a bit too much?
-	double temp_weight = static_cast<double>(tracks[itrack].weight());
+	double temp_weight = static_cast<double>(tracks[itrack].weight());      
+        //alpaka::atomicAdd(acc, &osumtkwt, static_cast<double&>(tracks[itrack].weight()), alpaka::hierarchy::Threads{});
 	alpaka::atomicAdd(acc, &osumtkwt, temp_weight, alpaka::hierarchy::Threads{});
       }
-      alpaka::syncBlockThreads(acc);
+      alpaka::syncBlockThreads(acc);     
       // In each block, initialize to a single vertex with all tracks
       initialize(acc, tracks, vertices, cParams);
       alpaka::syncBlockThreads(acc);
