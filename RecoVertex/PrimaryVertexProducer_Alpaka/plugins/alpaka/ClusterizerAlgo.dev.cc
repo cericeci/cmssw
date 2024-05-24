@@ -518,8 +518,8 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
     }
     // Initial vertex position
     alpaka::syncBlockThreads(acc);
-    float& wnew = alpaka::declareSharedVar<double, __COUNTER__>(acc);
-    float& znew = alpaka::declareSharedVar<double, __COUNTER__>(acc);
+    float& wnew = alpaka::declareSharedVar<float, __COUNTER__>(acc);
+    float& znew = alpaka::declareSharedVar<float, __COUNTER__>(acc);
     if (once_per_block(acc)){
       wnew = 0.;
       znew = 0.;

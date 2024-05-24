@@ -246,7 +246,8 @@ process.options.wantSummary = True
 ###################################
 ## Last, organize paths and exec ##
 ###################################
-if args.DQM: # If we run DQM we need some more things
+print(args)
+if args.dqm: # If we run DQM we need some more things
   process.load('commons_cff')
   ##DQM Output step
   process.DQMoutput = cms.OutputModule("DQMRootOutputModule",
