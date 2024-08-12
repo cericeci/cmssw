@@ -160,10 +160,13 @@ import argparse
 parser = argparse.ArgumentParser(prog=f"{sys.argv[0]} {sys.argv[1]} --", description='Test and validation of PrimaryVertexProducer')
 parser.add_argument('-a', '--algo', type=str, default='old', help='Whether to run the old or new algorithm')
 parser.add_argument('-o', '--output', type=str, default='testPV.root', help='Output file name for main file (DQM file will be the same ending in _dqm.root')
+parser.add_argument('-i', '--input', type=str, default=None, help='Input files, if none just use default')
 parser.add_argument('-d', '--dqm', default=False, action="store_true", help='If activated, run and save DQM plots')
 parser.add_argument('-n', '--nevents', default=-1, type=int, help='How many events to run (default is -1, meaning all of them)')
 args = parser.parse_args()
 
+if args.input:
+  process.source.fileNames = cms.untracked.vstring(args.input.split(","))
 
 # Number of events to run
 process.maxEvents = cms.untracked.PSet(
