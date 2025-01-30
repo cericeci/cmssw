@@ -14,8 +14,8 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
   public:
     template <typename TAcc, typename = std::enable_if_t<alpaka::isAccelerator<TAcc>>>
     ALPAKA_FN_ACC void operator()(const TAcc& acc,
-                                  const portablevertex::TrackDeviceCollection::ConstView inputTracks,
-                                  portablevertex::TrackDeviceCollection::View trackInBlocks,
+                                  const portablevertex::TrackForVertexDeviceCollection::ConstView inputTracks,
+                                  portablevertex::TrackForVertexDeviceCollection::View trackInBlocks,
                                   double blockOverlap,
                                   int32_t blockSize) const {
 #ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_BLOCKALGO
@@ -98,8 +98,8 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
   BlockAlgo::BlockAlgo() {}  // BlockAlgo::BlockAlgo
 
   void BlockAlgo::createBlocks(Queue& queue,
-                               const portablevertex::TrackDeviceCollection& inputTracks,
-                               portablevertex::TrackDeviceCollection& trackInBlocks,
+                               const portablevertex::TrackForVertexDeviceCollection& inputTracks,
+                               portablevertex::TrackForVertexDeviceCollection& trackInBlocks,
                                int32_t bSize,
                                double bOverlap) {
     const int threadsPerBlock = bSize;  // each thread will write nBlocks tracks

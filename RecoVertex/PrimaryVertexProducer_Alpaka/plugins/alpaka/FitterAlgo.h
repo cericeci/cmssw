@@ -3,6 +3,7 @@
 
 #include "DataFormats/BeamSpot/interface/alpaka/BeamSpotDevice.h"
 #include "DataFormats/PortableVertex/interface/alpaka/VertexDeviceCollection.h"
+#include "DataFormats/PortableVertex/interface/alpaka/TrackForVertexDeviceCollection.h"
 #include "HeterogeneousCore/AlpakaInterface/interface/config.h"
 
 namespace ALPAKA_ACCELERATOR_NAMESPACE {
@@ -18,7 +19,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
   public:
     FitterAlgo(Queue& queue, const int32_t nV, fitterParameters fPar);  // Just configuration and making job divisions
     void fit(Queue& queue,
-             const portablevertex::TrackDeviceCollection& deviceTrack,
+             const portablevertex::TrackForVertexDeviceCollection& deviceTrack,
              portablevertex::VertexDeviceCollection& deviceVertex,
              const BeamSpotDevice& deviceBeamSpot);  // The actual fitting
   private:

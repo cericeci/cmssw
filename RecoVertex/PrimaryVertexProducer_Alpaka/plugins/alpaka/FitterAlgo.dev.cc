@@ -14,7 +14,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
   public:
     template <typename TAcc, typename = std::enable_if_t<alpaka::isAccelerator<TAcc>>>
     ALPAKA_FN_ACC void operator()(const TAcc& acc,
-                                  const portablevertex::TrackDeviceCollection::ConstView tracks,
+                                  const portablevertex::TrackForVertexDeviceCollection::ConstView tracks,
                                   portablevertex::VertexDeviceCollection::View vertices,
                                   BeamSpotPOD const* beamSpot,
                                   bool* useBeamSpotConstraint) const {
@@ -305,7 +305,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
   }  // FitterAlgo::FitterAlgo
 
   void FitterAlgo::fit(Queue& queue,
-                       const portablevertex::TrackDeviceCollection& deviceTrack,
+                       const portablevertex::TrackForVertexDeviceCollection& deviceTrack,
                        portablevertex::VertexDeviceCollection& deviceVertex,
                        const BeamSpotDevice& deviceBeamSpot) {
     const int nVertexToFit =

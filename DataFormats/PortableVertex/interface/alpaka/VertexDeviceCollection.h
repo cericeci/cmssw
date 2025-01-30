@@ -10,13 +10,9 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE::portablevertex {
 
   // make the names from the top-level portablevertex namespace visible for unqualified lookup
   // inside the ALPAKA_ACCELERATOR_NAMESPACE::portablevertex namespace
-  using ::portablevertex::ClusterParamsHostCollection;
-  using ::portablevertex::TrackHostCollection;
   using ::portablevertex::VertexHostCollection;
 
   using VertexDeviceCollection = PortableCollection<::portablevertex::VertexSoA>;
-  using TrackDeviceCollection = PortableCollection<::portablevertex::TrackSoA>;
-  using ClusterParamsDeviceCollection = PortableCollection<::portablevertex::ClusterParamsSoA>;
 
 }  // namespace ALPAKA_ACCELERATOR_NAMESPACE::portablevertex
 

@@ -10,7 +10,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
   public:
     template <typename TAcc, typename = std::enable_if_t<alpaka::isAccelerator<TAcc>>>
     ALPAKA_FN_ACC void operator()(const TAcc& acc,
-                                  portablevertex::TrackDeviceCollection::View tracks,
+                                  portablevertex::TrackForVertexDeviceCollection::View tracks,
                                   portablevertex::VertexDeviceCollection::View vertices,
                                   const portablevertex::ClusterParamsHostCollection::ConstView cParams,
                                   double* beta_,
@@ -47,7 +47,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
   };  // class kernel
 
   void ClusterizerAlgo::reject_outliers(Queue& queue,
-                                        portablevertex::TrackDeviceCollection& deviceTrack,
+                                        portablevertex::TrackForVertexDeviceCollection& deviceTrack,
                                         portablevertex::VertexDeviceCollection& deviceVertex,
                                         const std::shared_ptr<portablevertex::ClusterParamsHostCollection> cParams,
                                         int32_t nBlocks,

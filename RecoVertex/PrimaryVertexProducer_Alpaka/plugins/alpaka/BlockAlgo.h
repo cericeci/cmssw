@@ -1,7 +1,7 @@
 #ifndef RecoVertex_PrimaryVertexProducer_Alpaka_plugins_alpaka_BlockAlgo_h
 #define RecoVertex_PrimaryVertexProducer_Alpaka_plugins_alpaka_BlockAlgo_h
 
-#include "DataFormats/PortableVertex/interface/alpaka/VertexDeviceCollection.h"
+#include "DataFormats/PortableVertex/interface/alpaka/TrackForVertexDeviceCollection.h"
 #include "HeterogeneousCore/AlpakaInterface/interface/config.h"
 
 namespace ALPAKA_ACCELERATOR_NAMESPACE {
@@ -10,8 +10,8 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
   public:
     BlockAlgo();
     void createBlocks(Queue& queue,
-                      const portablevertex::TrackDeviceCollection& inputTrack,
-                      portablevertex::TrackDeviceCollection& trackInBlocks,
+                      const portablevertex::TrackForVertexDeviceCollection& inputTrack,
+                      portablevertex::TrackForVertexDeviceCollection& trackInBlocks,
                       int32_t blockSize,
                       double blockOverlap);  // The actual block creation
 

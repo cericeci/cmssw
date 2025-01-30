@@ -86,13 +86,13 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
     }
 
     void produce(device::Event& iEvent, device::EventSetup const& iSetup) {
-      const portablevertex::TrackDeviceCollection& inputtracks = iEvent.get(trackToken_);
+      const portablevertex::TrackForVertexDeviceCollection& inputtracks = iEvent.get(trackToken_);
       const BeamSpotDevice& beamSpot = iEvent.get(beamSpotToken_);
       int32_t nT = inputtracks.view().metadata().size();
       int32_t nBlocks = nT > blockSize ? int32_t((nT - 1) / (blockOverlap * blockSize))
                                        : 1;  // If the block size is big enough we process everything at once
       // Now the device collections we still need
-      portablevertex::TrackDeviceCollection tracksInBlocks{nBlocks * blockSize, iEvent.queue()};  // As high as needed
+      portablevertex::TrackForVertexDeviceCollection tracksInBlocks{nBlocks * blockSize, iEvent.queue()};  // As high as needed
       portablevertex::VertexDeviceCollection deviceVertex{
           512, iEvent.queue()};  // Hard capped to 512, though we might want to restrict it for low PU cases
 
@@ -150,7 +150,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
     }
 
   private:
-    device::EDGetToken<portablevertex::TrackDeviceCollection> trackToken_;
+    device::EDGetToken<portablevertex::TrackForVertexDeviceCollection> trackToken_;
     device::EDGetToken<BeamSpotDevice> beamSpotToken_;
     device::EDPutToken<portablevertex::VertexDeviceCollection> devicePutToken_;
     int32_t blockSize;

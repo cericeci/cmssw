@@ -41,7 +41,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
   template <bool debug = false, typename TAcc, typename = std::enable_if_t<alpaka::isAccelerator<TAcc>>>
   ALPAKA_FN_ACC static void set_vtx_range(const TAcc& acc,
-                                          portablevertex::TrackDeviceCollection::View tracks,
+                                          portablevertex::TrackForVertexDeviceCollection::View tracks,
                                           portablevertex::VertexDeviceCollection::View vertices,
                                           const portablevertex::ClusterParamsHostCollection::ConstView cParams,
                                           double& osumtkwt,
@@ -109,7 +109,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
   template <bool debug = false, typename TAcc, typename = std::enable_if_t<alpaka::isAccelerator<TAcc>>>
   ALPAKA_FN_ACC static void update(const TAcc& acc,
-                                   portablevertex::TrackDeviceCollection::View tracks,
+                                   portablevertex::TrackForVertexDeviceCollection::View tracks,
                                    portablevertex::VertexDeviceCollection::View vertices,
                                    const portablevertex::ClusterParamsHostCollection::ConstView cParams,
                                    double& osumtkwt,
@@ -216,7 +216,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
   template <bool debug = false, typename TAcc, typename = std::enable_if_t<alpaka::isAccelerator<TAcc>>>
   ALPAKA_FN_ACC static void merge(const TAcc& acc,
-                                  portablevertex::TrackDeviceCollection::View tracks,
+                                  portablevertex::TrackForVertexDeviceCollection::View tracks,
                                   portablevertex::VertexDeviceCollection::View vertices,
                                   const portablevertex::ClusterParamsHostCollection::ConstView cParams,
                                   double& osumtkwt,
@@ -347,7 +347,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
   template <bool debug = false, typename TAcc, typename = std::enable_if_t<alpaka::isAccelerator<TAcc>>>
   ALPAKA_FN_ACC static void split(const TAcc& acc,
-                                  portablevertex::TrackDeviceCollection::View tracks,
+                                  portablevertex::TrackForVertexDeviceCollection::View tracks,
                                   portablevertex::VertexDeviceCollection::View vertices,
                                   const portablevertex::ClusterParamsHostCollection::ConstView cParams,
                                   double& osumtkwt,
@@ -590,7 +590,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
   template <bool debug = false, typename TAcc, typename = std::enable_if_t<alpaka::isAccelerator<TAcc>>>
   ALPAKA_FN_ACC static void purge(const TAcc& acc,
-                                  portablevertex::TrackDeviceCollection::View tracks,
+                                  portablevertex::TrackForVertexDeviceCollection::View tracks,
                                   portablevertex::VertexDeviceCollection::View vertices,
                                   const portablevertex::ClusterParamsHostCollection::ConstView cParams,
                                   double& osumtkwt,
@@ -696,7 +696,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
   template <bool debug = false, typename TAcc, typename = std::enable_if_t<alpaka::isAccelerator<TAcc>>>
   ALPAKA_FN_ACC static void initialize(const TAcc& acc,
-                                       portablevertex::TrackDeviceCollection::View tracks,
+                                       portablevertex::TrackForVertexDeviceCollection::View tracks,
                                        portablevertex::VertexDeviceCollection::View vertices,
                                        const portablevertex::ClusterParamsHostCollection::ConstView cParams,
                                        int trackBlockSize) {
@@ -743,7 +743,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
   template <bool debug = false, typename TAcc, typename = std::enable_if_t<alpaka::isAccelerator<TAcc>>>
   ALPAKA_FN_ACC static void getBeta0(const TAcc& acc,
-                                     portablevertex::TrackDeviceCollection::View tracks,
+                                     portablevertex::TrackForVertexDeviceCollection::View tracks,
                                      portablevertex::VertexDeviceCollection::View vertices,
                                      const portablevertex::ClusterParamsHostCollection::ConstView cParams,
                                      double& _beta,
@@ -810,7 +810,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
   template <bool debug = false, typename TAcc, typename = std::enable_if_t<alpaka::isAccelerator<TAcc>>>
   ALPAKA_FN_ACC static void thermalize(const TAcc& acc,
-                                       portablevertex::TrackDeviceCollection::View tracks,
+                                       portablevertex::TrackForVertexDeviceCollection::View tracks,
                                        portablevertex::VertexDeviceCollection::View vertices,
                                        const portablevertex::ClusterParamsHostCollection::ConstView cParams,
                                        double& osumtkwt,
@@ -904,7 +904,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
   template <bool debug = false, typename TAcc, typename = std::enable_if_t<alpaka::isAccelerator<TAcc>>>
   ALPAKA_FN_ACC static void coolingWhileSplitting(const TAcc& acc,
-                                                  portablevertex::TrackDeviceCollection::View tracks,
+                                                  portablevertex::TrackForVertexDeviceCollection::View tracks,
                                                   portablevertex::VertexDeviceCollection::View vertices,
                                                   const portablevertex::ClusterParamsHostCollection::ConstView cParams,
                                                   double& osumtkwt,
@@ -956,7 +956,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
   template <bool debug = false, typename TAcc, typename = std::enable_if_t<alpaka::isAccelerator<TAcc>>>
   ALPAKA_FN_ACC static void reMergeTracks(const TAcc& acc,
-                                          portablevertex::TrackDeviceCollection::View tracks,
+                                          portablevertex::TrackForVertexDeviceCollection::View tracks,
                                           portablevertex::VertexDeviceCollection::View vertices,
                                           const portablevertex::ClusterParamsHostCollection::ConstView cParams,
                                           double& osumtkwt,
@@ -977,7 +977,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
   template <bool debug = false, typename TAcc, typename = std::enable_if_t<alpaka::isAccelerator<TAcc>>>
   ALPAKA_FN_ACC static void reSplitTracks(const TAcc& acc,
-                                          portablevertex::TrackDeviceCollection::View tracks,
+                                          portablevertex::TrackForVertexDeviceCollection::View tracks,
                                           portablevertex::VertexDeviceCollection::View vertices,
                                           const portablevertex::ClusterParamsHostCollection::ConstView cParams,
                                           double& osumtkwt,
@@ -1005,7 +1005,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
   template <bool debug = false, typename TAcc, typename = std::enable_if_t<alpaka::isAccelerator<TAcc>>>
   ALPAKA_FN_ACC static void rejectOutliers(const TAcc& acc,
-                                           portablevertex::TrackDeviceCollection::View tracks,
+                                           portablevertex::TrackForVertexDeviceCollection::View tracks,
                                            portablevertex::VertexDeviceCollection::View vertices,
                                            const portablevertex::ClusterParamsHostCollection::ConstView cParams,
                                            double& osumtkwt,

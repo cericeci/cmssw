@@ -16,7 +16,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
   template <bool debug = false, typename TAcc, typename = std::enable_if_t<alpaka::isAccelerator<TAcc>>>
   ALPAKA_FN_ACC static void resortVerticesAndAssign(const TAcc& acc,
-                                                    portablevertex::TrackDeviceCollection::View tracks,
+                                                    portablevertex::TrackForVertexDeviceCollection::View tracks,
                                                     portablevertex::VertexDeviceCollection::View vertices,
                                                     const portablevertex::ClusterParamsHostCollection::ConstView cParams,
                                                     int32_t griddim) {
@@ -145,7 +145,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
   template <bool debug = false, typename TAcc, typename = std::enable_if_t<alpaka::isAccelerator<TAcc>>>
   ALPAKA_FN_ACC static void finalizeVertices(const TAcc& acc,
-                                             portablevertex::TrackDeviceCollection::View tracks,
+                                             portablevertex::TrackForVertexDeviceCollection::View tracks,
                                              portablevertex::VertexDeviceCollection::View vertices,
                                              const portablevertex::ClusterParamsHostCollection::ConstView cParams) {
     //int blockSize = alpaka::getWorkDiv<alpaka::Grid, alpaka::Blocks>(acc)[0u];
@@ -225,7 +225,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
   public:
     template <typename TAcc, typename = std::enable_if_t<alpaka::isAccelerator<TAcc>>>
     ALPAKA_FN_ACC void operator()(const TAcc& acc,
-                                  portablevertex::TrackDeviceCollection::View tracks,
+                                  portablevertex::TrackForVertexDeviceCollection::View tracks,
                                   portablevertex::VertexDeviceCollection::View vertices,
                                   const portablevertex::ClusterParamsHostCollection::ConstView cParams,
                                   int32_t nBlocks) const {
@@ -254,7 +254,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
   };  // class kernel
 
   void ClusterizerAlgo::arbitrate(Queue& queue,
-                                  portablevertex::TrackDeviceCollection& deviceTrack,
+                                  portablevertex::TrackForVertexDeviceCollection& deviceTrack,
                                   portablevertex::VertexDeviceCollection& deviceVertex,
                                   const std::shared_ptr<portablevertex::ClusterParamsHostCollection> cParams,
                                   int32_t nBlocks,
