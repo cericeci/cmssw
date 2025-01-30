@@ -46,7 +46,6 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
   public:
     PortableTrackSoAProducer(edm::ParameterSet const& config)
         : theTTBToken(esConsumes(edm::ESInputTag("", "TransientTrackBuilder"))) {
-      theConfig = config;
       trackToken_ = consumes<reco::TrackCollection>(config.getParameter<edm::InputTag>("TrackLabel"));
       beamSpotToken_ = consumes<reco::BeamSpot>(config.getParameter<edm::InputTag>("BeamSpotLabel"));
       devicePutToken_ = produces();
@@ -97,6 +96,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
       // We want to keep track of the original reco::Track index to later redo the conversion back to reco::Vertex
       std::vector<std::pair<int32_t, reco::TransientTrack>> sortedTracksPair;
+      sortedTracksPair.reserve(tsize_);
       for (int32_t idx = 0; idx < tsize_; idx++) {
         sortedTracksPair.push_back(std::pair<int32_t, reco::TransientTrack>(idx, t_tks[idx]));
       }
@@ -108,9 +108,9 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
                   return (a.second.stateAtBeamLine().trackStateAtPCA()).position().z() <
                          (b.second.stateAtBeamLine().trackStateAtPCA()).position().z();
                 });
-
+      // This will keep track of how many we actually copy to device, only those that pass filter
       int32_t nTrueTracks =
-          0;  // This will keep track of how many we actually copy to device, only those that pass filter
+          0; 
       for (int32_t idx = 0; idx < tsize_; idx++) {
         // Fill up the the Track SoA, weight doubles up as an isGood flag, as we compute it only for good tracks
         double weight = convertTrack(tview[nTrueTracks],
@@ -165,7 +165,6 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
     edm::EDGetTokenT<reco::BeamSpot> beamSpotToken_;
     const edm::ESGetToken<TransientTrackBuilder, TransientTrackRecord> theTTBToken;
     device::EDPutToken<TrackForVertexDeviceCollection> devicePutToken_;
-    edm::ParameterSet theConfig;
     static double convertTrack(TrackForVertexHostCollection::View::element out,
                                const reco::TransientTrack in,
                                const reco::BeamSpot bs,

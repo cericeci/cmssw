@@ -8,7 +8,7 @@
 #include "DataFormats/SoATemplate/interface/SoALayout.h"
 #include "DataFormats/SoATemplate/interface/SoAView.h"
 
-unsigned int const nTracksPerVertex = 1024;  // Maximum number of tracks associated to a final vertex, i.e. after fitting it
+const unsigned int nTracksPerVertex = 1024;  // Maximum number of tracks associated to a final vertex, i.e. after fitting it
 
 using VertexToTrack = Eigen::Vector<float, nTracksPerVertex>;
 using VertexToTrackInt = Eigen::Vector<int, nTracksPerVertex>;
@@ -47,7 +47,7 @@ GENERATE_SOA_LAYOUT(VertexSoALayout,
                       SOA_COLUMN(float, exp),
                       SOA_COLUMN(float, exparg),
 
-                      // Use entries for blocks
+                      // Use entries for blocks. Entry i contains the number of vertices in block i during the clusterizer kernel execution
                       SOA_COLUMN(int32_t, nV))
 
 using VertexSoA = VertexSoALayout<>;

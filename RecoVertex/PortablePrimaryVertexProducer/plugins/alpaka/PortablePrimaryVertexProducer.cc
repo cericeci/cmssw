@@ -1,6 +1,10 @@
 #include "DataFormats/VertexSoA/interface/alpaka/VertexDeviceCollection.h"
 #include "DataFormats/VertexSoA/interface/VertexHostCollection.h"
+#include "DataFormats/VertexSoA/interface/alpaka/TrackForVertexDeviceCollection.h"
+#include "DataFormats/VertexSoA/interface/TrackForVertexHostCollection.h"
 #include "DataFormats/BeamSpot/interface/BeamSpotHost.h"
+#include "RecoVertex/PortablePrimaryVertexProducer/interface/alpaka/ClusterParamsDeviceCollection.h"
+#include "RecoVertex/PortablePrimaryVertexProducer/interface/ClusterParamsHostCollection.h"
 #include "FWCore/ParameterSet/interface/ConfigurationDescriptions.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ParameterSet/interface/ParameterSetDescription.h"
@@ -29,9 +33,9 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
    * - fitting cluster properties to vertex coordinates
    * - produces a device vertex product (Vertex)
    */
-  class PrimaryVertexProducer_Alpaka : public stream::EDProducer<> {
+  class PortablePrimaryVertexProducer : public stream::EDProducer<> {
   public:
-    PrimaryVertexProducer_Alpaka(edm::ParameterSet const& config) {
+    PortablePrimaryVertexProducer(edm::ParameterSet const& config) {
       trackToken_ = consumes(config.getParameter<edm::InputTag>("TrackLabel"));
       beamSpotToken_ = consumes(config.getParameter<edm::InputTag>("BeamSpotLabel"));
       devicePutToken_ = produces();
@@ -163,4 +167,4 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
 }  // namespace ALPAKA_ACCELERATOR_NAMESPACE
 
 #include "HeterogeneousCore/AlpakaCore/interface/alpaka/MakerMacros.h"
-DEFINE_FWK_ALPAKA_MODULE(PrimaryVertexProducer_Alpaka);
+DEFINE_FWK_ALPAKA_MODULE(PortablePrimaryVertexProducer);

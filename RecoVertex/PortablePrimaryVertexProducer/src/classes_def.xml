@@ -1,0 +1,17 @@
+<lcgdict>
+  <class name="ClusterParamsSoA"/>
+  <class name="ClusterParamsSoA::View"/>
+  <class name="ClusterParamsHostCollection"/>
+  <read
+    sourceClass="ClusterParamsHostCollection"
+    targetClass="ClusterParamsHostCollection"
+    version="[1-]"
+    source="ClusterParamsSoA layout_;"
+    target="buffer_,layout_,view_"
+    embed="false">
+  <![CDATA[
+    ClusterParamsHostCollection::ROOTReadStreamer(newObj, onfile.layout_);
+  ]]>
+  </read>
+  <class name="edm::Wrapper<ClusterParamsHostCollection>" splitLevel="0"/>
+</lcgdict>

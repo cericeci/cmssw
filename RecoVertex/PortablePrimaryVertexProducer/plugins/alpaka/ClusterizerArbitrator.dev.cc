@@ -4,9 +4,9 @@
 #include "HeterogeneousCore/AlpakaInterface/interface/workdivision.h"
 #include "HeterogeneousCore/AlpakaInterface/interface/radixSort.h"
 
-#include "RecoVertex/PrimaryVertexProducer_Alpaka/plugins/alpaka/ClusterizerAlgo.h"
+#include "RecoVertex/PortablePrimaryVertexProducer/plugins/alpaka/ClusterizerAlgo.h"
 
-#define DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_ARBITRATOR 1
+#define DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_ARBITRATOR 1
 
 namespace ALPAKA_ACCELERATOR_NAMESPACE {
   using namespace cms::alpakatools;
@@ -231,20 +231,20 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
                                   int32_t nBlocks) const {
       // This has the core of the clusterization algorithm
       int blockIdx = alpaka::getIdx<alpaka::Grid, alpaka::Blocks>(acc)[0u];  // Block number inside grid
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_ARBITRATOR
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_ARBITRATOR
       if (once_per_block(acc)) {
         printf("[ClusterizerAlgoArbitrator::operator()] Start arbitration for block %i\n", blockIdx);
       }
 #endif
       resortVerticesAndAssign(acc, tracks, vertices, cParams, nBlocks);
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_ARBITRATOR
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_ARBITRATOR
       if (once_per_block(acc)) {
         printf("[ClusterizerAlgoArbitrator::operator()] Vertex reassignment finished for block %i\n", blockIdx);
       }
 #endif
       alpaka::syncBlockThreads(acc);
       finalizeVertices(acc, tracks, vertices, cParams);  // In CUDA it used to be verticesAndClusterize
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_ARBITRATOR
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_ARBITRATOR
       if (once_per_block(acc)) {
         printf("[ClusterizerAlgoArbitrator::operator()] Vertices finalized for block %i\n", blockIdx);
       }

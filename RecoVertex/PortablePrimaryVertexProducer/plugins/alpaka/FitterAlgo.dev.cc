@@ -3,9 +3,9 @@
 #include "HeterogeneousCore/AlpakaInterface/interface/config.h"
 #include "HeterogeneousCore/AlpakaInterface/interface/workdivision.h"
 
-#include "RecoVertex/PrimaryVertexProducer_Alpaka/plugins/alpaka/FitterAlgo.h"
+#include "RecoVertex/PortablePrimaryVertexProducer/plugins/alpaka/FitterAlgo.h"
 
-//#define DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_FITTERALGO 1
+//#define DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_FITTERALGO 1
 
 namespace ALPAKA_ACCELERATOR_NAMESPACE {
   using namespace cms::alpakatools;
@@ -18,7 +18,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
                                   VertexDeviceCollection::View vertices,
                                   BeamSpotPOD const* beamSpot,
                                   bool* useBeamSpotConstraint) const {
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_FITTERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_FITTERALGO
       if (once_per_block(acc)) {
         printf("[FitterAlgo::fitVertices()] In Vertex 0, %i tracks\n", vertices[0].ntracks());
         for (int itrackInVertex = 0; itrackInVertex < vertices[0].ntracks(); itrackInVertex++) {
@@ -54,7 +54,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
         bsy = beamSpot->y;
         corr_x = 1.0;
       }
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_FITTERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_FITTERALGO
       printf("[FitterAlgo::fitVertices()] Set-up, beamspot constrains: %1.9f, %1.9f, %1.9f, %1.9f\n",
              bserrx,
              bserry,
@@ -67,7 +67,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
         if (not(vertices[i].isGood()))
           continue;  // If vertex was killed before, just skip
                      // Initialize positions and errors to 0
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_FITTERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_FITTERALGO
         printf("[FitterAlgo::fitVertices()] Start vertex %i with %i tracks\n", i, vertices[i].ntracks());
 #endif
         float x = 0.;
@@ -87,7 +87,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
           errz += wz;
         }
         float erry = errx;
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_FITTERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_FITTERALGO
         printf("[FitterAlgo::fitVertices()] After first iteration, before dividing, %1.9f %1.9f %1.9f %1.9f %1.9f \n",
                x,
                y,
@@ -99,7 +99,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
         x = (x + bsx * bserrx * bserrx) / (bserrx * bserrx + errx);
         y = (y + bsy * bserry * bserry) / (bserry * bserry + erry);
         z /= errz;
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_FITTERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_FITTERALGO
         printf("[FitterAlgo::fitVertices()] After first iteration, after dividing, %1.9f %1.9f %1.9f %1.9f %1.9f \n",
                x,
                y,
@@ -119,7 +119,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
         float old_y;
         float old_z;
         while ((niter++) < maxIterations) {
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_FITTERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_FITTERALGO
           printf(
               "[FitterAlgo::fitVertices()] At iteration %i, errs are %1.15f %1.15f %1.15f\n", niter, errx, erry, errz);
 #endif
@@ -146,7 +146,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
             double pnorm2 = px * px + py * py + pz * pz;
             // This is the 'time' needed to move from the ref point to the PCA scalar product of (x_v-x_t)*p_t over magnitude squared of p_t
             double t = (px * (old_x - tx) + py * (old_y - ty) + pz * (old_z - tz)) / pnorm2;
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_FITTERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_FITTERALGO
             printf(
                 "[FitterAlgo::fitVertices()] Track x: %1.9f, y: %1.9f, z:%1.9f, px: %1.9f, py: %1.9f, pz: %1.9f, "
                 "t:%1.9f\n",
@@ -164,7 +164,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
             tz += pz * t;
             float wx = tracks[itrack].dxy2() <= precisionsq ? 1. / precisionsq : 1. / tracks[itrack].dxy2();
             float wz = tracks[itrack].dz2() <= precisionsq ? 1. / precisionsq : 1. / tracks[itrack].dz2();
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_FITTERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_FITTERALGO
             printf("[FitterAlgo::fitVertices()] Track wx: %1.9f, wz: %1.9f\n", wx, wz);
             printf("[FitterAlgo::fitVertices()] Track sigmas: %1.3f %1.3f %1.3f\n",
                    (tx - old_x) * (tx - old_x) / (1 / wx + errx),
@@ -188,19 +188,19 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
               wx = 0.;
               wz = 0.;
             }
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_FITTERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_FITTERALGO
             printf("[FitterAlgo::fitVertices()] Track %i weights after %1.10f, %1.10f\n", itrackInVertex, wx, wz);
 #endif
             // Here, will only change if track is within 3 sigma
             x += tx * wx;
             y += ty * wx;
             z += tz * wz;
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_FITTERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_FITTERALGO
             printf("[FitterAlgo::fitVertices()] Track adds x: %1.9f, y: %1.9f z: %1.9f\n", tx * wx, ty * wx, tz * wz);
 #endif
           }  // end for
 // After all tracks, add BS uncertainties, will do nothing if not used
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_FITTERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_FITTERALGO
           printf("[FitterAlgo::fitVertices()] Before adding BS in %i iteration %1.9f %1.9f %1.9f %1.9f %1.9f %1.9f \n",
                  niter,
                  x,
@@ -212,13 +212,13 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
 #endif
           x += bsx * bserrx;
           y += bsy * bserry;
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_FITTERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_FITTERALGO
           printf("[FitterAlgo::fitVertices()] BS adds x: %1.9f, y: %1.9f\n", bsx * bserrx, bsy * bserry);
 #endif
           float s_wy = s_wx;
           s_wx += bserrx;
           s_wy += bserry;
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_FITTERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_FITTERALGO
           printf("[FitterAlgo::fitVertices()] Before dividing %i iteration %1.9f %1.9f %1.9f %1.9f %1.9f %1.9f \n",
                  niter,
                  x,
@@ -234,7 +234,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
           errx = 1 / s_wx;
           errz = 1 / s_wz;
           erry = 1 / s_wy;
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_FITTERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_FITTERALGO
           printf("[FitterAlgo::fitVertices()] After dividing %i iteration %1.9f %1.9f %1.9f %1.9f %1.9f \n",
                  niter,
                  x,
@@ -281,7 +281,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
                    wz);  // chi2 doesn't use the PCA distance, but the ref point coordinates as in https://github.com/cms-sw/cmssw/blob/master/RecoVertex/PrimaryVertexProducer/interface/WeightedMeanFitter.h#L316
         }  // end for
         vertices[i].chi2() = chi2;
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_FITTERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_FITTERALGO
         printf(
             "[FitterAlgo::fitVertices()] Vertex %i, x: %1.9f, y:%1.9f, z:%1.9f, errx:%1.9f, errz:%1.9f, chi2:%1.9f, "
             "ndof:%1.9f\n",

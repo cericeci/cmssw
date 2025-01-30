@@ -1,5 +1,5 @@
-#ifndef RecoVertex_PrimaryVertexProducer_Alpaka_plugins_alpaka_FitterAlgo_h
-#define RecoVertex_PrimaryVertexProducer_Alpaka_plugins_alpaka_FitterAlgo_h
+#ifndef RecoVertex_PortablePrimaryVertexProducer_plugins_alpaka_FitterAlgo_h
+#define RecoVertex_PortablePrimaryVertexProducer_plugins_alpaka_FitterAlgo_h
 
 #include "DataFormats/BeamSpot/interface/alpaka/BeamSpotDevice.h"
 #include "DataFormats/VertexSoA/interface/alpaka/VertexDeviceCollection.h"
@@ -28,4 +28,4 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
 }  // namespace ALPAKA_ACCELERATOR_NAMESPACE
 
-#endif  // RecoVertex_PrimaryVertexProducer_Alpaka_plugins_alpaka_FitterAlgo_h
+#endif  // RecoVertex_PortablePrimaryVertexProducer_plugins_alpaka_FitterAlgo_h

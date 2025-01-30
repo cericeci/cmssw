@@ -1,5 +1,5 @@
-#ifndef RecoVertex_PrimaryVertexProducer_Alpaka_plugins_alpaka_BlockAlgo_h
-#define RecoVertex_PrimaryVertexProducer_Alpaka_plugins_alpaka_BlockAlgo_h
+#ifndef RecoVertex_PortablePrimaryVertexProducer_plugins_alpaka_BlockAlgo_h
+#define RecoVertex_PortablePrimaryVertexProducer_plugins_alpaka_BlockAlgo_h
 
 #include "DataFormats/VertexSoA/interface/alpaka/TrackForVertexDeviceCollection.h"
 #include "HeterogeneousCore/AlpakaInterface/interface/config.h"
@@ -20,4 +20,4 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
 }  // namespace ALPAKA_ACCELERATOR_NAMESPACE
 
-#endif  // RecoVertex_PrimaryVertexProducer_Alpaka_plugins_alpaka_BlockAlgo_h
+#endif  // RecoVertex_PortablePrimaryVertexProducer_plugins_alpaka_BlockAlgo_h

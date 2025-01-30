@@ -8,7 +8,6 @@
 #include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventSetup.h"
-#include "HeterogeneousCore/AlpakaInterface/interface/config.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "DataFormats/TrackReco/interface/TrackFwd.h"
 #include "DataFormats/TrackReco/interface/Track.h"
@@ -47,9 +46,9 @@ void SoAToRecoVertexProducer::produce(edm::Event& iEvent, const edm::EventSetup&
   // Book inputs and space for outputs
   const VertexHostCollection& hostVertex = iEvent.get(portableVertexToken_);
   const VertexHostCollection::ConstView& hostVertexView = hostVertex.const_view();
+  // Note that we need reco::Tracks for building the track Reference vector inside the reco::Vertex
   auto tracks =
-      iEvent.getHandle(recoTrackToken_)
-          .product();  // Note that we need reco::Tracks for building the track Reference vector inside the reco::Vertex
+      iEvent.getHandle(recoTrackToken_);  
 
   // This is an annoying conversion as the vertex expects a transient track here, which is a dataformat which we otherwise bypass
   auto result = std::make_unique<reco::VertexCollection>();
@@ -65,18 +64,19 @@ void SoAToRecoVertexProducer::produce(edm::Event& iEvent, const edm::EventSetup&
     err[1][1] = hostVertexView[iV].erry();
     err[2][2] = hostVertexView[iV].errz();
     // Then we can actually create the vertex
-    reco::Vertex newV(reco::Vertex::Point(hostVertexView[iV].x(), hostVertexView[iV].y(), hostVertexView[iV].z()),
+    vcoll.emplace_back(reco::Vertex::Point(hostVertexView[iV].x(), hostVertexView[iV].y(), hostVertexView[iV].z()),
                       err,
                       hostVertexView[iV].chi2(),
                       hostVertexView[iV].ndof(),
                       hostVertexView[iV].ntracks());
+    auto& newV = vcoll.back();
+
     // Finally, add references to the reco::Track used for building it
     for (int iT = 0; iT < hostVertexView[iV].ntracks(); iT++) {
       int new_itrack = hostVertexView[iV].track_id()[iT];
       reco::TrackRef ref(tracks, new_itrack);
       newV.add(ref, hostVertexView[iV].track_weight()[iT]);
     }
-    vColl.push_back(newV);
   }
   // And finally put the collection in the event
   iEvent.put(std::move(result));

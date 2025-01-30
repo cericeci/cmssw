@@ -1,4 +1,6 @@
 <use name="FWCore/Framework"/>
+<use name="DataFormats/Portable"/>
+<use name="DataFormats/SoATemplate"/>
 <use name="HeterogeneousCore/AlpakaCore"/>
 <use name="HeterogeneousCore/AlpakaInterface"/>
 <use name="TrackingTools/Records"/>

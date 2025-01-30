@@ -3,9 +3,9 @@
 #include "HeterogeneousCore/AlpakaInterface/interface/config.h"
 #include "HeterogeneousCore/AlpakaInterface/interface/workdivision.h"
 
-#include "RecoVertex/PrimaryVertexProducer_Alpaka/plugins/alpaka/BlockAlgo.h"
+#include "RecoVertex/PortablePrimaryVertexProducer/plugins/alpaka/BlockAlgo.h"
 
-//#define DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_BLOCKALGO 0
+//#define DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_BLOCKALGO 0
 
 namespace ALPAKA_ACCELERATOR_NAMESPACE {
   using namespace cms::alpakatools;
@@ -18,17 +18,17 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
                                   TrackForVertexDeviceCollection::View trackInBlocks,
                                   double blockOverlap,
                                   int32_t blockSize) const {
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_BLOCKALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_BLOCKALGO
       printf("[BlockAlgo::operator()] Start creation of overlapping blocks of tracks\n");
       printf("[BlockAlgo::operator()] Parameters blockOverlap: %1.3f, blockSize %i\n", blockOverlap, blockSize);
 #endif
       int32_t nTOld = inputTracks.nT();
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_BLOCKALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_BLOCKALGO
       printf("[BlockAlgo::operator()] Start from nTOld %i input tracks\n", nTOld);
 #endif
       int32_t nBlocks = nTOld > blockSize ? int32_t((nTOld - 1) / (blockOverlap * blockSize))
                                           : 1;  // If all fit within a block, no need to split
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_BLOCKALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_BLOCKALGO
       printf("[BlockAlgo::operator()] Will create nBlocks: %i\n", nBlocks);
 #endif
       int32_t overlapStart =
@@ -43,7 +43,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
           if (oldIndex >= nTOld)
             break;  // I.e. we reached the end of the input block
           int32_t newIndex = iNewTrack + iblock * blockSize;
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_BLOCKALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_BLOCKALGO
           printf("[BlockAlgo::operator()] iblock %i, oldIndex %i => newIndex %i, x: %1.5f, y: %1.5f, z:%1.5f\n",
                  iblock,
                  oldIndex,
@@ -83,13 +83,13 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
                               nTOld /
                               (blockOverlap *
                                blockSize)));  // The new number of tracks has to account for the fact that we overlapped
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_BLOCKALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_BLOCKALGO
         printf(
             "[BlockAlgo::operator()] Set nTracks to %i\n",
             (int32_t)((nBlocks - 1) * blockSize + nTOld - blockSize * std::floor(nTOld / (blockOverlap * blockSize))));
 #endif
       }
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_BLOCKALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_BLOCKALGO
       printf("[BlockAlgo::operator()] End\n");
 #endif
     }  // createBlocksKernel::operator()

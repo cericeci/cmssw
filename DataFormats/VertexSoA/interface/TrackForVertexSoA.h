@@ -8,7 +8,7 @@
 #include "DataFormats/SoATemplate/interface/SoALayout.h"
 #include "DataFormats/SoATemplate/interface/SoAView.h"
 
-unsigned int nVertexPerTrack = 512;          // Maximum number of vertices associated to a track internally while vertexing
+const unsigned int nVertexPerTrack = 512;          // Maximum number of vertices associated to a track internally while vertexing
 using TrackToVertex = Eigen::Vector<float, nVertexPerTrack>;
 GENERATE_SOA_LAYOUT(TrackForVertexSoALayout,
                       // columns: one value per element

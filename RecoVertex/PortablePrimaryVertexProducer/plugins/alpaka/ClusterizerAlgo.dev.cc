@@ -1,4 +1,4 @@
-#include "RecoVertex/PrimaryVertexProducer_Alpaka/plugins/alpaka/ClusterizerAlgo.dev.h"
+#include "RecoVertex/PortablePrimaryVertexProducer/plugins/alpaka/ClusterizerAlgo.dev.h"
 
 namespace ALPAKA_ACCELERATOR_NAMESPACE {
   using namespace cms::alpakatools;
@@ -25,7 +25,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
           acc)[0u];  // In GPU blockSize and trackBlockSize should be identical from how the kernel is called, in CPU not
       int threadIdx = alpaka::getIdx<alpaka::Block, alpaka::Threads>(acc)[0u];  // Thread number inside block
       int blockIdx = alpaka::getIdx<alpaka::Grid, alpaka::Blocks>(acc)[0u];     // Block number inside grid
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_CLUSTERIZERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_CLUSTERIZERALGO
       if (once_per_block(acc)) {
         printf("[ClusterizerAlgo::operator()] Start clustering block %i\n", blockIdx);
         printf("[ClusterizerAlgo::operator()] Parameters blockSize %i, trackBlockSize %i\n", blockSize, trackBlockSize);
@@ -44,7 +44,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
       if (once_per_block(acc)) {
         _osumtkwt = 1. / _osumtkwt;
       }
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_CLUSTERIZERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_CLUSTERIZERALGO
       if (once_per_block(acc)) {
         printf("[ClusterizerAlgo::operator()] BlockIdx %i, _osumtkwt=%1.3f \n", blockIdx, _osumtkwt);
       }
@@ -52,7 +52,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
       alpaka::syncBlockThreads(acc);
       // In each block, initialize to a single vertex with all tracks
       initialize(acc, tracks, vertices, cParams, trackBlockSize);
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_CLUSTERIZERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_CLUSTERIZERALGO
       if (once_per_block(acc)) {
         printf("[ClusterizerAlgo::operator()] BlockIdx %i, vertices initialized\n", blockIdx);
       }
@@ -61,28 +61,28 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
       // First estimation of critical temperature
       getBeta0(acc, tracks, vertices, cParams, _beta, trackBlockSize);
       alpaka::syncBlockThreads(acc);
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_CLUSTERIZERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_CLUSTERIZERALGO
       if (once_per_block(acc)) {
         printf("[ClusterizerAlgo::operator()] BlockIdx %i, first estimation of TC _beta=%1.3f \n", blockIdx, _beta);
       }
 #endif
       // Cool down to betamax with rho = 0.0 (no regularization term)
       thermalize(acc, tracks, vertices, cParams, _osumtkwt, _beta, cParams.delta_highT(), 0.0, trackBlockSize);
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_CLUSTERIZERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_CLUSTERIZERALGO
       if (once_per_block(acc)) {
         printf("[ClusterizerAlgo::operator()] BlockIdx %i, first thermalization ended\n", blockIdx);
       }
 #endif
       // Now the cooling loop
       coolingWhileSplitting(acc, tracks, vertices, cParams, _osumtkwt, _beta, trackBlockSize);
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_CLUSTERIZERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_CLUSTERIZERALGO
       if (once_per_block(acc)) {
         printf("[ClusterizerAlgo::operator()] BlockIdx %i, cooling ended, T at stop _beta=%1.3f\n", blockIdx, _beta);
       }
 #endif
       // After cooling, merge closeby vertices
       reMergeTracks(acc, tracks, vertices, cParams, _osumtkwt, _beta, trackBlockSize);
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_CLUSTERIZERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_CLUSTERIZERALGO
       if (once_per_block(acc)) {
         printf("[ClusterizerAlgo::operator()] BlockIdx %i, merge, last merging step done\n", blockIdx);
       }
@@ -91,7 +91,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
         beta_[blockIdx] = _beta;
         osumtkwt_[blockIdx] = _osumtkwt;
       }
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_CLUSTERIZERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_CLUSTERIZERALGO
       if (once_per_block(acc)) {
         printf("[ClusterizerAlgo::operator()] BlockIdx %i end\n", blockIdx);
       }

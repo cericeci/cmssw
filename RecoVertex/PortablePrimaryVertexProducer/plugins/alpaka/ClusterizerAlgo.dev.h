@@ -1,5 +1,5 @@
-#ifndef RecoVertex_PrimaryVertexProducer_Alpaka_plugins_alpaka_ClusterizerAlgo_dev_h
-#define RecoVertex_PrimaryVertexProducer_Alpaka_plugins_alpaka_ClusterizerAlgo_dev_h
+#ifndef RecoVertex_PortablePrimaryVertexProducer_plugins_alpaka_ClusterizerAlgo_dev_h
+#define RecoVertex_PortablePrimaryVertexProducer_plugins_alpaka_ClusterizerAlgo_dev_h
 
 #include <alpaka/alpaka.hpp>
 
@@ -7,10 +7,10 @@
 #include "HeterogeneousCore/AlpakaInterface/interface/workdivision.h"
 #include "HeterogeneousCore/AlpakaInterface/interface/radixSort.h"
 
-#include "RecoVertex/PrimaryVertexProducer_Alpaka/plugins/alpaka/ClusterizerAlgo.h"
+#include "RecoVertex/PortablePrimaryVertexProducer/plugins/alpaka/ClusterizerAlgo.h"
 
-#ifndef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_CLUSTERIZERALGO
-#define DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_CLUSTERIZERALGO 0
+#ifndef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_CLUSTERIZERALGO
+#define DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_CLUSTERIZERALGO 0
 #endif
 
 namespace ALPAKA_ACCELERATOR_NAMESPACE {
@@ -229,7 +229,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
     int maxVerticesPerBlock = (int)512 / alpaka::getWorkDiv<alpaka::Grid, alpaka::Blocks>(
                                              acc)[0u];  // Max vertices size is 512 over number of blocks in grid
     int nprev = vertices[blockIdx].nV();
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_CLUSTERIZERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_CLUSTERIZERALGO
     if (once_per_block(acc)) {
       printf("[ClusterizerAlgo::merge()] BlockIdx %i, start merging \n", blockIdx);
     }
@@ -266,7 +266,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
     alpaka::syncBlockThreads(acc);
     if (ncritical == 0)
       return;
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_CLUSTERIZERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_CLUSTERIZERALGO
     if (once_per_block(acc)) {
       printf("[ClusterizerAlgo::merge()] BlockIdx %i, %i vertices to be merged\n", blockIdx, ncritical);
     }
@@ -290,7 +290,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
       if (ivertexO < blockIdx * maxVerticesPerBlock + nprev - 1)
         ivertexnext = vertices[ivertexO + 1].order();  // This will be used in a couple of computations
       alpaka::syncBlockThreads(acc);
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_CLUSTERIZERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_CLUSTERIZERALGO
       if (once_per_block(acc)) {
         printf(
             "[ClusterizerAlgo::merge()] BlockIdx %i, merge vertex %i into vertex %i\n", blockIdx, ivertex, ivertexnext);
@@ -313,7 +313,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
           vertices[ivertexOO].order() = vertices[ivertexOO + 1].order();
         }
         vertices[blockIdx].nV() = vertices[blockIdx].nV() - 1;  // Also update nvertex
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_CLUSTERIZERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_CLUSTERIZERALGO
         if (once_per_block(acc)) {
           printf("[ClusterizerAlgo::merge()] BlockIdx %i, merged vertex %i with z=%1.3f,rho=%1.3f\n",
                  blockIdx,
@@ -402,7 +402,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
     alpaka::syncBlockThreads(acc);
     if (ncritical == 0 || maxVerticesPerBlock == nprev)
       return;  // I.e. either we don't want to or we can't split more
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_CLUSTERIZERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_CLUSTERIZERALGO
     if (once_per_block(acc)) {
       printf("[ClusterizerAlgo::split()] BlockIdx %i, split %i vertices\n", blockIdx, ncritical);
     }
@@ -423,7 +423,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
       int ivertex = vertices[ivertexO].order();  // This will be splitted
       int ivertexprev = blockIdx * maxVerticesPerBlock;
       int ivertexnext = blockIdx * maxVerticesPerBlock + nprev - 1;
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_CLUSTERIZERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_CLUSTERIZERALGO
       if (once_per_block(acc)) {
         printf("[ClusterizerAlgo::split()] BlockIdx %i, splitting vertex %i\n", blockIdx, ivertex);
       }
@@ -470,7 +470,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
         }
       }
       alpaka::syncBlockThreads(acc);
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_CLUSTERIZERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_CLUSTERIZERALGO
       if (once_per_block(acc)) {
         printf(
             "[ClusterizerAlgo::split()] BlockIdx %i, for vertex %i, p1=%1.3f, p2=%1.3f, w1=%1.3f, w2=%1.3f, z1=%1.3f, "
@@ -514,7 +514,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
       }  // end once_per_block
       // Now save the properties of the new stuff
       alpaka::syncBlockThreads(acc);
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_CLUSTERIZERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_CLUSTERIZERALGO
       if (once_per_block(acc)) {
         printf("[ClusterizerAlgo::split()] BlockIdx %i, vertex %i will split into z1=%1.3f, z2=%1.3f\n",
                blockIdx,
@@ -556,7 +556,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
         }
         vertices[ivertexO].order() = nnew;
         vertices[blockIdx].nV() += 1;
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_CLUSTERIZERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_CLUSTERIZERALGO
         if (once_per_block(acc)) {
           printf("[ClusterizerAlgo::split()] BlockIdx %i, vertex %i did split into indexes %i and %i\n",
                  blockIdx,
@@ -659,7 +659,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
         }
       }  // end vertex for
       if (k0 != (int)(maxVerticesPerBlock * blockIdx + nprev)) {
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_CLUSTERIZERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_CLUSTERIZERALGO
         if (once_per_block(acc)) {
           printf("[ClusterizerAlgo::purge()] BlockIdx %i, some vertices need purging. Will start purging \n", blockIdx);
         }
@@ -670,7 +670,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
         }
         vertices[blockIdx].nV()--;  // Also update nvertex
         vertices[k0].isGood() = false;
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_CLUSTERIZERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_CLUSTERIZERALGO
         if (once_per_block(acc)) {
           printf("[ClusterizerAlgo::purge()] BlockIdx %i, vertex %i purged\n", blockIdx, k0);
         }
@@ -838,7 +838,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
     // Accumulator of variations
     double delta_sum_range = 0;
     while (niter++ < maxIterations) {  // Loop until vertex position change is small
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_CLUSTERIZERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_CLUSTERIZERALGO
       if (once_per_block(acc)) {
         printf("[ClusterizerAlgo::thermalize()] BlockIdx %i, thermalize at _beta=%1.3f, iteration %i\n",
                blockIdx,
@@ -859,7 +859,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
       }
       delta_sum_range += dmax;
       if (delta_sum_range > zrange_min_ && dmax > zrange_min_) {  // I.e., if a vertex moved too much we reassign
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_CLUSTERIZERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_CLUSTERIZERALGO
         if (once_per_block(acc)) {
           printf(
               "[ClusterizerAlgo::thermalize()] BlockIdx %i, thermalize at _beta=%1.3f, iteration %i. Found "
@@ -875,7 +875,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
         delta_sum_range = 0.;
       }
       if (dmax < delta_max) {  // If everything moved too little, we stop update
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_CLUSTERIZERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_CLUSTERIZERALGO
         if (once_per_block(acc)) {
           update(acc,
                  tracks,
@@ -914,7 +914,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
     int blockIdx = alpaka::getIdx<alpaka::Grid, alpaka::Blocks>(acc)[0u];       // Block number inside grid
     double betafreeze = (1. / cParams.TMin()) * sqrt(cParams.coolingFactor());  // Last temperature
     while (_beta < betafreeze) {                                                // The cooling loop
-#ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_CLUSTERIZERALGO
+#ifdef DEBUG_RECOVERTEX_PORTABLEPRIMARYVERTEXPRODUCER_CLUSTERIZERALGO
       if (once_per_block(acc)) {
         printf("[ClusterizerAlgo::coolingWhileSplitting()] BlockIdx %i, current _beta=%1.3f\n", blockIdx, _beta);
       }

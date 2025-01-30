@@ -1,25 +1,17 @@
 <!-- host-only plugins -->
-<library file="*.cc" name="RecoVertexPrimaryVertexProducer_AlpakaPlugins">
-  <use name="alpaka"/>
-  <use name="fmt"/>
+<library file="*.cc" name="RecoVertexPortablePrimaryVertexProducerPlugins">
+  <use name="DataFormats/Math"/>
   <use name="DataFormats/VertexSoA"/>
   <use name="DataFormats/TrackReco"/>
   <use name="DataFormats/VertexReco"/>
   <use name="FWCore/Framework"/>
-  <use name="FWCore/MessageLogger"/>
   <use name="FWCore/ParameterSet"/>
   <use name="FWCore/Utilities"/>
-  <use name="HeterogeneousCore/CUDACore"/>
-  <use name="HeterogeneousCore/AlpakaTest"/>
-  <use name="HeterogeneousCore/AlpakaCore"/>
-  <use name="HeterogeneousCore/AlpakaInterface"/>
-  <use name="TrackingTools/Records"/>
-  <use name="TrackingTools/TransientTrack"/>
   <flags EDM_PLUGIN="1"/>
 </library>
 
 <!-- alpaka-based portable plugins -->
-<library file="alpaka/*.cc" name="RecoVertexPrimaryVertexProducer_AlpakaPluginsportable">
+<library file="alpaka/*.cc" name="RecoVertexPortablePrimaryVertexProducerPluginsportable">
   <use name="alpaka"/>
   <!--
   The dependency on "DataFormats/VertexSoA" automatically expands to include
@@ -32,7 +24,6 @@
   <use name="FWCore/Framework"/>
   <use name="FWCore/ParameterSet"/>
   <use name="FWCore/Utilities"/>
-  <use name="HeterogeneousCore/CUDACore"/>
   <use name="HeterogeneousCore/AlpakaCore"/>
   <use name="HeterogeneousCore/AlpakaInterface"/>
   <use name="TrackingTools/Records"/>

@@ -1,8 +1,9 @@
-#ifndef RecoVertex_PrimaryVertexProducer_Alpaka_plugins_alpaka_ClusterizerAlgo_h
-#define RecoVertex_PrimaryVertexProducer_Alpaka_plugins_alpaka_ClusterizerAlgo_h
+#ifndef RecoVertex_PortablePrimaryVertexProducer_plugins_alpaka_ClusterizerAlgo_h
+#define RecoVertex_PortablePrimaryVertexProducer_plugins_alpaka_ClusterizerAlgo_h
 
 #include "DataFormats/VertexSoA/interface/alpaka/VertexDeviceCollection.h"
 #include "DataFormats/VertexSoA/interface/alpaka/TrackForVertexDeviceCollection.h"
+#include "RecoVertex/PortablePrimaryVertexProducer/interface/alpaka/ClusterParamsDeviceCollection.h"
 #include "HeterogeneousCore/AlpakaInterface/interface/config.h"
 
 namespace ALPAKA_ACCELERATOR_NAMESPACE {
@@ -62,4 +63,4 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
 }  // namespace ALPAKA_ACCELERATOR_NAMESPACE
 
-#endif  // RecoVertex_PrimaryVertexProducer_Alpaka_plugins_alpaka_ClusterizerAlgo_h
+#endif  // RecoVertex_PortablePrimaryVertexProducer_plugins_alpaka_ClusterizerAlgo_h
