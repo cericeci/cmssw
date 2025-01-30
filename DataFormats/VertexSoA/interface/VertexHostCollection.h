@@ -1,13 +1,11 @@
-#ifndef DataFormats_PortableVertex_interface_VertexHostCollection_h
-#define DataFormats_PortableVertex_interface_VertexHostCollection_h
+#ifndef DataFormats_VertexSoA_interface_VertexHostCollection_h
+#define DataFormats_VertexSoA_interface_VertexHostCollection_h
 
 #include "DataFormats/Portable/interface/PortableHostCollection.h"
-#include "DataFormats/PortableVertex/interface/VertexSoA.h"
+#include "DataFormats/VertexSoA/interface/VertexSoA.h"
 
-namespace portablevertex {
 
-  // SoA with x, y, z, id fields in host memory
-  using VertexHostCollection = PortableHostCollection<VertexSoA>;
-}  // namespace portablevertex
+// SoA with x, y, z, id fields in host memory
+using VertexHostCollection = PortableHostCollection<VertexSoA>;
 
-#endif  // DataFormats_PortableVertex_interface_VertexHostCollection_h
+#endif  // DataFormats_VertexSoA_interface_VertexHostCollection_h

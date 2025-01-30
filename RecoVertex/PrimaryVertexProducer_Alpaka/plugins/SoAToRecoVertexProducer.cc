@@ -18,7 +18,7 @@
 
 /**
    * This plugin takes the SoA portableVertex and converts them to reco::Vertex, for usage within other workflows
-   * - consuming set of reco::Tracks and portablevertex SoA
+   * - consuming set of reco::Tracks and VertexSoA
    * - produces a host reco::vertexCollection
  */
 class SoAToRecoVertexProducer : public edm::stream::EDProducer<> {
@@ -38,15 +38,15 @@ public:
 
 private:
   void produce(edm::Event&, const edm::EventSetup&) override;
-  const edm::EDGetTokenT<portablevertex::VertexHostCollection> portableVertexToken_;
+  const edm::EDGetTokenT<VertexHostCollection> portableVertexToken_;
   const edm::EDGetTokenT<reco::TrackCollection> recoTrackToken_;
   const edm::EDPutTokenT<reco::VertexCollection> recoVertexToken_;
 };
 
 void SoAToRecoVertexProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   // Book inputs and space for outputs
-  const portablevertex::VertexHostCollection& hostVertex = iEvent.get(portableVertexToken_);
-  const portablevertex::VertexHostCollection::ConstView& hostVertexView = hostVertex.const_view();
+  const VertexHostCollection& hostVertex = iEvent.get(portableVertexToken_);
+  const VertexHostCollection::ConstView& hostVertexView = hostVertex.const_view();
   auto tracks =
       iEvent.getHandle(recoTrackToken_)
           .product();  // Note that we need reco::Tracks for building the track Reference vector inside the reco::Vertex

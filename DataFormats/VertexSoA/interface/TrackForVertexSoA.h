@@ -1,5 +1,5 @@
-#ifndef DataFormats_PortableVertex_interface_TrackForVertexSoA_h
-#define DataFormats_PortableVertex_interface_TrackForVertexSoA_h
+#ifndef DataFormats_VertexSoA_interface_TrackForVertexSoA_h
+#define DataFormats_VertexSoA_interface_TrackForVertexSoA_h
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
@@ -8,10 +8,9 @@
 #include "DataFormats/SoATemplate/interface/SoALayout.h"
 #include "DataFormats/SoATemplate/interface/SoAView.h"
 
-namespace portablevertex {
-  unsigned int nVertexPerTrack = 512;          // Maximum number of vertices associated to a track internally while vertexing
-  using TrackToVertex = Eigen::Vector<float, nVertexPerTrack>;
-  GENERATE_SOA_LAYOUT(TrackForVertexSoALayout,
+unsigned int nVertexPerTrack = 512;          // Maximum number of vertices associated to a track internally while vertexing
+using TrackToVertex = Eigen::Vector<float, nVertexPerTrack>;
+GENERATE_SOA_LAYOUT(TrackForVertexSoALayout,
                       // columns: one value per element
                       SOA_COLUMN(float, dxy2),
                       SOA_COLUMN(float, dxy2AtIP),
@@ -59,8 +58,6 @@ namespace portablevertex {
                       SOA_SCALAR(int32_t, nT),
                       SOA_SCALAR(float, totweight))
 
-  using TrackForVertexSoA = TrackForVertexSoALayout<>;
+using TrackForVertexSoA = TrackForVertexSoALayout<>;
 
-}  // namespace portablevertex
-
-#endif  // DataFormats_PortableVertex_interface_TrackForVertexSoA_h
+#endif  // DataFormats_VertexSoA_interface_TrackForVertexSoA_h

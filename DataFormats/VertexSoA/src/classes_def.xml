@@ -16,36 +16,36 @@
   <class name="ZVertexHost"/>
   <class name="edm::Wrapper<ZVertexHost>" splitLevel="0"/>
 
-  <class name="portablevertex::VertexSoA"/>
-  <class name="portablevertex::VertexSoA::View"/>
+  <class name="VertexSoA"/>
+  <class name="VertexSoA::View"/>
 
-  <class name="portablevertex::VertexHostCollection"/>
+  <class name="VertexHostCollection"/>
   <read
-    sourceClass="portablevertex::VertexHostCollection"
-    targetClass="portablevertex::VertexHostCollection"
+    sourceClass="VertexHostCollection"
+    targetClass="VertexHostCollection"
     version="[1-]"
-    source="portablevertex::VertexSoA layout_;"
+    source="VertexSoA layout_;"
     target="buffer_,layout_,view_"
     embed="false">
   <![CDATA[
-    portablevertex::VertexHostCollection::ROOTReadStreamer(newObj, onfile.layout_);
+    VertexHostCollection::ROOTReadStreamer(newObj, onfile.layout_);
   ]]>
   </read>
-  <class name="edm::Wrapper<portablevertex::VertexHostCollection>" splitLevel="0"/>
+  <class name="edm::Wrapper<VertexHostCollection>" splitLevel="0"/>
 
-  <class name="portablevertex::TrackForVertexSoA"/>
-  <class name="portablevertex::TrackForVertexSoA::View"/>
-  <class name="portablevertex::TrackForVertexHostCollection"/>
+  <class name="TrackForVertexSoA"/>
+  <class name="TrackForVertexSoA::View"/>
+  <class name="TrackForVertexHostCollection"/>
   <read
-    sourceClass="portablevertex::TrackForVertexHostCollection"
-    targetClass="portablevertex::TrackForVertexHostCollection"
+    sourceClass="TrackForVertexHostCollection"
+    targetClass="TrackForVertexHostCollection"
     version="[1-]"
-    source="portablevertex::TrackForVertexSoA layout_;"
+    source="TrackForVertexSoA layout_;"
     target="buffer_,layout_,view_"
     embed="false">
   <![CDATA[
-    portablevertex::TrackForVertexHostCollection::ROOTReadStreamer(newObj, onfile.layout_);
+    TrackForVertexHostCollection::ROOTReadStreamer(newObj, onfile.layout_);
   ]]>
   </read>
-  <class name="edm::Wrapper<portablevertex::TrackForVertexHostCollection>" splitLevel="0"/>
+  <class name="edm::Wrapper<TrackForVertexHostCollection>" splitLevel="0"/>
 </lcgdict>

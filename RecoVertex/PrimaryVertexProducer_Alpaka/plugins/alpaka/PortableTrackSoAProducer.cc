@@ -24,7 +24,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
   /**
    * This:
    * - consumes set of reco::Tracks and reco::BeamSpot
-   * - converts the reco::Tracks to a Alpaka-friendly dataformat portablevertex::TrackForVertexHostCollection
+   * - converts the reco::Tracks to a Alpaka-friendly dataformat TrackForVertexHostCollection
    * - puts the Alpaka dataformat in the device for later consumption
    */
   struct filterParameters {
@@ -83,7 +83,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
       int32_t tsize_ = tracks.product()->size();
 
       // Host collections
-      portablevertex::TrackForVertexHostCollection hostTracks{tsize_, iEvent.queue()};
+      TrackForVertexHostCollection hostTracks{tsize_, iEvent.queue()};
       auto& tview = hostTracks.view();
 
       // Fill Host collections with input, first initialize globals
@@ -131,7 +131,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
              nTrueTracks);
 #endif
       // Create device collections and copy into device
-      portablevertex::TrackForVertexDeviceCollection deviceTracks{tsize_, iEvent.queue()};
+      TrackForVertexDeviceCollection deviceTracks{tsize_, iEvent.queue()};
 
       alpaka::memcpy(iEvent.queue(), deviceTracks.buffer(), hostTracks.buffer());
 
@@ -164,9 +164,9 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
     edm::EDGetTokenT<reco::TrackCollection> trackToken_;
     edm::EDGetTokenT<reco::BeamSpot> beamSpotToken_;
     const edm::ESGetToken<TransientTrackBuilder, TransientTrackRecord> theTTBToken;
-    device::EDPutToken<portablevertex::TrackForVertexDeviceCollection> devicePutToken_;
+    device::EDPutToken<TrackForVertexDeviceCollection> devicePutToken_;
     edm::ParameterSet theConfig;
-    static double convertTrack(portablevertex::TrackForVertexHostCollection::View::element out,
+    static double convertTrack(TrackForVertexHostCollection::View::element out,
                                const reco::TransientTrack in,
                                const reco::BeamSpot bs,
                                filterParameters fParams,
@@ -175,7 +175,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
     filterParameters fParams;
   };  //PortableTrackSoAProducer declaration
 
-  double PortableTrackSoAProducer::convertTrack(portablevertex::TrackForVertexHostCollection::View::element out,
+  double PortableTrackSoAProducer::convertTrack(TrackForVertexHostCollection::View::element out,
                                                 const reco::TransientTrack in,
                                                 const reco::BeamSpot bs,
                                                 filterParameters fParams,

@@ -16,9 +16,9 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
   template <bool debug = false, typename TAcc, typename = std::enable_if_t<alpaka::isAccelerator<TAcc>>>
   ALPAKA_FN_ACC static void resortVerticesAndAssign(const TAcc& acc,
-                                                    portablevertex::TrackForVertexDeviceCollection::View tracks,
-                                                    portablevertex::VertexDeviceCollection::View vertices,
-                                                    const portablevertex::ClusterParamsHostCollection::ConstView cParams,
+                                                    TrackForVertexDeviceCollection::View tracks,
+                                                    VertexDeviceCollection::View vertices,
+                                                    const ClusterParamsHostCollection::ConstView cParams,
                                                     int32_t griddim) {
     // Multiblock vertex arbitration
     double beta = 1. / cParams.Tstop();
@@ -145,9 +145,9 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
 
   template <bool debug = false, typename TAcc, typename = std::enable_if_t<alpaka::isAccelerator<TAcc>>>
   ALPAKA_FN_ACC static void finalizeVertices(const TAcc& acc,
-                                             portablevertex::TrackForVertexDeviceCollection::View tracks,
-                                             portablevertex::VertexDeviceCollection::View vertices,
-                                             const portablevertex::ClusterParamsHostCollection::ConstView cParams) {
+                                             TrackForVertexDeviceCollection::View tracks,
+                                             VertexDeviceCollection::View vertices,
+                                             const ClusterParamsHostCollection::ConstView cParams) {
     //int blockSize = alpaka::getWorkDiv<alpaka::Grid, alpaka::Blocks>(acc)[0u];
     //int threadIdx = alpaka::getIdx<alpaka::Block, alpaka::Threads>(acc)[0u]; // Thread number inside block
     // From here it used to be vertices
@@ -225,9 +225,9 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
   public:
     template <typename TAcc, typename = std::enable_if_t<alpaka::isAccelerator<TAcc>>>
     ALPAKA_FN_ACC void operator()(const TAcc& acc,
-                                  portablevertex::TrackForVertexDeviceCollection::View tracks,
-                                  portablevertex::VertexDeviceCollection::View vertices,
-                                  const portablevertex::ClusterParamsHostCollection::ConstView cParams,
+                                  TrackForVertexDeviceCollection::View tracks,
+                                  VertexDeviceCollection::View vertices,
+                                  const ClusterParamsHostCollection::ConstView cParams,
                                   int32_t nBlocks) const {
       // This has the core of the clusterization algorithm
       int blockIdx = alpaka::getIdx<alpaka::Grid, alpaka::Blocks>(acc)[0u];  // Block number inside grid
@@ -254,9 +254,9 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
   };  // class kernel
 
   void ClusterizerAlgo::arbitrate(Queue& queue,
-                                  portablevertex::TrackForVertexDeviceCollection& deviceTrack,
-                                  portablevertex::VertexDeviceCollection& deviceVertex,
-                                  const std::shared_ptr<portablevertex::ClusterParamsHostCollection> cParams,
+                                  TrackForVertexDeviceCollection& deviceTrack,
+                                  VertexDeviceCollection& deviceVertex,
+                                  const std::shared_ptr<ClusterParamsHostCollection> cParams,
                                   int32_t nBlocks,
                                   int32_t blockSize) {
     const int blocks = divide_up_by(blockSize, blockSize);  //Single block, as it has to converge to a single collection

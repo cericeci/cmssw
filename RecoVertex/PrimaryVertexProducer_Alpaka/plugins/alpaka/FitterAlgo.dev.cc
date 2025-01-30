@@ -14,8 +14,8 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
   public:
     template <typename TAcc, typename = std::enable_if_t<alpaka::isAccelerator<TAcc>>>
     ALPAKA_FN_ACC void operator()(const TAcc& acc,
-                                  const portablevertex::TrackForVertexDeviceCollection::ConstView tracks,
-                                  portablevertex::VertexDeviceCollection::View vertices,
+                                  const TrackForVertexDeviceCollection::ConstView tracks,
+                                  VertexDeviceCollection::View vertices,
                                   BeamSpotPOD const* beamSpot,
                                   bool* useBeamSpotConstraint) const {
 #ifdef DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ALPAKA_FITTERALGO
@@ -305,8 +305,8 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
   }  // FitterAlgo::FitterAlgo
 
   void FitterAlgo::fit(Queue& queue,
-                       const portablevertex::TrackForVertexDeviceCollection& deviceTrack,
-                       portablevertex::VertexDeviceCollection& deviceVertex,
+                       const TrackForVertexDeviceCollection& deviceTrack,
+                       VertexDeviceCollection& deviceVertex,
                        const BeamSpotDevice& deviceBeamSpot) {
     const int nVertexToFit =
         512;  // Right now it executes for all 512 vertex, even if vertex collection is empty (in which case the kernel passes). Can we make this dynamic to vertex size?

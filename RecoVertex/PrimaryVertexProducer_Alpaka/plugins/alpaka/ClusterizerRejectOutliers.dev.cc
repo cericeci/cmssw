@@ -10,9 +10,9 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
   public:
     template <typename TAcc, typename = std::enable_if_t<alpaka::isAccelerator<TAcc>>>
     ALPAKA_FN_ACC void operator()(const TAcc& acc,
-                                  portablevertex::TrackForVertexDeviceCollection::View tracks,
-                                  portablevertex::VertexDeviceCollection::View vertices,
-                                  const portablevertex::ClusterParamsHostCollection::ConstView cParams,
+                                  TrackForVertexDeviceCollection::View tracks,
+                                  VertexDeviceCollection::View vertices,
+                                  const ClusterParamsHostCollection::ConstView cParams,
                                   double* beta_,
                                   double* osumtkwt_,
                                   int trackBlockSize) const {
@@ -47,9 +47,9 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
   };  // class kernel
 
   void ClusterizerAlgo::reject_outliers(Queue& queue,
-                                        portablevertex::TrackForVertexDeviceCollection& deviceTrack,
-                                        portablevertex::VertexDeviceCollection& deviceVertex,
-                                        const std::shared_ptr<portablevertex::ClusterParamsHostCollection> cParams,
+                                        TrackForVertexDeviceCollection& deviceTrack,
+                                        VertexDeviceCollection& deviceVertex,
+                                        const std::shared_ptr<ClusterParamsHostCollection> cParams,
                                         int32_t nBlocks,
                                         int32_t blockSize) {
     const int blocks = divide_up_by(nBlocks * blockSize, blockSize);  //nBlocks of size blockSize

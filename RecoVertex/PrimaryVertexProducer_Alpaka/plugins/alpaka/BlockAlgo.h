@@ -10,8 +10,8 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
   public:
     BlockAlgo();
     void createBlocks(Queue& queue,
-                      const portablevertex::TrackForVertexDeviceCollection& inputTrack,
-                      portablevertex::TrackForVertexDeviceCollection& trackInBlocks,
+                      const TrackForVertexDeviceCollection& inputTrack,
+                      TrackForVertexDeviceCollection& trackInBlocks,
                       int32_t blockSize,
                       double blockOverlap);  // The actual block creation
 
