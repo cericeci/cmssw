@@ -1,8 +1,8 @@
 #ifndef RecoVertex_PrimaryVertexProducer_Alpaka_plugins_alpaka_ClusterizerAlgo_h
 #define RecoVertex_PrimaryVertexProducer_Alpaka_plugins_alpaka_ClusterizerAlgo_h
 
-#include "DataFormats/PortableVertex/interface/alpaka/VertexDeviceCollection.h"
-#include "DataFormats/PortableVertex/interface/alpaka/TrackForVertexDeviceCollection.h"
+#include "DataFormats/VertexSoA/interface/alpaka/VertexDeviceCollection.h"
+#include "DataFormats/VertexSoA/interface/alpaka/TrackForVertexDeviceCollection.h"
 #include "HeterogeneousCore/AlpakaInterface/interface/config.h"
 
 namespace ALPAKA_ACCELERATOR_NAMESPACE {

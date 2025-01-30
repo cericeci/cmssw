@@ -1,4 +1,4 @@
-#include "DataFormats/PortableVertex/interface/VertexHostCollection.h"
+#include "DataFormats/VertexSoA/interface/VertexHostCollection.h"
 #include "FWCore/ParameterSet/interface/ConfigurationDescriptions.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ParameterSet/interface/ParameterSetDescription.h"

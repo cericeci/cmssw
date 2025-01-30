@@ -1,5 +1,5 @@
-#include "DataFormats/PortableVertex/interface/alpaka/TrackForVertexDeviceCollection.h"
-#include "DataFormats/PortableVertex/interface/TrackForVertexHostCollection.h"
+#include "DataFormats/VertexSoA/interface/alpaka/TrackForVertexDeviceCollection.h"
+#include "DataFormats/VertexSoA/interface/TrackForVertexHostCollection.h"
 #include "FWCore/ParameterSet/interface/ConfigurationDescriptions.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ParameterSet/interface/ParameterSetDescription.h"

@@ -1,5 +1,5 @@
-#include "DataFormats/PortableVertex/interface/alpaka/VertexDeviceCollection.h"
-#include "DataFormats/PortableVertex/interface/VertexHostCollection.h"
+#include "DataFormats/VertexSoA/interface/alpaka/VertexDeviceCollection.h"
+#include "DataFormats/VertexSoA/interface/VertexHostCollection.h"
 #include "DataFormats/BeamSpot/interface/BeamSpotHost.h"
 #include "FWCore/ParameterSet/interface/ConfigurationDescriptions.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"

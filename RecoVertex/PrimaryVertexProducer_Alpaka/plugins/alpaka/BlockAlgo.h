@@ -1,7 +1,7 @@
 #ifndef RecoVertex_PrimaryVertexProducer_Alpaka_plugins_alpaka_BlockAlgo_h
 #define RecoVertex_PrimaryVertexProducer_Alpaka_plugins_alpaka_BlockAlgo_h
 
-#include "DataFormats/PortableVertex/interface/alpaka/TrackForVertexDeviceCollection.h"
+#include "DataFormats/VertexSoA/interface/alpaka/TrackForVertexDeviceCollection.h"
 #include "HeterogeneousCore/AlpakaInterface/interface/config.h"
 
 namespace ALPAKA_ACCELERATOR_NAMESPACE {
