@@ -54,7 +54,7 @@ namespace portablevertex {
 
   using VertexSoA = VertexSoALayout<>;
 
-  using TrackToVertex = Eigen::Vector<float, 512>;  // 512 is the max vertex allowed
+  using TrackToVertex = Eigen::Vector<float, 1024>;  // 1024 is the max vertex allowed
   GENERATE_SOA_LAYOUT(TrackSoALayout,
                       // columns: one value per element
                       SOA_COLUMN(float, dxy2),
