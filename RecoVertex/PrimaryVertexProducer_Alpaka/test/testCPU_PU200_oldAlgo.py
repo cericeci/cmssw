@@ -80,25 +80,25 @@ process = customiseEarlyDelete(process)
 from RecoVertex.PrimaryVertexProducer.OfflinePrimaryVertices_cfi import offlinePrimaryVertices
 
 process.offlinePrimaryVertices = offlinePrimaryVertices
-process.offlinePrimaryVertices.TkClusParameters.TkDAClusParameters.runInBlocks = cms.bool(True)
+process.offlinePrimaryVertices.TkClusParameters.TkDAClusParameters.runInBlocks = cms.bool(False)
 process.offlinePrimaryVertices.TkClusParameters.TkDAClusParameters.block_size = cms.uint32(512)
 process.offlinePrimaryVertices.TkClusParameters.TkDAClusParameters.overlap_frac = cms.double(0.5)
 process.offlinePrimaryVertices.vertexCollections = cms.VPSet(
        [cms.PSet(label=cms.string(""),
-           algorithm=cms.string("WeightedMeanFitter"),
-           chi2cutoff = cms.double(2.5),
-           minNdof=cms.double(0.0),
-           useBeamConstraint = cms.bool(False),
-           maxDistanceToBeam = cms.double(1.0)
-        ),
+               algorithm=cms.string("AdaptiveVertexFitter"),
+               chi2cutoff = cms.double(2.5),
+               minNdof=cms.double(0.0),
+               useBeamConstraint = cms.bool(False),
+               maxDistanceToBeam = cms.double(1.0)
+               ),
         cms.PSet(label=cms.string("WithBS"),
-            algorithm = cms.string('WeightedMeanFitter'),
-            minNdof=cms.double(0.0),
-            chi2cutoff = cms.double(2.5),
-            useBeamConstraint = cms.bool(True),
-            maxDistanceToBeam = cms.double(1.0)
-        )])
-
+               algorithm = cms.string('AdaptiveVertexFitter'),
+               chi2cutoff = cms.double(2.5),
+               minNdof=cms.double(2.0),
+               useBeamConstraint = cms.bool(True),
+               maxDistanceToBeam = cms.double(1.0),
+               )
+        ])
 
 process.options.wantSummary = True
 
