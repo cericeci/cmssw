@@ -1,34 +1,4 @@
 import FWCore.ParameterSet.Config as cms
-
-## Validation step
-"""
-tpClusterProducer = cms.EDProducer("ClusterTPAssociationProducer",
-    mightGet = cms.optional.untracked.vstring,
-    phase2OTClusterSrc = cms.InputTag("siPhase2Clusters"),
-    phase2OTSimLinkSrc = cms.InputTag("simSiPixelDigis","Tracker"),
-    pixelClusterSrc = cms.InputTag("siPixelClusters"),
-    pixelSimLinkSrc = cms.InputTag("simSiPixelDigis"),
-    simTrackSrc = cms.InputTag("g4SimHits"),
-    stripClusterSrc = cms.InputTag("siStripClusters"),
-    stripSimLinkSrc = cms.InputTag("simSiStripDigis"),
-    throwOnMissingCollections = cms.bool(True),
-    trackingParticleSrc = cms.InputTag("mix","MergedTrackTruth")
-)
-
-
-tpClusterProducer = cms.EDProducer("ClusterTPAssociationProducer",
-    mightGet = cms.optional.untracked.vstring,
-    phase2OTClusterSrc = cms.InputTag("siPhase2Clusters"),
-    phase2OTSimLinkSrc = cms.InputTag("simSiPixelDigis","Tracker"),
-    pixelClusterSrc = cms.InputTag("siPixelClusters"),
-    pixelSimLinkSrc = cms.InputTag("simSiPixelDigis"),
-    simTrackSrc = cms.InputTag("g4SimHits"),
-    stripClusterSrc = cms.InputTag("siStripClusters"),
-    stripSimLinkSrc = cms.InputTag("simSiStripDigis"),
-    throwOnMissingCollections = cms.bool(True),
-    trackingParticleSrc = cms.InputTag("mix","MergedTrackTruth")
-)
-"""
 from SimTracker.TrackerHitAssociation.tpClusterProducerDefault_cfi import tpClusterProducerDefault as _tpClusterProducerDefault
 
 tpClusterProducer = _tpClusterProducerDefault.clone()
@@ -78,7 +48,9 @@ vertexAnalysis = cms.EDProducer("PrimaryVertexAnalyzer4PUSlimmed",
     verbose = cms.untracked.bool(False),
     vertexAssociator = cms.untracked.InputTag("VertexAssociatorByPositionAndTracks"),
     vertexRecoCollections = cms.VInputTag(""),
-    nPUbins = cms.uint32(130)
+    nPUbins = cms.uint32(130),
+    maxEta = cms.double(2.5),
+    reco_tracks_for_reconstructable_simvertices = cms.untracked.int32(1),
     )
 
 
