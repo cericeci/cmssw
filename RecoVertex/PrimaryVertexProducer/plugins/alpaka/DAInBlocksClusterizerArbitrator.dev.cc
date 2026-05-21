@@ -6,7 +6,7 @@
 
 #include "RecoVertex/PrimaryVertexProducer/plugins/alpaka/DAInBlocksClusterizerAlgo.h"
 
-#define DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ARBITRATOR 1
+//#define DEBUG_RECOVERTEX_PRIMARYVERTEXPRODUCER_ARBITRATOR 1
 
 namespace ALPAKA_ACCELERATOR_NAMESPACE {
   using namespace cms::alpakatools;
@@ -190,7 +190,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
                                              TrackForVertexDeviceCollection::View tracks,
                                              VertexDeviceCollection::View vertices,
                                              ClusterParameters const& cParams) {
-    int blockSize = alpaka::getWorkDiv<alpaka::Grid, alpaka::Blocks>(acc)[0u];
+    int blockSize = alpaka::getWorkDiv<alpaka::Block, alpaka::Threads>(acc)[0u];
     int threadIdx = alpaka::getIdx<alpaka::Block, alpaka::Threads>(acc)[0u];
     // First put the tracks in vertex SoA
     for (int k = threadIdx; k < vertices[0].nV(); k += blockSize) {
@@ -300,15 +300,16 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
       }
       // We have to deal with the order being broken by the invalidation of vertexes and set back again the vertex multiplicity, unfortunately can't be parallelized without threads competing
       int k = 0;
-      while (k != vertices[0].nV()) {
+      int nv =  vertices[0].nV();
+      while (k < nv) {
         int thisVertex = vertices[k].order();
-        printf("%i, %i, %i\n", k, thisVertex, vertices[0].nV());
         if (thisVertex == 9999) {
           // i.e. if it was purged it was bad
           for (int l = k; l < vertices[0].nV(); l++) {
             vertices[l].order() = vertices[l + 1].order();
           }
           vertices[0].nV()--;
+	  nv--;
         } else if (vertices[thisVertex].isGood()) {  // If is good just continue
           k++;
         } else {
@@ -316,6 +317,7 @@ namespace ALPAKA_ACCELERATOR_NAMESPACE {
             vertices[l].order() = vertices[l + 1].order();
           }
           vertices[0].nV()--;  // And reduce vertex number by 1
+	  nv--;
         }
       }
     }
