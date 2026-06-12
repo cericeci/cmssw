@@ -1,23 +1,32 @@
 Based on CMSSW\_16\_1\_0\_pre4
 
+## Installation (only need to run once)
+
+cmsrel CMSSW_16_1_0_pre4
+cd CMSSW_16_1_0_pre4/src/
+git cms-init
+git cms-merge-topic cericeci:17_X_fromPR_plusTests
+scram b -j 8
+
 ## Running the vertexing 
 
-cd PrimaryVertexProducer/test
-cmsRun PrimaryVertexProducer/test/testVertexing.py -m [MODE]  -i [INPUT FILES] -o [OUTPUT FILE] 
+cmsRun testVertexing.py -m Old -i Zmumu_16X.txt -o Zmumu_RelCal_16X_New.root -d
 
-where
-[MODE] can be "Old" "InBlocks" "Alpaka"
-[INPUT FILES] can either be a single root file or a .txt with a set
-
-DQM output can be added with the '-d' option
-
-For example
-cmsRun testVertexing.py -m Alpaka  -i Zmumu\_16X.txt -o Zmumu\_RelVal\_16X.root -d
+cmsRun testVertexing.py -m InBlocks -i Zmumu_16X.txt -o Zmumu_RelCal_16X_New.root -d
 
 ## Harvesting DQM plots:
 
-cmsRun harvester.py [INPUT FILE]
+### First create file list from previous output
+echo file:$PWD/Zmumu_RelCal_16X_Old_DQM.root >> Old_DQM.txt
+
+### Then harvest and rename output
+cmsRun harvester.py inputFileList=Old_DQM.txt
+mv DQM_V0001_R000000001__Global__CMSSW_X_Y_Z__RECO.root Old.root
+
+### Same for new algo
+echo file:$PWD/Zmumu_RelCal_16X_New_DQM.root >> New_DQM.txt
+cmsRun harvester.py inputFileList=New_DQM.txt
+mv DQM_V0001_R000000001__Global__CMSSW_X_Y_Z__RECO.root New.root
 
 ## Making DQM plots from harvested files:
-
-makeTrackValidationPlots.py --extended [FILENAME1] [FILENAME2] ... 
+makeTrackValidationPlots.py --extended Old.root New.root
