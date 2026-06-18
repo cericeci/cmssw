@@ -12,6 +12,8 @@ parser.add_argument('-b', '--backend', type=str, default='auto',
 parser.add_argument('-d', '--dqm', default=False, action="store_true", help='If enabled, produce DQM plots')
 parser.add_argument('-i', '--inputFiles', type=str, default='/store/relval/CMSSW_15_0_0_pre2/RelValTTbar_14TeV/GEN-SIM-RECO/PU_141X_mcRun4_realistic_v3_STD_Run4D110_PU-v1/2590000/253f8a7f-1a05-4ae8-9065-5cff6b69b175.root', help='Run over these files, if "txt" in name, will treat it as list')
 parser.add_argument('-o', '--outputFile', type=str, default="test.root", help='Output file')
+parser.add_argument('-p' , '--ptrack', type=float, default=0.25, help='Minimum track weight')
+
 args = parser.parse_args()
 
 if "txt" in args.inputFiles:
@@ -157,6 +159,8 @@ elif args.mode == "InBlocks":
     process.offlinePrimaryVertices.TkClusParameters.TkDAClusParameters.runInBlocks = cms.bool(True)
     process.offlinePrimaryVertices.TkClusParameters.TkDAClusParameters.block_size = cms.uint32(512)
     process.offlinePrimaryVertices.TkClusParameters.TkDAClusParameters.overlap_frac = cms.double(0.5)
+    process.offlinePrimaryVertices.TkClusParameters.TkDAClusParameters.mintrkweight = cms.double(args.ptrack)
+
     process.offlinePrimaryVertices.vertexCollections = cms.VPSet(
        		[cms.PSet(label=cms.string(""),
            	algorithm=cms.string("WeightedMeanFitter"),
