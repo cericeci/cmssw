@@ -37,3 +37,19 @@ mv DQM_V0001_R000000001__Global__CMSSW_X_Y_Z__RECO.root New.root
 
 ## Making DQM plots from harvested files:
 makeTrackValidationPlots.py --extended Old.root New.root
+
+## Batch mode
+
+You ca use job submission for running samples in parallel
+
+python3 jobSubmit.py TT_OLD $PWD testVertexing.py RelValTT.txt  $PWD/Output_TT_OLD/ Old
+
+python3 jobSubmit.py TT_NEW $PWD testVertexing.py RelValTT.txt  $PWD/Output_TT_NEW/ New
+
+Once jobs are finished:
+
+for i in $PWD/Output_TT_OLD/*DQM*root  >> Old_DQM.txt
+
+for i in $PWD/Output_TT_NEW/*DQM*root  >> New_DQM.txt
+
+Harvesting and plotting steps are otherwise straightforward
